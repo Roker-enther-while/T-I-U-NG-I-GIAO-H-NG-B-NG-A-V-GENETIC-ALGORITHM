@@ -125,7 +125,7 @@ Nếu chỉ nhập danh sách tọa độ GPS thủ công thì khả thi ở m�
 
 **Ưu tiên 4.** Nên làm sau khi hệ thống ổn định với vật cản và nhiều ràng buộc cơ bản.
 
-## 3.3. Bổ sung nhiều xe giao hàng
+## 3.3. Bổ sung nhiều xe giao hàng - [ĐÃ TRIỂN KHAI]
 
 #### Mục tiêu
 
@@ -191,7 +191,7 @@ Cách 1 dễ kết hợp với GA hiện tại hơn vì vẫn giữ dạng hoán
 
 **Ưu tiên 3.** Nên làm sau khi đã ổn định phần vật cản và chuẩn hóa dữ liệu chi phí.
 
-## 3.4. Thêm ràng buộc thời gian giao hàng
+## 3.4. Thêm ràng buộc thời gian giao hàng - [ĐÃ TRIỂN KHAI]
 
 #### Mục tiêu
 
@@ -247,7 +247,7 @@ Trong đó:
 
 **Ưu tiên 2.** Đây là nâng cấp có giá trị thực tế cao và có thể triển khai bằng cách sửa fitness.
 
-## 3.5. Thêm trọng tải xe và số lượng hàng hóa
+## 3.5. Thêm trọng tải xe và số lượng hàng hóa - [ĐÃ TRIỂN KHAI]
 
 #### Mục tiêu
 

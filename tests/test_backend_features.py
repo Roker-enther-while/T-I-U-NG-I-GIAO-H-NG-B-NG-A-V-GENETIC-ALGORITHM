@@ -12,10 +12,10 @@ class BackendFeatureTests(unittest.TestCase):
         self.client = server.app.test_client()
 
     def test_astar_detours_around_obstacle(self):
-        """A* phÄ‚Â¡Ă‚ÂºĂ‚Â£i tĂ„â€Ă‚Â¬m Ä‚â€Ă¢â‚¬ËœÄ‚â€ Ă‚Â°Ä‚Â¡Ă‚Â»Ă‚Â£c Ä‚â€Ă¢â‚¬ËœÄ‚â€ Ă‚Â°Ä‚Â¡Ă‚Â»Ă‚Âng Ä‚â€Ă¢â‚¬Ëœi vĂ„â€Ă‚Â²ng thay vĂ„â€Ă‚Â¬ Ä‚â€Ă¢â‚¬Ëœi xuyĂ„â€Ă‚Âªn qua vĂ„â€Ă‚Â¹ng cÄ‚Â¡Ă‚ÂºĂ‚Â¥m."""
+        """A* phải tìm được đường đi vòng thay vì đi xuyên qua vùng cấm."""
         points = [
             {"id": 0, "x": 10, "y": 30, "name": "Kho"},
-            {"id": 1, "x": 90, "y": 30, "name": "Ä‚â€Ă‚ÂiÄ‚Â¡Ă‚Â»Ă†â€™m giao"},
+            {"id": 1, "x": 90, "y": 30, "name": "Điểm giao"},
         ]
         obstacles = [{"x_min": 40, "y_min": 20, "x_max": 60, "y_max": 40}]
         routing_points = add_obstacle_waypoints(points, obstacles)
@@ -31,10 +31,10 @@ class BackendFeatureTests(unittest.TestCase):
         self.assertGreater(len(paths[(0, 1)]), 2)
 
     def test_grid_mode_is_not_straight_line(self):
-        """ChÄ‚Â¡Ă‚ÂºĂ‚Â¿ Ä‚â€Ă¢â‚¬ËœÄ‚Â¡Ă‚Â»Ă¢â€Â¢ lÄ‚â€ Ă‚Â°Ä‚Â¡Ă‚Â»Ă¢â‚¬Âºi phÄ‚Â¡Ă‚ÂºĂ‚Â£i tÄ‚Â¡Ă‚ÂºĂ‚Â¡o Ä‚â€Ă¢â‚¬ËœÄ‚â€ Ă‚Â°Ä‚Â¡Ă‚Â»Ă‚Âng gÄ‚Â¡Ă‚ÂºĂ‚Â¥p khĂ„â€Ă‚Âºc theo Ă„â€Ă‚Â´, khĂ„â€Ă‚Â¡c Ä‚â€Ă¢â‚¬ËœÄ‚â€ Ă‚Â°Ä‚Â¡Ă‚Â»Ă‚Âng thÄ‚Â¡Ă‚ÂºĂ‚Â³ng Euclid."""
+        """Chế độ lưới phải tạo đường gấp khúc theo ô, khác đường thẳng Euclid."""
         points = [
             {"id": 0, "x": 10, "y": 10, "name": "Kho"},
-            {"id": 1, "x": 90, "y": 90, "name": "Ä‚â€Ă‚ÂiÄ‚Â¡Ă‚Â»Ă†â€™m giao"},
+            {"id": 1, "x": 90, "y": 90, "name": "Điểm giao"},
         ]
         routing_points, graph = server.build_routing_graph(points, [], "grid")
         matrix, paths = build_distance_matrix(
@@ -49,10 +49,10 @@ class BackendFeatureTests(unittest.TestCase):
         self.assertGreater(len(paths[(0, 1)]), 2)
 
     def test_road_network_mode_follows_city_roads(self):
-        """ChÄ‚Â¡Ă‚ÂºĂ‚Â¿ Ä‚â€Ă¢â‚¬ËœÄ‚Â¡Ă‚Â»Ă¢â€Â¢ mÄ‚Â¡Ă‚ÂºĂ‚Â¡ng Ä‚â€Ă¢â‚¬ËœÄ‚â€ Ă‚Â°Ä‚Â¡Ă‚Â»Ă‚Âng phÄ‚Â¡Ă‚ÂºĂ‚Â£i Ä‚â€Ă¢â‚¬Ëœi theo road_edges, khĂ„â€Ă‚Â´ng nÄ‚Â¡Ă‚Â»Ă¢â‚¬Ëœi chĂ„â€Ă‚Â©o Ä‚â€Ă¢â‚¬ËœiÄ‚Â¡Ă‚Â»Ă†â€™m giao."""
+        """Chế độ mạng đường phải đi theo road_edges, không nối chéo điểm giao."""
         points = [
             {"id": 0, "x": 0, "y": 0, "name": "Kho", "nodeId": 0},
-            {"id": 1, "x": 100, "y": 100, "name": "Ä‚â€Ă‚ÂiÄ‚Â¡Ă‚Â»Ă†â€™m giao", "nodeId": 2},
+            {"id": 1, "x": 100, "y": 100, "name": "Điểm giao", "nodeId": 2},
         ]
         road_nodes = [
             {"id": 0, "x": 0, "y": 0},
@@ -72,17 +72,17 @@ class BackendFeatureTests(unittest.TestCase):
         self.assertGreater(len(paths[(0, 1)]), 3)
 
     def test_road_network_keeps_city_roads_when_building_blocks_exist(self):
-        """NhĂ„â€Ă‚Â  nÄ‚Â¡Ă‚ÂºĂ‚Â±m trong block khĂ„â€Ă‚Â´ng Ä‚â€Ă¢â‚¬ËœÄ‚â€ Ă‚Â°Ä‚Â¡Ă‚Â»Ă‚Â£c lĂ„â€Ă‚Â m Ä‚â€Ă¢â‚¬ËœÄ‚Â¡Ă‚Â»Ă‚Â©t road_edges Ä‚â€Ă¢â‚¬ËœĂ„â€Ă‚Â£ Ä‚â€Ă¢â‚¬ËœÄ‚â€ Ă‚Â°Ä‚Â¡Ă‚Â»Ă‚Â£c UI xĂ„â€Ă‚Â¡c Ä‚â€Ă¢â‚¬ËœÄ‚Â¡Ă‚Â»Ă¢â‚¬Â¹nh lĂ„â€Ă‚Â  Ä‚â€Ă¢â‚¬ËœÄ‚â€ Ă‚Â°Ä‚Â¡Ă‚Â»Ă‚Âng."""
+        """Nhà nằm trong block không được làm đứt road_edges đã được UI xác định là đường."""
         points = [
             {"id": 0, "x": 0, "y": 50, "name": "Kho", "nodeId": 0},
-            {"id": 1, "x": 100, "y": 50, "name": "Ä‚â€Ă‚ÂiÄ‚Â¡Ă‚Â»Ă†â€™m giao", "nodeId": 1},
+            {"id": 1, "x": 100, "y": 50, "name": "Điểm giao", "nodeId": 1},
         ]
         road_nodes = [
             {"id": 0, "x": 0, "y": 50},
             {"id": 1, "x": 100, "y": 50},
         ]
         road_edges = [{"a": 0, "b": 1}]
-        building = [{"id": "building-1", "x_min": 40, "y_min": 40, "x_max": 60, "y_max": 60, "name": "NhĂ„â€Ă‚Â "}]
+        building = [{"id": "building-1", "x_min": 40, "y_min": 40, "x_max": 60, "y_max": 60, "name": "Nhà"}]
         routing_points, graph = server.build_road_network_graph(points, road_nodes, road_edges, building)
 
         road_node_0 = len(points)
@@ -90,17 +90,17 @@ class BackendFeatureTests(unittest.TestCase):
         self.assertIn(road_node_1, graph[road_node_0])
 
     def test_explicit_obstacle_blocks_road_edge(self):
-        """VÄ‚Â¡Ă‚ÂºĂ‚Â­t cÄ‚Â¡Ă‚ÂºĂ‚Â£n/Ä‚â€Ă¢â‚¬ËœÄ‚â€ Ă‚Â°Ä‚Â¡Ă‚Â»Ă‚Âng cÄ‚Â¡Ă‚ÂºĂ‚Â¥m do ngÄ‚â€ Ă‚Â°Ä‚Â¡Ă‚Â»Ă‚Âi dĂ„â€Ă‚Â¹ng cÄ‚Â¡Ă‚ÂºĂ‚Â¥u hĂ„â€Ă‚Â¬nh vÄ‚Â¡Ă‚ÂºĂ‚Â«n phÄ‚Â¡Ă‚ÂºĂ‚Â£i Ä‚â€Ă¢â‚¬ËœĂ„â€Ă‚Â³ng cÄ‚Â¡Ă‚ÂºĂ‚Â¡nh Ä‚â€Ă¢â‚¬ËœÄ‚â€ Ă‚Â°Ä‚Â¡Ă‚Â»Ă‚Âng."""
+        """Vật cản/đường cấm do người dùng cấu hình vẫn phải đóng cạnh đường."""
         points = [
             {"id": 0, "x": 0, "y": 50, "name": "Kho", "nodeId": 0},
-            {"id": 1, "x": 100, "y": 50, "name": "Ä‚â€Ă‚ÂiÄ‚Â¡Ă‚Â»Ă†â€™m giao", "nodeId": 1},
+            {"id": 1, "x": 100, "y": 50, "name": "Điểm giao", "nodeId": 1},
         ]
         road_nodes = [
             {"id": 0, "x": 0, "y": 50},
             {"id": 1, "x": 100, "y": 50},
         ]
         road_edges = [{"a": 0, "b": 1}]
-        obstacle = [{"id": 1, "x_min": 40, "y_min": 40, "x_max": 60, "y_max": 60, "name": "Ä‚â€Ă‚ÂÄ‚â€ Ă‚Â°Ä‚Â¡Ă‚Â»Ă‚Âng cÄ‚Â¡Ă‚ÂºĂ‚Â¥m"}]
+        obstacle = [{"id": 1, "x_min": 40, "y_min": 40, "x_max": 60, "y_max": 60, "name": "Đường cấm"}]
         routing_points, graph = server.build_road_network_graph(points, road_nodes, road_edges, obstacle)
 
         road_node_0 = len(points)
@@ -108,11 +108,11 @@ class BackendFeatureTests(unittest.TestCase):
         self.assertNotIn(road_node_1, graph[road_node_0])
 
     def test_sync_marks_points_inside_forbidden_area_undeliverable(self):
-        """Ä‚â€Ă‚ÂiÄ‚Â¡Ă‚Â»Ă†â€™m giao nÄ‚Â¡Ă‚ÂºĂ‚Â±m trong vĂ„â€Ă‚Â¹ng cÄ‚Â¡Ă‚ÂºĂ‚Â¥m bÄ‚Â¡Ă‚Â»Ă¢â‚¬Â¹ loÄ‚Â¡Ă‚ÂºĂ‚Â¡i khÄ‚Â¡Ă‚Â»Ă‚Âi GA vĂ„â€Ă‚Â  bĂ„â€Ă‚Â¡o giao thÄ‚Â¡Ă‚ÂºĂ‚Â¥t bÄ‚Â¡Ă‚ÂºĂ‚Â¡i."""
+        """Điểm giao nằm trong vùng cấm bị loại khỏi GA và báo giao thất bại."""
         points = [
             {"id": 0, "x": 0, "y": 0, "name": "Kho", "nodeId": 0},
-            {"id": 1, "x": 50, "y": 50, "name": "Ä‚â€Ă‚ÂiÄ‚Â¡Ă‚Â»Ă†â€™m cÄ‚Â¡Ă‚ÂºĂ‚Â¥m", "nodeId": 1, "undeliverable": True},
-            {"id": 2, "x": 100, "y": 0, "name": "Ä‚â€Ă‚ÂiÄ‚Â¡Ă‚Â»Ă†â€™m giao", "nodeId": 2},
+            {"id": 1, "x": 50, "y": 50, "name": "Điểm cấm", "nodeId": 1, "undeliverable": True},
+            {"id": 2, "x": 100, "y": 0, "name": "Điểm giao", "nodeId": 2},
         ]
         road_nodes = [
             {"id": 0, "x": 0, "y": 0},
@@ -151,7 +151,7 @@ class BackendFeatureTests(unittest.TestCase):
         self.assertEqual(synced.json["invalid_edges"][0]["b"], 9)
 
     def test_frontend_road_mode_has_no_visual_path_fallback(self):
-        """ChÄ‚Â¡Ă‚ÂºĂ‚Â¿ Ä‚â€Ă¢â‚¬ËœÄ‚Â¡Ă‚Â»Ă¢â€Â¢ mÄ‚Â¡Ă‚ÂºĂ‚Â¡ng Ä‚â€Ă¢â‚¬ËœÄ‚â€ Ă‚Â°Ä‚Â¡Ă‚Â»Ă‚Âng khĂ„â€Ă‚Â´ng Ä‚â€Ă¢â‚¬ËœÄ‚â€ Ă‚Â°Ä‚Â¡Ă‚Â»Ă‚Â£c fallback sang nÄ‚Â¡Ă‚Â»Ă¢â‚¬Ëœi tÄ‚Â¡Ă‚ÂºĂ‚Â¯t frontend."""
+        """Chế độ mạng đường không được fallback sang nối tắt frontend."""
         html = server.get_frontend_html()
         road_guard = "backendGraphMode === 'road'"
         self.assertIn(road_guard, html)
@@ -160,7 +160,7 @@ class BackendFeatureTests(unittest.TestCase):
         self.assertIn("return{path:[],cost:Infinity,found:false}", html)
 
     def test_generate_astar_and_route_paths_api(self):
-        """UI cĂ„â€Ă‚Â³ thÄ‚Â¡Ă‚Â»Ă†â€™ Ä‚â€Ă¢â‚¬Ëœi tÄ‚Â¡Ă‚Â»Ă‚Â« sinh bÄ‚Â¡Ă‚ÂºĂ‚Â£n Ä‚â€Ă¢â‚¬ËœÄ‚Â¡Ă‚Â»Ă¢â‚¬Å“ -> A* -> lÄ‚Â¡Ă‚ÂºĂ‚Â¥y path chi tiÄ‚Â¡Ă‚ÂºĂ‚Â¿t Ä‚â€Ă¢â‚¬ËœÄ‚Â¡Ă‚Â»Ă†â€™ vÄ‚Â¡Ă‚ÂºĂ‚Â½."""
+        """UI có thể đi từ sinh bản đồ -> A* -> lấy path chi tiết để vẽ."""
         generated = self.client.post("/api/generate", json={"n": 8, "obstacles": 2, "graph_mode": "road"})
         self.assertEqual(generated.status_code, 200)
         self.assertEqual(generated.json["status"], "success")
@@ -195,7 +195,7 @@ class BackendFeatureTests(unittest.TestCase):
         self.assertEqual(len(route_paths.json["route_paths"][0]), 3)
 
     def test_route_paths_rejects_unknown_point_ids(self):
-        """Route cĂ„â€Ă‚Â³ Ä‚â€Ă¢â‚¬ËœiÄ‚Â¡Ă‚Â»Ă†â€™m khĂ„â€Ă‚Â´ng tÄ‚Â¡Ă‚Â»Ă¢â‚¬Å“n tÄ‚Â¡Ă‚ÂºĂ‚Â¡i phÄ‚Â¡Ă‚ÂºĂ‚Â£i bÄ‚Â¡Ă‚Â»Ă¢â‚¬Â¹ chÄ‚Â¡Ă‚ÂºĂ‚Â·n Ä‚â€Ă¢â‚¬ËœÄ‚Â¡Ă‚Â»Ă†â€™ trĂ„â€Ă‚Â¡nh mÄ‚Â¡Ă‚ÂºĂ‚Â¥t chÄ‚Â¡Ă‚ÂºĂ‚Â·ng Ă„â€Ă‚Â¢m thÄ‚Â¡Ă‚ÂºĂ‚Â§m."""
+        """Route có điểm không tồn tại phải bị chặn để tránh mất chặng âm thầm."""
         points = [
             {"id": 0, "x": 0, "y": 0, "name": "Kho", "nodeId": 0},
             {"id": 1, "x": 50, "y": 0, "name": "P1", "nodeId": 1},
@@ -215,7 +215,7 @@ class BackendFeatureTests(unittest.TestCase):
         self.assertIn(99, route_paths.json["unknown_point_ids"])
 
     def test_astar_steps_rejects_invalid_nodes(self):
-        """A* Step phÄ‚Â¡Ă‚ÂºĂ‚Â£i trÄ‚Â¡Ă‚ÂºĂ‚Â£ lÄ‚Â¡Ă‚Â»Ă¢â‚¬â€i rĂ„â€Ă‚Âµ khi start/goal khĂ„â€Ă‚Â´ng hÄ‚Â¡Ă‚Â»Ă‚Â£p lÄ‚Â¡Ă‚Â»Ă¢â‚¬Â¡."""
+        """A* Step phải trả lỗi rõ khi start/goal không hợp lệ."""
         self.client.post("/api/generate", json={"n": 5, "obstacles": 0, "graph_mode": "straight"})
 
         bad_type = self.client.post("/api/astar_steps", json={"start": "x", "goal": 1, "heuristic": "euclidean"})
@@ -225,7 +225,7 @@ class BackendFeatureTests(unittest.TestCase):
         self.assertEqual(missing_node.status_code, 422)
 
     def test_optimize_rejects_invalid_mut_rate(self):
-        """mut_rate ngoĂ„â€Ă‚Â i [0,100] phÄ‚Â¡Ă‚ÂºĂ‚Â£i bÄ‚Â¡Ă‚Â»Ă¢â‚¬Â¹ chÄ‚Â¡Ă‚ÂºĂ‚Â·n trÄ‚â€ Ă‚Â°Ä‚Â¡Ă‚Â»Ă¢â‚¬Âºc khi chÄ‚Â¡Ă‚ÂºĂ‚Â¡y GA."""
+        """mut_rate ngoài [0,100] phải bị chặn trước khi chạy GA."""
         self.client.post("/api/generate", json={"n": 8, "obstacles": 0, "graph_mode": "straight"})
         self.client.post("/api/astar", json={"heuristic": "euclidean", "speed": 40, "graph_mode": "straight"})
         response = self.client.get("/api/optimize?mut_rate=200")
@@ -233,7 +233,7 @@ class BackendFeatureTests(unittest.TestCase):
         self.assertIn("mut_rate", response.json["message"])
 
     def test_optimize_returns_multi_vehicle_routes_and_paths(self):
-        """GA phÄ‚Â¡Ă‚ÂºĂ‚Â£i trÄ‚Â¡Ă‚ÂºĂ‚Â£ vÄ‚Â¡Ă‚Â»Ă‚Â tuyÄ‚Â¡Ă‚ÂºĂ‚Â¿n xe vĂ„â€Ă‚Â  path A* tÄ‚â€ Ă‚Â°Ä‚â€ Ă‚Â¡ng Ä‚Â¡Ă‚Â»Ă‚Â©ng cho tÄ‚Â¡Ă‚Â»Ă‚Â«ng xe."""
+        """GA phải trả về tuyến xe và path A* tương ứng cho từng xe."""
         self.client.post("/api/generate", json={"n": 8, "obstacles": 1, "graph_mode": "straight"})
         self.client.post("/api/astar", json={"heuristic": "euclidean", "speed": 40, "graph_mode": "straight"})
         response = self.client.get(

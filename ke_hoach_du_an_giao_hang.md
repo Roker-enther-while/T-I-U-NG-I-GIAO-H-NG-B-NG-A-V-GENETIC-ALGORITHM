@@ -4,11 +4,11 @@
 
 | Mục | Nội dung |
 |-----|----------|
-| **Tên đề tài** | Tối ưu đường đi giao hàng bằng A* và Genetic Algorithm (GA) |
+| **Tên đề tài** | Tối ưu đường đi giao hàng bằng A* và Genetic Algorithm (GA) cho CVRPTW |
 | **Môn học** | Trí Tuệ Nhân Tạo |
 | **Trạng thái** | ✅ **HOÀN THÀNH** |
-| **Giao diện** | **Nature Friendly UI** (Modern Teal/Green aesthetic) |
-| **Mô tả** | Ứng dụng A* tìm đường đi ngắn nhất giữa các điểm và tính thời gian di chuyển. Sau đó áp dụng GA sắp xếp thứ tự giao hàng tối ưu. |
+| **Giao diện** | **Web UI (Nature Friendly)** (Slate/Emerald aesthetic) |
+| **Mô tả** | Ứng dụng A* tìm đường đi ngắn nhất. Sau đó áp dụng GA phân bổ hạm đội (Nhiều xe, Giới hạn tải trọng, Khung giờ) và sắp xếp thứ tự giao hàng tối ưu. |
 
 ---
 
@@ -35,11 +35,12 @@ delivery_optimizer/
 │   └── distance.py           # Module 3, 7: Tính khoảng cách & Matrix
 │
 ├── algorithms/
-│   ├── astar.py              # Module 4, 5, 6: Lõi A* Step-by-step
-│   └── genetic.py            # Module 8, 9, 10, 11: Lõi GA & Elitism
+│   ├── astar.py              # Lõi A* Step-by-step
+│   └── genetic.py            # Lõi GA xử lý Multi-vehicle, Capacity, Time Windows
 │
-├── gui.py                    # Giao diện chính Nature Friendly (Tkinter/CustomTkinter)
-└── main.py                   # Entry point khởi chạy
+├── delivery_optimizer_demo.html # Giao diện Web UI (Nature Friendly)
+├── server.py                 # Backend Flask cung cấp REST API & SSE
+└── delivery_optimizer/gui.py # Desktop Launcher mở Web UI
 ```
 
 ---
@@ -48,10 +49,10 @@ delivery_optimizer/
 
 | Thành phần | Công nghệ sử dụng | Ghi chú |
 |------------|-------------------|---------|
-| **Backend** | Python 3.x | Thuật toán xây dựng thủ công (Manual implementation) |
-| **Giao diện** | CustomTkinter | Phong cách Nature Friendly, mượt mà, hỗ trợ Dark Mode |
-| **Đồ thị** | Matplotlib | Tích hợp trực tiếp vào UI, hỗ trợ vẽ lộ trình & hội tụ |
-| **Cấu trúc** | OOP & Threading | Chạy thuật toán ngầm để không gây treo giao diện |
+| **Backend** | Python 3.x (Flask) | Thuật toán xây dựng thủ công (Manual implementation). Xử lý qua REST API & SSE. |
+| **Giao diện** | HTML5 / CSS3 / JS | Phong cách Nature Friendly (Slate/Emerald), mượt mà, render trên Browser |
+| **Đồ thị** | HTML5 Canvas | Vẽ lộ trình, xe chạy (animation), và đồ thị hội tụ (Convergence Graph) |
+| **Cấu trúc** | Client-Server | Tách biệt hoàn toàn xử lý đồ họa (JS) và tính toán nặng (Python) |
 
 ---
 

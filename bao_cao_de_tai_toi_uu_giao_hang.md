@@ -35,14 +35,15 @@ Về bản chất, bài toán có liên quan đến bài toán người giao hà
 
 ### 1.4. Phạm vi và giả định
 
-Đề tài tập trung vào mô phỏng thuật toán và trực quan hóa kết quả, không xử lý đầy đủ tất cả yếu tố ngoài thực tế như kẹt xe, đơn hàng có khung giờ giao, nhiều xe giao hàng hoặc trọng tải xe. Các giả định chính:
+Đề tài đã được nâng cấp để giải quyết bài toán định tuyến phương tiện có giới hạn tải trọng và khung thời gian (CVRPTW - Capacitated Vehicle Routing Problem with Time Windows). Các tính năng chính bao gồm:
 
-- Chỉ có một xe giao hàng.
+- Hỗ trợ nhiều xe giao hàng cùng lúc (Multi-vehicle routing).
+- Giới hạn tải trọng của mỗi xe (Vehicle Capacity).
+- Khung giờ giao hàng bắt buộc đối với các đơn hàng (Time Windows).
 - Xe luôn xuất phát từ kho và quay lại kho.
 - Mỗi điểm giao hàng chỉ cần đi qua một lần.
 - Tốc độ xe được xem là hằng số theo giá trị người dùng nhập.
-- Trọng số cạnh trên đồ thị được tính theo khoảng cách giữa các điểm.
-- Kết quả GA là nghiệm tối ưu gần đúng, không khẳng định là nghiệm tối ưu tuyệt đối trong mọi trường hợp.
+- Kết quả GA là nghiệm tối ưu gần đúng, có tính đến các ràng buộc về thời gian và tải trọng, không khẳng định là nghiệm tối ưu tuyệt đối trong mọi trường hợp.
 
 ## 2. Cơ sở lý thuyết về các giải thuật áp dụng
 

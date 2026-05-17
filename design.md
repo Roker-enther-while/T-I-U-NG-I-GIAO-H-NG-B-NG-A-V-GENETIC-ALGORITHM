@@ -1,9 +1,9 @@
 # Tài Liệu Thiết Kế: Tối Ưu Đường Đi Giao Hàng Bằng A* và Genetic Algorithm
 
 ## 1. Tổng Quan Hệ Thống (System Overview)
-Hệ thống được thiết kế để giải quyết bài toán giao hàng (Vehicle Routing Problem - VRP) cho một xe bằng cách kết hợp hai thuật toán cốt lõi:
-- **A-Star (A*)**: Tìm đường đi ngắn nhất giữa hai điểm bất kỳ trên bản đồ lưới (grid) tránh các vật cản (nếu có).
-- **Genetic Algorithm (GA)**: Tối ưu hóa thứ tự các điểm giao hàng để đạt được tổng chi phí (quãng đường và thời gian) nhỏ nhất.
+Hệ thống được thiết kế để giải quyết bài toán giao hàng có giới hạn tải trọng và khung thời gian (CVRPTW - Capacitated Vehicle Routing Problem with Time Windows) bằng cách kết hợp hai thuật toán cốt lõi:
+- **A-Star (A*)**: Tìm đường đi thực tế ngắn nhất giữa hai điểm bất kỳ trên bản đồ đường phố mô phỏng.
+- **Genetic Algorithm (GA)**: Tối ưu hóa thứ tự các điểm giao hàng và phân bổ cho nhiều xe (Multiple Vehicles) tuân thủ giới hạn tải trọng (Capacity) và khung giờ giao hàng (Time Windows) để đạt được tổng chi phí (quãng đường và thời gian) nhỏ nhất.
 
 ## 2. Kiến Trúc Cụ Thể (Architecture Design)
 Hệ thống chia làm 4 module chính (Phases):
@@ -28,11 +28,12 @@ Hệ thống chia làm 4 module chính (Phases):
   - **Toán tử lai ghép (Crossover)**: Order Crossover (OX) - Lai ghép bảo toàn thứ tự để tránh trùng lặp điểm giao.
   - **Toán tử đột biến (Mutation)**: Swap Mutation - Hoán đổi ngẫu nhiên vị trí của 2 điểm.
 
-### 2.4. Module Giao Diện (Visualization & GUI)
-- **display.py / gui.py**: Giao diện người dùng sử dụng `Tkinter` (hoặc `Pygame` / `Matplotlib` tùy chọn) để:
-  - Hiển thị bản đồ và các điểm giao hàng.
-  - Hiển thị animation đường đi A* và lộ trình tổng thể từ GA.
-  - Biểu đồ hội tụ (Convergence Graph) của GA.
+### 2.4. Module Giao Diện (Visualization & Web UI)
+- **HTML5 / JS / Flask**: Giao diện người dùng sử dụng công nghệ Web thay vì Tkinter, được thiết kế theo phong cách Nature Friendly & Modern (Slate/Emerald):
+  - Hiển thị bản đồ tương tác với HTML5 Canvas mượt mà.
+  - Giao tiếp trực tiếp với lõi Python (Backend) qua REST API (Flask) và Server-Sent Events (SSE) để truyền tham số và nhận kết quả realtime.
+  - Hiển thị animation hành trình xe chạy song song (nhiều xe cùng lúc).
+  - Cung cấp các công cụ so sánh trực quan và biểu đồ hội tụ (Convergence Graph) của GA.
 
 ## 3. Luồng Dữ Luệu (Data Workflow)
 1. Sinh N điểm giao hàng ngẫu nhiên trên bản đồ (Generator).
@@ -44,6 +45,9 @@ Hệ thống chia làm 4 module chính (Phases):
 7. Truy xuất lại đường đi chi tiết (từ A*) dựa vào thứ tự tối ưu để vẽ lên giao diện.
 
 ## 4. Các Ràng Buộc & Giả Định (Constraints & Assumptions)
+- Hệ thống hỗ trợ định tuyến cho một hạm đội gồm nhiều xe (Multiple Vehicles).
+- Các đơn hàng có thể có yêu cầu về khung giờ giao (Time Windows).
+- Các xe có giới hạn về tải trọng (Capacity).
 - Xe giao hàng bắt đầu từ một kho hàng cố định.
-- Vận tốc di chuyển của xe là hằng số để tính toán thời gian.
-- Trọng tâm nằm ở việc kết hợp A* để vượt chướng ngại vật trên đường và GA để sắp xếp lịch trình.
+- Vận tốc di chuyển của xe là hằng số được tùy chỉnh trên giao diện.
+- Trọng tâm nằm ở việc kết hợp A* để tìm đường đi chính xác trên đường phố và GA để phân bổ, sắp xếp lịch trình tối ưu cho toàn bộ hạm đội xe.

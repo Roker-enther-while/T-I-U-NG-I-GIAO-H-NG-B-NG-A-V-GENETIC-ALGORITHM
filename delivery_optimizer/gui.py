@@ -1,125 +1,66 @@
-import socket
-import subprocess
+import os
 import sys
-import threading
 import time
 import webbrowser
 from pathlib import Path
-
+import subprocess
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SERVER_FILE = PROJECT_ROOT / "server.py"
-DEFAULT_PORT = 5000
 
+def launch_server():
+    print("Khởi động Backend Server (Flask)...")
+    creationflags = 0
+    if os.name == 'nt':
+        creationflags = subprocess.CREATE_NO_WINDOW
+        
+    process = subprocess.Popen(
+        [sys.executable, str(SERVER_FILE)],
+        cwd=str(PROJECT_ROOT),
+        creationflags=creationflags
+    )
+    return process
 
-class DeliveryApp:
-    """Launcher app-window cho backend Python trong server.py."""
-
-    def __init__(self, port=DEFAULT_PORT, open_browser=True):
-        self.port = port
-        self.open_browser = open_browser
-        self.url = f"http://127.0.0.1:{self.port}/"
-        self.server_process = None
-
-    def mainloop(self):
-        self.run()
-
-    def run(self):
-        if not SERVER_FILE.exists():
-            raise FileNotFoundError(f"Khong tim thay backend Python: {SERVER_FILE}")
-
-        if not is_port_available(self.port):
-            print(f"Port {self.port} dang duoc su dung. Thu mo app tai server hien co...")
-        else:
-            self.server_process = subprocess.Popen(
-                [sys.executable, str(SERVER_FILE)],
-                cwd=str(PROJECT_ROOT),
-            )
-
-        print("==================================================")
-        print("     DELIVROUTE - PYTHON BACKEND APP")
-        print("==================================================")
-        print(" Backend: server.py")
-        print(" Source thuat toan: delivery_optimizer/")
-        print(f" URL: {self.url}")
-        print(" Nhan Ctrl+C de dung app.")
-        print()
-
-        if self.open_browser:
-            threading.Thread(target=open_app_window_after_ready, args=(self.url,), daemon=True).start()
-
-        try:
-            while True:
-                if self.server_process and self.server_process.poll() is not None:
-                    raise RuntimeError("Backend server.py da dung bat thuong.")
-                time.sleep(0.5)
-        except KeyboardInterrupt:
-            print("\nDang dung DelivRoute...")
-        finally:
-            if self.server_process and self.server_process.poll() is None:
-                self.server_process.terminate()
-                try:
-                    self.server_process.wait(timeout=5)
-                except subprocess.TimeoutExpired:
-                    self.server_process.kill()
-
-
-def is_port_available(port):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.settimeout(0.2)
-        return sock.connect_ex(("127.0.0.1", port)) != 0
-
-
-def open_app_window_after_ready(url):
-    wait_for_server(url)
-    browser = find_app_browser()
-    if browser:
-        subprocess.Popen(
-            [
-                str(browser),
-                f"--app={url}",
-                "--new-window",
-                "--disable-features=Translate",
-            ],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-        return
-    webbrowser.open(url)
-
-
-def wait_for_server(url, timeout=20):
-    import urllib.request
-
-    deadline = time.time() + timeout
-    while time.time() < deadline:
-        try:
-            with urllib.request.urlopen(url, timeout=1) as response:
-                if response.status == 200:
-                    return
-        except Exception:
-            time.sleep(0.25)
-
-
-def find_app_browser():
-    candidates = [
-        Path(r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"),
-        Path(r"C:\Program Files\Microsoft\Edge\Application\msedge.exe"),
-        Path(r"C:\Program Files\Google\Chrome\Application\chrome.exe"),
-        Path(r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"),
-    ]
-    for candidate in candidates:
-        if candidate.exists():
-            return candidate
-    return None
-
-
-def main(argv=None):
-    argv = argv or sys.argv[1:]
-    open_browser = "--no-browser" not in argv
-    app = DeliveryApp(open_browser=open_browser)
-    app.mainloop()
-
+def main():
+    print("Đang kết nối Giao diện HTML với Backend Python...")
+    
+    # Chạy server ở nền
+    server_process = launch_server()
+    
+    # Đợi máy chủ Flask khởi động
+    time.sleep(2.0)
+    
+    # Mở trình duyệt với chế độ App (không có thanh địa chỉ)
+    url = "http://127.0.0.1:5000/"
+    opened = False
+    try:
+        if os.name == 'nt':
+            edge_path = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+            chrome_path = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+            
+            if os.path.exists(edge_path):
+                subprocess.Popen([edge_path, f"--app={url}"])
+                opened = True
+            elif os.path.exists(chrome_path):
+                subprocess.Popen([chrome_path, f"--app={url}"])
+                opened = True
+                
+    except Exception as e:
+        print(f"Lỗi khi mở chế độ App: {e}")
+        
+    if not opened:
+        webbrowser.open(url)
+        
+    print("\nỨng dụng đã được mở trong trình duyệt.")
+    print("Giao diện HTML (delivery_optimizer_demo.html) hiện đang được xử lý bởi backend Python.")
+    print("Vui lòng không đóng cửa sổ console này khi đang sử dụng.")
+    print("\nNhấn Ctrl+C để thoát và tắt server.")
+    
+    try:
+        server_process.wait()
+    except KeyboardInterrupt:
+        print("\nĐang tắt server...")
+        server_process.terminate()
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,2184 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>DelivRoute v5 — Urban Pathfinding</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ══════════════════════════════════════════
+   CYBERPUNK OPS — Design System
+   Aesthetic: Military-grade HUD, neon on void
+══════════════════════════════════════════ */
+:root{
+  /* Nature Friendly / Slate palette */
+  --void:#0f172a;
+  --navy:#1e293b;
+  --panel:rgba(30,41,59,.95);
+  --glass:rgba(30,41,59,.85);
+  --border:rgba(148,163,184,.25);
+  --border2:rgba(148,163,184,.15);
+  --scan:rgba(148,163,184,0);
+
+  /* Clean accents */
+  --cyan:#3b82f6; /* Blue */
+  --amber:#f59e0b; /* Amber */
+  --lime:#10b981; /* Emerald */
+  --red:#ef4444; /* Red */
+  --vio:#8b5cf6; /* Violet */
+
+  /* Text */
+  --t1:#f8fafc;
+  --t2:#94a3b8;
+  --t3:#64748b;
+
+  /* Fonts */
+  --fh:'Inter', system-ui, sans-serif;
+  --fm:'Roboto Mono', monospace;
+
+  /* No Glows (Shadows instead) */
+  --gc: 0 4px 6px -1px rgba(0,0,0,.2);
+  --ga: 0 4px 6px -1px rgba(0,0,0,.2);
+  --gl: 0 4px 6px -1px rgba(0,0,0,.2);
+}
+
+/* LIGHT THEME */
+body.light{
+  --void:#dce8f5;--navy:#e8f2fc;--panel:rgba(255,255,255,.88);
+  --glass:rgba(240,248,255,.9);--border:rgba(0,120,200,.25);--border2:rgba(0,120,200,.1);
+  --scan:rgba(0,120,200,.02);--t1:#0a1a2e;--t2:#2a4a6a;--t3:#6a8aaa;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{
+  background:var(--void);
+  color:var(--t1);
+  font-family:var(--fh);
+  position:relative;
+}
+
+/* Scan-line overlay */
+body::before{
+  content:'';position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,var(--scan) 2px,var(--scan) 4px);
+  animation:scanroll 8s linear infinite;
+}
+@keyframes scanroll{from{background-position:0 0}to{background-position:0 100px}}
+
+/* Corner brackets decoration */
+body::after{
+  content:'';position:fixed;inset:8px;z-index:1;pointer-events:none;
+  border:1px solid rgba(0,212,255,.06);border-radius:8px;
+}
+
+/* ─── MAP CANVAS ─── */
+#mc{
+  position:fixed;inset:0;width:100%;height:100%;display:block;
+  cursor:crosshair;z-index:0;
+}
+
+/* ─── UI LAYER ─── */
+#ui{position:fixed;inset:0;pointer-events:none;z-index:10;}
+#ui *{pointer-events:all;}
+
+/* ─── PANEL BASE (glassmorphism military) ─── */
+.panel{
+  background:var(--panel);
+  backdrop-filter:blur(16px) saturate(120%);
+  -webkit-backdrop-filter:blur(16px) saturate(120%);
+  border:1px solid var(--border);
+  border-radius:8px;
+  position:relative;
+}
+/* Corner tick marks */
+.panel::before,.panel::after{ display: none; }
+.panel::before{top:-1px;left:-1px;border-width:1.5px 0 0 1.5px;}
+.panel::after{bottom:-1px;right:-1px;border-width:0 1.5px 1.5px 0;}
+
+/* ─── TOP BAR ─── */
+#topbar{
+  position:absolute;top:12px;left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:16px;
+  padding:10px 24px;pointer-events:all;
+  white-space:nowrap;
+}
+.logo{
+  font-family:var(--fh);font-size:20px;font-weight:700;
+  color:var(--cyan);letter-spacing:2px;text-transform:uppercase;
+  text-shadow:var(--gc);
+}
+.logo em{color:var(--amber);font-style:normal;}
+.top-sep{width:1px;height:18px;background:var(--border);}
+#hbadge{
+  font-family:var(--fm);font-size:11px;padding:3px 10px;
+  border:1px solid var(--cyan);border-radius:6px;color:var(--cyan);
+  letter-spacing:2px;text-shadow:var(--gc);
+  animation:blink 2s ease-in-out infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.7}}
+#topstatus{font-family:var(--fm);font-size:11px;color:var(--t2);letter-spacing:.5px;}
+#themeBtn{
+  background:transparent;border:1px solid var(--border);border-radius:8px;
+  padding:5px 12px;font-family:var(--fm);font-size:10px;color:var(--t2);
+  cursor:pointer;transition:all .2s;letter-spacing:1px;
+}
+#themeBtn:hover{border-color:var(--cyan);color:var(--cyan);}
+
+/* ─── MODE BUTTONS (left) ─── */
+#modes{
+  position:absolute;top:12px;left:12px;
+  display:flex;flex-direction:column;gap:5px;
+}
+.modeBtn{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 16px;cursor:pointer;transition:all .2s;
+  font-family:var(--fm);font-size:11px;color:var(--t2);
+  letter-spacing:1px;text-transform:uppercase;min-width:210px;
+  position:relative;overflow:hidden;
+}
+.modeBtn::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:2px;
+  background:transparent;transition:background .2s;
+}
+.modeBtn:hover{color:var(--t1);border-color:rgba(0,212,255,.3);}
+.modeBtn:hover::before{background:var(--cyan);}
+.modeBtn.active{color:var(--cyan);border-color:var(--cyan);}
+.modeBtn.active::before{background:var(--cyan);box-shadow:var(--gc);}
+.modeBtn .mic{font-size:14px;width:20px;text-align:center;flex-shrink:0;}
+
+/* ─── RIGHT ACTION BUTTONS ─── */
+#rpanel{
+  position:absolute;top:12px;right:12px;
+  display:flex;flex-direction:column;gap:5px;align-items:flex-end;
+}
+.fpBtn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:10px 18px;cursor:pointer;transition:all .2s;
+  font-family:var(--fm);font-size:11px;color:var(--t2);
+  letter-spacing:1px;text-transform:uppercase;min-width:160px;
+}
+.fpBtn:hover{color:var(--cyan);border-color:var(--cyan);}
+.fpBtn.danger{color:var(--amber);border-color:var(--amber);}
+.fpBtn.danger:hover{box-shadow:var(--ga);}
+#fp-run{color:var(--lime);border-color:var(--lime) !important;}
+#fp-run:hover{box-shadow:var(--gl);}
+
+/* ─── DRAWERS ─── */
+.drawer{
+  position:fixed;top:0;right:-400px;width:360px;height:100%;
+  background:rgba(15,23,42,.98);
+  border-left:1px solid var(--border);
+  border-radius:16px 0 0 16px;
+  transition:right .3s cubic-bezier(.4,0,.2,1);
+  z-index:200;display:flex;flex-direction:column;
+}
+.drawer.open{right:0;}
+.drh{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;border-bottom:1px solid var(--border2);flex-shrink:0;
+}
+.drh h3{
+  font-family:var(--fm);font-size:13px;color:var(--cyan);
+  letter-spacing:2px;text-transform:uppercase;text-shadow:var(--gc);
+}
+.drclose{
+  background:none;border:1px solid var(--border);border-radius:8px;
+  color:var(--t2);cursor:pointer;font-size:16px;padding:2px 8px;
+  transition:all .2s;
+}
+.drclose:hover{border-color:var(--red);color:var(--red);}
+.drbody{flex:1;overflow-y:auto;padding:16px 18px;}
+.drbody::-webkit-scrollbar{width:3px;}
+.drbody::-webkit-scrollbar-thumb{background:var(--border);}
+
+/* Drawer section */
+.DG{margin-bottom:18px;}
+.DGL{
+  font-family:var(--fm);font-size:9px;letter-spacing:3px;color:var(--t3);
+  text-transform:uppercase;margin-bottom:12px;
+  display:flex;align-items:center;gap:8px;
+}
+.DGL::after{content:'';flex:1;height:1px;background:var(--border2);}
+.DC{margin-bottom:10px;}
+.DCL{
+  font-family:var(--fm);font-size:11px;color:var(--t2);
+  margin-bottom:5px;display:flex;justify-content:space-between;
+}
+.DCL b{color:var(--cyan);font-weight:600;}
+
+input[type=range]{
+  width:100%;cursor:pointer;height:6px;
+  -webkit-appearance:none;background:var(--border2);border-radius:8px;outline:none;
+  accent-color:var(--cyan);
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:14px;height:14px;
+  border-radius:50%;background:var(--cyan);cursor:pointer;
+  box-shadow:0 0 8px rgba(0,212,255,.5);
+}
+select{
+  width:100%;background:rgba(0,20,40,.6);color:var(--t1);
+  border:1px solid var(--border);border-radius:8px;
+  padding:7px 10px;font-family:var(--fm);font-size:11px;
+  cursor:pointer;outline:none;
+}
+select:focus{border-color:var(--cyan);}
+
+/* Buttons in drawer */
+.Btn{
+  width:100%;padding:10px 14px;border-radius:8px;
+  font-family:var(--fm);font-size:11px;font-weight:600;
+  letter-spacing:1.5px;cursor:pointer;transition:all .2s;
+  text-transform:uppercase;margin-top:7px;display:block;
+  border:none;text-align:center;
+}
+.Btn:first-child{margin-top:0;}
+.Bc{background:var(--cyan);color:#000;}
+.Bc:hover{box-shadow:var(--gc);transform:translateY(-1px);}
+.Bo{background:transparent;color:var(--amber);border:1px solid var(--amber);}
+.Bo:hover{box-shadow:var(--ga);}
+.Bl{background:var(--lime);color:#000;}
+.Bl:hover{box-shadow:var(--gl);transform:translateY(-1px);}
+.Bd{background:rgba(0,212,255,.08);color:var(--cyan);border:1px solid var(--border);}
+.Bd:hover{border-color:var(--cyan);}
+.Bv{background:transparent;color:var(--vio);border:1px solid rgba(157,111,255,.3);}
+.Bv:hover{border-color:var(--vio);}
+.Btn:disabled{opacity:.25;cursor:not-allowed;transform:none!important;}
+
+/* Progress bar */
+.pbar-wrap{height:6px;background:var(--border2);border-radius:8px;overflow:hidden;margin-top:6px;}
+.pbar{height:100%;background:linear-gradient(90deg,var(--cyan),var(--lime));width:0%;transition:width .2s;}
+
+/* Preset grid */
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.pb{
+  padding:10px 8px;border-radius:8px;cursor:pointer;text-align:center;
+  font-family:var(--fm);font-size:10px;line-height:1.7;transition:all .2s;
+  border:1px solid var(--border2);color:var(--t2);
+  background:rgba(0,212,255,.03);
+}
+.pb:hover,.pb.on{border-color:var(--cyan);color:var(--cyan);background:rgba(0,212,255,.07);}
+
+/* Stat cards */
+.SG{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.SC{
+  background:rgba(0,212,255,.04);border:1px solid var(--border2);
+  border-radius:8px;padding:10px 12px;
+}
+.SV{font-family:var(--fm);font-size:20px;font-weight:700;color:var(--cyan);line-height:1;margin-bottom:3px;text-shadow:var(--gc);}
+.SV.o{color:var(--amber);text-shadow:var(--ga);}
+.SV.g{color:var(--lime);text-shadow:var(--gl);}
+.SV.v{color:var(--vio);}
+.SL{font-family:var(--fm);font-size:9px;color:var(--t3);letter-spacing:1px;text-transform:uppercase;}
+
+/* Compare table */
+.ctbl{width:100%;border-collapse:collapse;}
+.ctbl th{font-family:var(--fm);font-size:9px;letter-spacing:1.5px;color:var(--t3);
+  padding:5px 6px;text-align:left;border-bottom:1px solid var(--border2);text-transform:uppercase;}
+.ctbl td{padding:7px 6px;font-family:var(--fm);font-size:11px;
+  border-bottom:1px solid rgba(0,212,255,.05);}
+.tg{color:var(--lime);font-weight:700;}.tr{color:var(--amber);font-weight:700;}
+
+/* Route list */
+.RL{max-height:320px;overflow-y:auto;}
+.RL::-webkit-scrollbar{width:2px;}
+.RL::-webkit-scrollbar-thumb{background:var(--border);}
+.RI{
+  display:flex;align-items:center;gap:10px;padding:8px 0;
+  border-bottom:1px solid var(--border2);font-size:13px;
+  font-family:var(--fh);animation:fin .3s ease forwards;opacity:0;
+}
+.RI:last-child{border-bottom:none;}
+.RN{
+  font-family:var(--fm);font-size:9px;width:24px;height:24px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  background:rgba(0,212,255,.08);color:var(--cyan);border:1px solid var(--border);
+}
+.RN.dp{background:rgba(255,184,48,.15);border-color:var(--amber);color:var(--amber);}
+.RD{margin-left:auto;font-family:var(--fm);font-size:10px;color:var(--t3);}
+@keyframes fin{to{opacity:1;}}
+
+/* ─── ON-MAP HUDs ─── */
+#vhud{
+  position:absolute;bottom:100px;left:50%;transform:translateX(-50%);
+  padding:10px 28px;font-family:var(--fm);font-size:13px;color:var(--lime);
+  display:none;white-space:nowrap;pointer-events:none;
+  text-shadow:var(--gl);letter-spacing:1px;
+}
+
+/* Bottom stats bar */
+#statsHUD{
+  position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
+  display:flex;align-items:stretch;pointer-events:none;
+  overflow:hidden;
+}
+.sh{text-align:center;padding:12px 24px;border-right:1px solid var(--border2);}
+.sh:last-child{border-right:none;}
+.shv{font-family:var(--fm);font-size:18px;font-weight:700;color:var(--cyan);text-shadow:var(--gc);}
+.shv.o{color:var(--amber);text-shadow:var(--ga);}
+.shv.g{color:var(--lime);text-shadow:var(--gl);}
+.shl{font-family:var(--fm);font-size:9px;color:var(--t3);margin-top:3px;letter-spacing:2px;text-transform:uppercase;}
+
+/* Zoom controls */
+#zoom{position:absolute;bottom:14px;right:14px;display:flex;gap:4px;}
+#zoom button{
+  width:38px;height:38px;background:var(--panel);
+  border:1px solid var(--border);border-radius:8px;color:var(--t2);
+  font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .15s;font-family:var(--fm);backdrop-filter:blur(8px);
+}
+#zoom button:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:var(--gc);}
+
+/* Scale bar */
+#scalebar{
+  position:absolute;bottom:18px;left:14px;
+  padding:5px 12px;font-family:var(--fm);font-size:10px;color:var(--t3);
+  letter-spacing:1px;
+}
+
+/* A* overlay */
+#asoverlay{
+  display:none;position:absolute;top:70px;left:14px;
+  padding:16px 18px;font-family:var(--fm);font-size:11px;
+  min-width:270px;z-index:50;
+}
+.as-title{
+  color:var(--cyan);font-size:13px;font-weight:700;margin-bottom:12px;
+  letter-spacing:2px;text-transform:uppercase;text-shadow:var(--gc);
+  padding-bottom:8px;border-bottom:1px solid var(--border2);
+}
+.as-seg{
+  background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.15);
+  border-radius:8px;padding:10px 12px;margin-bottom:12px;
+}
+.as-seg-lbl{color:var(--t3);font-size:9px;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;}
+#as-seg-label{color:var(--t1);font-size:13px;font-weight:700;line-height:1.5;font-family:var(--fh);}
+#as-seg-progress{color:var(--t3);font-size:10px;margin-top:3px;}
+.as-grid{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;margin-bottom:12px;}
+.as-k{color:var(--t3);font-size:10px;}
+.as-v{font-size:11px;color:var(--t1);}
+.as-v.c{color:var(--cyan);}.as-v.a{color:var(--amber);font-weight:700;font-size:13px;}
+.as-v.o{color:var(--amber);}.as-v.g{color:var(--lime);}
+#as-msg{
+  color:var(--amber);font-size:11px;min-height:18px;margin-bottom:12px;
+  padding:7px 10px;background:rgba(255,184,48,.07);border-radius:8px;
+  border-left:2px solid var(--amber);line-height:1.6;
+}
+.as-btns{display:flex;gap:5px;pointer-events:all;margin-bottom:10px;}
+.as-btns button{
+  flex:1;padding:8px 4px;border-radius:8px;cursor:pointer;
+  font-family:var(--fm);font-size:10px;letter-spacing:1px;transition:all .15s;
+}
+.asbtn-nav{background:rgba(0,212,255,.07);border:1px solid var(--border);color:var(--cyan);}
+.asbtn-nav:hover{border-color:var(--cyan);}
+.asbtn-skip{background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.35);color:var(--cyan);}
+.asbtn-done{background:rgba(255,184,48,.08);border:1px solid rgba(255,184,48,.35);color:var(--amber);}
+.as-prog-lbl{color:var(--t3);font-size:9px;margin-bottom:4px;letter-spacing:1px;}
+#as-overall{color:var(--cyan);}
+.as-prog-bar-wrap{height:4px;background:var(--border2);border-radius:8px;overflow:hidden;}
+#as-prog-bar{height:100%;background:linear-gradient(90deg,var(--cyan),var(--lime));width:0%;transition:width .3s;}
+
+/* Modal */
+#modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.85);
+  z-index:500;display:none;align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);
+}
+#modal-overlay.on{display:flex;}
+.modal{
+  background:rgba(2,10,22,.98);border:1px solid var(--border);
+  border-radius:8px;padding:28px;max-width:580px;width:92%;max-height:88vh;overflow-y:auto;
+  position:relative;
+}
+.modal::before,.modal::after{
+  content:'';position:absolute;width:16px;height:16px;
+  border-color:var(--cyan);border-style:solid;
+}
+.modal::before{top:-1px;left:-1px;border-width:2px 0 0 2px;}
+.modal::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0;}
+.modal h3{
+  font-family:var(--fm);color:var(--cyan);margin-bottom:18px;font-size:14px;
+  letter-spacing:2px;text-transform:uppercase;text-shadow:var(--gc);
+}
+.mcl{
+  float:right;background:none;border:1px solid var(--border);border-radius:8px;
+  color:var(--t2);cursor:pointer;font-size:16px;padding:1px 8px;
+  transition:all .2s;
+}
+.mcl:hover{border-color:var(--red);color:var(--red);}
+.modal table{width:100%;border-collapse:collapse;font-family:var(--fm);}
+.modal th{color:var(--t3);font-size:9px;letter-spacing:1.5px;text-align:left;
+  padding:6px 8px;border-bottom:1px solid var(--border2);text-transform:uppercase;}
+.modal td{padding:8px 8px;border-bottom:1px solid rgba(0,212,255,.04);font-size:12px;}
+.banner{
+  margin-top:18px;background:rgba(57,255,110,.04);
+  border:1px solid rgba(57,255,110,.18);border-radius:8px;padding:16px;text-align:center;
+}
+.banner-pct{font-family:var(--fm);font-size:36px;font-weight:700;color:var(--lime);text-shadow:var(--gl);}
+.banner-sub{font-family:var(--fm);font-size:11px;color:var(--t2);margin-top:5px;letter-spacing:.5px;}
+.mrow{display:flex;gap:8px;margin-top:18px;}
+.mrow button{
+  flex:1;padding:11px;border-radius:8px;font-family:var(--fm);
+  font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1.5px;
+  border:none;text-transform:uppercase;transition:all .2s;
+}
+.mb0{background:rgba(255,255,255,.05);color:var(--t2);border:1px solid var(--border2)!important;border:none;}
+.mb1{background:var(--lime);color:#000;}
+.mb1:hover{box-shadow:var(--gl);}
+
+/* Tooltip */
+#tip{
+  position:fixed;display:none;z-index:300;pointer-events:none;
+  background:rgba(2,10,22,.97);border:1px solid var(--border);
+  border-radius:8px;padding:10px 14px;font-family:var(--fm);font-size:12px;
+  line-height:1.7;min-width:150px;
+}
+</style>
+</head>
+<body>
+<canvas id="mc"></canvas>
+
+<div id="ui">
+  <!-- TOP CENTER BAR -->
+  <div id="topbar" class="panel">
+    <div class="logo">Deliv<em>Route</em></div>
+    <div class="top-sep"></div>
+    <span id="hbadge">STANDBY</span>
+    <div class="top-sep"></div>
+    <span id="topstatus">CHỌN CHẾ ĐỘ ĐỂ BẮT ĐẦU</span>
+    <div class="top-sep"></div>
+    <button onclick="toggleTheme()" id="themeBtn">☀ SÁNG</button>
+  </div>
+
+  <!-- LEFT: MODES -->
+  <div id="modes">
+    <div class="modeBtn panel active" id="mb0" onclick="setMode(0)">
+      <span class="mic">⊕</span>A* + GA (KẾT HỢP)
+    </div>
+    <div class="modeBtn panel" id="mb1" onclick="setMode(1)">
+      <span class="mic">★</span>CHỈ A* (TUẦN TỰ)
+    </div>
+    <div class="modeBtn panel" id="mb2" onclick="setMode(2)">
+      <span class="mic">◈</span>CHỈ GA (DI TRUYỀN)
+    </div>
+    <div class="modeBtn panel" id="mb3" onclick="setMode(3)">
+      <span class="mic">⚡</span>SO SÁNH A* VS GA
+    </div>
+  </div>
+
+  <!-- RIGHT: ACTIONS -->
+  <div id="rpanel">
+    <div class="fpBtn panel" onclick="toggleDrawer('dr-setup')">⚙ CẤU HÌNH</div>
+    <div class="fpBtn panel" id="fp-run" onclick="doRun()">▶ CHẠY</div>
+    <div class="fpBtn panel" id="fp-step" onclick="toggleStepMode()" style="display:none">⏭ A* STEP</div>
+    <div class="fpBtn panel" id="fp-result" onclick="toggleDrawer('dr-result')" style="display:none">📊 KẾT QUẢ</div>
+    <div class="fpBtn panel danger" id="fp-cmp" onclick="showCompareModal()" style="display:none">⚡ SO SÁNH</div>
+    <div class="fpBtn panel" id="fp-export" onclick="doExport()" style="display:none">↗ XUẤT PNG</div>
+    <div class="fpBtn panel" id="fp-replay" onclick="replayAll()" style="display:none">↩ PHÁT LẠI</div>
+    <div class="fpBtn panel" onclick="toggleDrawer('dr-route')" id="fp-route" style="display:none">◎ LỘ TRÌNH</div>
+  </div>
+
+  <!-- A* STEP OVERLAY -->
+  <div id="asoverlay" class="panel">
+    <div class="as-title">▸ A* STEP-BY-STEP</div>
+    <div class="as-seg">
+      <div class="as-seg-lbl">ĐOẠN ĐƯỜNG</div>
+      <div id="as-seg-label">—</div>
+      <div id="as-seg-progress">—</div>
+    </div>
+    <div class="as-grid">
+      <span class="as-k">BƯỚC</span>        <span id="as-step" class="as-v">—</span>
+      <span class="as-k">NODE XÉT</span>    <span id="as-node" class="as-v c">—</span>
+      <span class="as-k">g(n) THỰC TẾ</span><span id="as-g" class="as-v">—</span>
+      <span class="as-k">h(n) ƯỚC TÍNH</span><span id="as-h" class="as-v">—</span>
+      <span class="as-k">f(n) = g + h</span><span id="as-f" class="as-v a">—</span>
+      <span class="as-k">OPEN LIST</span>   <span id="as-o" class="as-v o">—</span>
+      <span class="as-k">CLOSED LIST</span> <span id="as-c" class="as-v">—</span>
+      <span class="as-k">CHI PHÍ ĐOẠN</span><span id="as-cost" class="as-v g">—</span>
+    </div>
+    <div id="as-msg">—</div>
+    <div class="as-btns">
+      <button onclick="stepPrev()" id="stbPrev" class="asbtn-nav">◀ PREV</button>
+      <button onclick="stepNext()" id="stbNext" class="asbtn-nav">NEXT ▶</button>
+      <button onclick="stepNextSeg()" id="stbSeg" class="asbtn-skip">⏭ KẾ</button>
+      <button onclick="finishStep()" class="asbtn-done">✓ XONG</button>
+    </div>
+    <div class="as-prog-lbl">TỔNG TIẾN ĐỘ: <span id="as-overall">0/0 ĐOẠN</span></div>
+    <div class="as-prog-bar-wrap"><div id="as-prog-bar"></div></div>
+  </div>
+
+  <!-- VEHICLE HUD -->
+  <div id="vhud" class="panel">
+    🛵 <span id="vfrom">—</span> ──▶ <span id="vto">—</span>
+    <span style="color:var(--t3);margin:0 8px">|</span>
+    <span id="vdist">—</span>
+  </div>
+
+  <!-- BOTTOM STATS -->
+  <div id="statsHUD" class="panel">
+    <div class="sh"><div class="shv" id="sh-dist">—</div><div class="shl">KM ĐÃ ĐI</div></div>
+    <div class="sh"><div class="shv o" id="sh-time">—</div><div class="shl">THỜI GIAN</div></div>
+    <div class="sh"><div class="shv g" id="sh-stops">—</div><div class="shl">ĐIỂM ĐÃ GIAO</div></div>
+    <div class="sh"><div class="shv" id="sh-mode">A*+GA</div><div class="shl">CHẾ ĐỘ</div></div>
+  </div>
+
+  <!-- ZOOM -->
+  <div id="zoom">
+    <button onclick="zoom(1.2)">+</button>
+    <button onclick="zoom(0.83)">−</button>
+    <button onclick="fitPts()" title="Fit view">⊙</button>
+  </div>
+  <div id="scalebar" class="panel">— KM</div>
+  <div id="tip"></div>
+
+  <!-- LOG (hidden, used by JS) -->
+  <div id="logbox" style="display:none;position:absolute;bottom:200px;left:14px;
+    width:280px;max-height:120px;overflow-y:auto;
+    font-family:var(--fm);font-size:9px;color:var(--lime);line-height:1.6;
+    background:rgba(2,8,16,.85);border:1px solid var(--border2);
+    border-radius:8px;padding:6px 10px;pointer-events:none;z-index:5;"></div>
+</div>
+
+<!-- DRAWER: SETUP -->
+<div class="drawer" id="dr-setup">
+  <div class="drh">
+    <h3>⚙ CẤU HÌNH HỆ THỐNG</h3>
+    <button class="drclose" onclick="closeDrawer('dr-setup')">✕</button>
+  </div>
+  <div class="drbody">
+    <div class="DG">
+      <div class="DGL">Kịch bản nhanh</div>
+      <div class="pgrid">
+        <div class="pb" onclick="loadPreset('urban')" id="p-urban">🏙 NỘI THÀNH<br><small>18đ · 30km/h</small></div>
+        <div class="pb" onclick="loadPreset('suburb')" id="p-suburb">🌿 NGOẠI Ô<br><small>8đ · 60km/h</small></div>
+        <div class="pb" onclick="loadPreset('mixed')" id="p-mixed">🗺 HỖN HỢP<br><small>14đ · 40km/h</small></div>
+        <div class="pb" onclick="loadPreset('stress')" id="p-stress">🔥 STRESS<br><small>24đ · 25km/h</small></div>
+      </div>
+    </div>
+    <div class="DG">
+      <div class="DGL">Bản đồ</div>
+      <div class="DC">
+        <div class="DCL">Số điểm giao <b id="nv">12</b></div>
+        <input type="range" id="np" min="4" max="24" value="12" oninput="$('nv').textContent=this.value"/>
+      </div>
+      <div class="DC">
+        <div class="DCL">Tốc độ xe (km/h) <b id="sv">40</b></div>
+        <input type="range" id="spd" min="20" max="80" value="40" step="5" oninput="$('sv').textContent=this.value"/>
+      </div>
+      <div class="DC">
+        <div class="DCL">Tốc độ animation <b id="aspv">5</b>×</div>
+        <input type="range" id="aspd" min="1" max="20" value="5" oninput="$('aspv').textContent=this.value;VEH_SPEED=+this.value*0.001"/>
+      </div>
+      <div class="DC">
+        <div class="DCL">Heuristic A*</div>
+        <select id="heur">
+          <option value="euclidean">EUCLIDEAN DISTANCE</option>
+          <option value="manhattan">MANHATTAN DISTANCE</option>
+        </select>
+      </div>
+      <div class="DC">
+        <div class="DCL">Số xe giao hàng <b id="vehs_v">2</b></div>
+        <input type="range" id="vehicles" min="1" max="5" value="2" oninput="$('vehs_v').textContent=this.value"/>
+      </div>
+      <div class="DC">
+        <div class="DCL">Tải trọng xe <b id="cap_v">24</b></div>
+        <input type="range" id="capacity" min="5" max="50" value="24" oninput="$('cap_v').textContent=this.value"/>
+      </div>
+      <button class="Btn Bc" id="timeWindowsToggle" data-on="1" onclick="this.dataset.on = this.dataset.on === '1' ? '0' : '1'; this.textContent = this.dataset.on === '1' ? '⏰ BẬT KHUNG GIỜ GIAO' : '⏰ TẮT KHUNG GIỜ GIAO'" style="margin-bottom:8px">⏰ BẬT KHUNG GIỜ GIAO</button>
+      <button class="Btn Bc" onclick="doGen();closeDrawer('dr-setup')">⟳ TẠO BẢN ĐỒ MỚI</button>
+    </div>
+    <div class="DG">
+      <div class="DGL">Tham số GA</div>
+      <div class="DC">
+        <div class="DCL">Quần thể <b id="pv">80</b></div>
+        <input type="range" id="ps" min="20" max="200" value="80" step="10" oninput="$('pv').textContent=this.value"/>
+      </div>
+      <div class="DC">
+        <div class="DCL">Thế hệ <b id="gv">300</b></div>
+        <input type="range" id="gens" min="50" max="1000" value="300" step="50" oninput="$('gv').textContent=this.value"/>
+      </div>
+      <div class="DC">
+        <div class="DCL">Tỷ lệ đột biến <b id="mv">3%</b></div>
+        <input type="range" id="mr" min="1" max="15" value="3" oninput="$('mv').textContent=this.value+'%'"/>
+      </div>
+    </div>
+    <div class="DG">
+      <div class="DGL">Tiến trình GA</div>
+      <div style="font-family:var(--fm);font-size:11px;color:var(--t2);margin-bottom:5px;">
+        Thế hệ: <span id="ga-cur" style="color:var(--cyan)">0</span>/<span id="ga-max">—</span>
+        &nbsp;·&nbsp; Fitness: <span id="ga-fit" style="color:var(--lime)">—</span>
+      </div>
+      <div class="pbar-wrap"><div class="pbar" id="ga-bar"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- DRAWER: RESULT -->
+<div class="drawer" id="dr-result">
+  <div class="drh">
+    <h3>📊 KẾT QUẢ PHÂN TÍCH</h3>
+    <button class="drclose" onclick="closeDrawer('dr-result')">✕</button>
+  </div>
+  <div class="drbody">
+    <div class="DG">
+      <div class="DGL">Thống kê lộ trình</div>
+      <div class="SG">
+        <div class="SC"><div class="SV" id="rs-dist">—</div><div class="SL">TỔNG KM</div></div>
+        <div class="SC"><div class="SV o" id="rs-time">—</div><div class="SL">THỜI GIAN</div></div>
+        <div class="SC"><div class="SV g" id="rs-stops">—</div><div class="SL">ĐIỂM GIAO</div></div>
+        <div class="SC"><div class="SV v" id="rs-imp">—</div><div class="SL">CẢI THIỆN</div></div>
+      </div>
+    </div>
+    <div class="DG">
+      <div class="DGL">Đường hội tụ GA</div>
+      <canvas id="cc" style="width:100%;height:110px;display:block;background:rgba(0,212,255,.02);border:1px solid var(--border2);border-radius:8px;"></canvas>
+    </div>
+    <div class="DG" id="cmp-section" style="display:none">
+      <div class="DGL">So sánh nhanh</div>
+      <div id="cmp-quick"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DRAWER: ROUTE -->
+<div class="drawer" id="dr-route">
+  <div class="drh">
+    <h3>◎ LỘ TRÌNH TỐI ƯU</h3>
+    <button class="drclose" onclick="closeDrawer('dr-route')">✕</button>
+  </div>
+  <div class="drbody">
+    <div class="RL" id="rlist">
+      <div style="color:var(--t3);font-size:11px;text-align:center;padding:16px 0;font-family:var(--fm);">CHẠY THUẬT TOÁN ĐỂ XEM LỘ TRÌNH</div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPARE MODAL -->
+<div id="modal-overlay">
+  <div class="modal">
+    <button class="mcl" onclick="closeMdl()">✕</button>
+    <h3>⚡ SO SÁNH CHI TIẾT: A* vs GA</h3>
+    <table>
+      <thead><tr><th>CHỈ SỐ</th><th>A* TUẦN TỰ</th><th>A*+GA TỐI ƯU</th><th>KẾT LUẬN</th></tr></thead>
+      <tbody id="cmp-body"></tbody>
+    </table>
+    <div class="banner">
+      <div class="banner-pct" id="cmp-pct">—</div>
+      <div class="banner-sub" id="cmp-sub">CHẠY CHẾ ĐỘ SO SÁNH ĐỂ XEM KẾT QUẢ</div>
+    </div>
+    <div class="mrow">
+      <button class="mb0" onclick="closeMdl()">ĐÓNG</button>
+      <button class="mb1" onclick="doExport()">↗ XUẤT PNG</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ══════════════════════════════════════════════════════════
+// GLOBALS
+// ══════════════════════════════════════════════════════════
+// Safe getElementById — never throws null
+const $=id=>document.getElementById(id);
+// Safe setters
+const setText=(id,v)=>{const e=$(id);if(e)e.textContent=v;};
+const setStyle=(id,prop,v)=>{const e=$(id);if(e)e.style[prop]=v;};
+const setDisabled=(id,v)=>{const e=$(id);if(e)e.disabled=v;};
+const rnd=(a,b)=>Math.random()*(b-a)+a;
+const rni=(a,b)=>Math.floor(rnd(a,b));
+const dst=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+const lerp=(a,b,t)=>a+(b-a)*t;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+const cv=$('mc'), ctx=cv.getContext('2d');
+const CC=$('cc'), cctx=CC.getContext('2d');
+
+// Camera
+let cam={x:0,y:0,s:1};
+let drag={on:false,sx:0,sy:0,ox:0,oy:0};
+
+// World dimensions (large urban grid)
+const CW=2800, CH=2000;
+const CELL=120; // road grid cell size px
+
+// Map data
+let roadNodes=[];   // {id,x,y}
+let roadEdges=[];   // {a,b,cost} — only along roads
+let nodeGrid=[];    // nodeGrid[col][row] = node_id
+let GCOLS, GROWS;
+
+// Delivery points
+let pts=[];
+const NAMES=['Chợ Bến Thành','Bình Thạnh','Gò Vấp','Tân Phú','Quận 7','Thủ Đức',
+  'Nhà Bè','Hóc Môn','Củ Chi','Bình Dương','Long An','Đồng Nai','Cần Giờ',
+  'Bình Chánh','Quận 12','Tân Bình','Phú Nhuận','Quận 3','Quận 8','Quận 9',
+  'Quận 10','Quận 11','Bình Tân','Tây Ninh'];
+
+// Results per mode
+let results={
+  0:{dist:0,time:0,order:[],roadPaths:[]},  // A*+GA
+  1:{dist:0,time:0,order:[],roadPaths:[]},  // A* only
+  2:{dist:0,time:0,order:[],roadPaths:[]},  // GA only
+};
+let dm=[];  // distance matrix (road A*)
+let conv=[];// GA convergence
+
+// Current mode
+let MODE=0;
+
+// Vehicle animation
+let VEH_SPEED=0.005;
+let vehs=[];  // [{on,seg,t,x,y,ang,trail,order,paths,col,label}]
+let animRAF=null;
+let doneSet=new Set();
+let animDist=0, animSeg=0;
+
+// A* step mode
+let stepMode=false, stepStates=[], stepIdx=0;
+let stepNodeSrc=0, stepNodeDst=1;
+
+// Visual city elements
+let buildings=[], parks=[], waterBodies=[];
+
+// ══════════════════════════════════════════════════════════
+// DRAWER / MODAL HELPERS
+// ══════════════════════════════════════════════════════════
+function toggleDrawer(id){
+  const d=$(id);
+  if(d.classList.contains('open'))d.classList.remove('open');
+  else{
+    document.querySelectorAll('.drawer').forEach(x=>x.classList.remove('open'));
+    d.classList.add('open');
+    if(id==='dr-result')drawConv();
+  }
+}
+function closeDrawer(id){$(id).classList.remove('open');}
+function closeMdl(){const ov=$('modal-overlay');if(ov)ov.classList.remove('on');}
+const _movEl=document.getElementById('modal-overlay');
+if(_movEl)_movEl.addEventListener('click',e=>{if(e.target===_movEl)closeMdl();});
+
+// ══════════════════════════════════════════════════════════
+// CANVAS & CAMERA
+// ══════════════════════════════════════════════════════════
+function resizeCV(){
+  cv.width=window.innerWidth;cv.height=window.innerHeight;
+  CC.width=CC.offsetWidth||240;CC.height=CC.offsetHeight||100;
+}
+window.addEventListener('resize',resizeCV);
+
+function W2S(x,y){return{x:x*cam.s+cam.x,y:y*cam.s+cam.y};}
+function S2W(x,y){return{x:(x-cam.x)/cam.s,y:(y-cam.y)/cam.s};}
+
+function zoom(f,cx,cy){
+  cx=cx??cv.width/2;cy=cy??cv.height/2;
+  const w=S2W(cx,cy);
+  cam.s=clamp(cam.s*f,0.18,4);
+  cam.x=cx-w.x*cam.s;cam.y=cy-w.y*cam.s;
+  updateScaleBar();
+}
+function resetView(){
+  // Fit toàn bộ city map vào màn hình
+  const padding=60;
+  const s=Math.min(
+    (cv.width-padding*2)/CW,
+    (cv.height-padding*2)/CH,
+    1.4
+  );
+  cam.s=Math.max(s,0.2);
+  cam.x=cv.width/2-(CW/2)*cam.s;
+  cam.y=cv.height/2-(CH/2)*cam.s;
+  updateScaleBar();
+}
+function fitPts(){
+  // Fit theo các điểm giao hàng (zoom vào khu vực có điểm)
+  if(!pts.length){resetView();return;}
+  const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y);
+  const x0=Math.min(...xs)-300,x1=Math.max(...xs)+300;
+  const y0=Math.min(...ys)-300,y1=Math.max(...ys)+300;
+  const s=Math.min(cv.width/(x1-x0),cv.height/(y1-y0),1.6);
+  cam.s=Math.max(s,0.2);
+  cam.x=cv.width/2-((x0+x1)/2)*cam.s;
+  cam.y=cv.height/2-((y0+y1)/2)*cam.s;
+  updateScaleBar();
+}
+function updateScaleBar(){
+  const km=(100/cam.s)*0.04;
+  $('scalebar').textContent=km<1?`${(km*1000).toFixed(0)} m`:`${km.toFixed(1)} km`;
+}
+
+// Pan
+cv.addEventListener('mousedown',e=>{
+  drag={on:true,sx:e.clientX,sy:e.clientY,ox:cam.x,oy:cam.y};
+  cv.style.cursor='grabbing';
+});
+window.addEventListener('mousemove',e=>{
+  if(drag.on){cam.x=drag.ox+(e.clientX-drag.sx);cam.y=drag.oy+(e.clientY-drag.sy);}
+  handleTip(e);
+});
+window.addEventListener('mouseup',()=>{drag.on=false;cv.style.cursor='default';});
+cv.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const r=cv.getBoundingClientRect();
+  zoom(e.deltaY<0?1.1:0.91,e.clientX-r.left,e.clientY-r.top);
+},{passive:false});
+
+// ══════════════════════════════════════════════════════════
+// CITY MAP GENERATION (realistic grid with road network)
+// ══════════════════════════════════════════════════════════
+function buildCity(){
+  roadNodes=[];roadEdges=[];nodeGrid=[];
+  buildings=[];parks=[];waterBodies=[];
+
+  GCOLS=Math.ceil(CW/CELL)+1;
+  GROWS=Math.ceil(CH/CELL)+1;
+
+  // Create road intersections at every grid point
+  for(let c=0;c<GCOLS;c++){
+    nodeGrid[c]=[];
+    for(let r=0;r<GROWS;r++){
+      const id=roadNodes.length;
+      const jitter=0; // intersections on grid
+      roadNodes.push({id,x:c*CELL,y:r*CELL,col:c,row:r});
+      nodeGrid[c][r]=id;
+    }
+  }
+
+  // Build adjacency: horizontal and vertical edges
+  // Some roads removed to create dead-ends and block variety
+  const blockedH=new Set(); // blocked horizontal edges
+  const blockedV=new Set();
+  // Randomly block ~15% of edges to make routing interesting
+  for(let c=0;c<GCOLS-1;c++)for(let r=0;r<GROWS;r++)
+    if(Math.random()<0.12)blockedH.add(`${c},${r}`);
+  for(let c=0;c<GCOLS;c++)for(let r=0;r<GROWS-1;r++)
+    if(Math.random()<0.12)blockedV.add(`${c},${r}`);
+
+  for(let c=0;c<GCOLS-1;c++){
+    for(let r=0;r<GROWS;r++){
+      if(blockedH.has(`${c},${r}`))continue;
+      const a=nodeGrid[c][r], b=nodeGrid[c+1][r];
+      const isMain=r%3===0;
+      const w=isMain?18:9;
+      roadEdges.push({a,b,w,main:isMain,horizontal:true});
+    }
+  }
+  for(let c=0;c<GCOLS;c++){
+    for(let r=0;r<GROWS-1;r++){
+      if(blockedV.has(`${c},${r}`))continue;
+      const a=nodeGrid[c][r], b=nodeGrid[c][r+1];
+      const isMain=c%3===0;
+      const w=isMain?18:9;
+      roadEdges.push({a,b,w,main:isMain,horizontal:false});
+    }
+  }
+
+  // Build adjacency list for pathfinding
+  buildAdjacency();
+
+  // City blocks (between roads)
+  for(let c=0;c<GCOLS-1;c++){
+    for(let r=0;r<GROWS-1;r++){
+      const bx=c*CELL+2, by=r*CELL+2;
+      const bw=CELL-4, bh=CELL-4;
+      if(Math.random()<0.08){
+        // park — bake tree positions
+        const trees=[];
+        for(let t=0;t<4;t++)trees.push({x:bx+rnd(8,bw-8),y:by+rnd(8,bh-8)});
+        parks.push({x:bx,y:by,w:bw,h:bh,trees});
+      } else if(Math.random()<0.04){
+        // water
+        waterBodies.push({x:bx+10,y:by+10,w:bw-20,h:bh-20});
+      } else {
+        // buildings cluster
+        const pad=12,bpad=4;
+        const hw=(bw-pad*2)/2, hh=(bh-pad*2)/2;
+        [[0,0],[hw+bpad,0],[0,hh+bpad],[hw+bpad,hh+bpad]].forEach(([ox,oy])=>{
+          if(Math.random()<.8){
+            buildings.push({
+              x:bx+pad+ox, y:by+pad+oy,
+              w:hw-bpad, h:hh-bpad,
+              fl:rni(1,10),
+              col:`hsl(${rni(200,240)},${rni(10,28)}%,${rni(12,20)}%)`
+            });
+          }
+        });
+      }
+    }
+  }
+}
+
+// Adjacency list for A* on road network
+let adj={}; // adj[nodeId] = [{to, cost}]
+function buildAdjacency(){
+  adj={};
+  roadNodes.forEach(n=>{adj[n.id]=[];});
+  roadEdges.forEach(e=>{
+    const na=roadNodes[e.a], nb=roadNodes[e.b];
+    const cost=dst(na,nb);
+    adj[e.a].push({to:e.b,cost});
+    adj[e.b].push({to:e.a,cost}); // bidirectional
+  });
+}
+
+// Find nearest road node to a point
+function nearestNode(x,y){
+  let best=null,bDist=Infinity;
+  roadNodes.forEach(n=>{
+    const d=dst(n,{x,y});
+    if(d<bDist){bDist=d;best=n.id;}
+  });
+  return best;
+}
+
+// ══════════════════════════════════════════════════════════
+// A* ON ROAD NETWORK
+// ══════════════════════════════════════════════════════════
+function H(a,b){
+  const na=roadNodes[a],nb=roadNodes[b];
+  return $('heur').value==='manhattan'
+    ?Math.abs(na.x-nb.x)+Math.abs(na.y-nb.y)
+    :dst(na,nb);
+}
+
+function astarRoad(src,dst_id){
+  // Returns {path:[nodeIds], cost}
+  const gS={}; gS[src]=0;
+  const cameFrom={};
+  const open=[{id:src,f:H(src,dst_id)}];
+  const closed=new Set();
+  while(open.length){
+    open.sort((a,b)=>a.f-b.f);
+    const cur=open.shift();
+    if(cur.id===dst_id){
+      let path=[dst_id],node=dst_id;
+      while(cameFrom[node]!=null){node=cameFrom[node];path.unshift(node);}
+      return{path,cost:gS[dst_id]};
+    }
+    if(closed.has(cur.id))continue;
+    closed.add(cur.id);
+    (adj[cur.id]||[]).forEach(({to,cost})=>{
+      if(closed.has(to))return;
+      const tg=(gS[cur.id]||0)+cost;
+      if(tg<(gS[to]??Infinity)){
+        cameFrom[to]=cur.id;
+        gS[to]=tg;
+        open.push({id:to,f:tg+H(to,dst_id)});
+      }
+    });
+  }
+  // fallback straight
+  return{path:[src,dst_id],cost:dst(roadNodes[src],roadNodes[dst_id])};
+}
+
+// Build full distance matrix (road-based A*)
+function buildDM(){
+  const n=pts.length;
+  dm=Array.from({length:n},()=>new Array(n).fill(0));
+  for(let i=0;i<n;i++)for(let j=0;j<n;j++){
+    if(i===j)continue;
+    const {cost}=astarRoad(pts[i].nodeId,pts[j].nodeId);
+    dm[i][j]=cost;
+  }
+}
+
+// Get road path between two point indices
+function getRoadPath(pi,pj){
+  return astarRoad(pts[pi].nodeId,pts[pj].nodeId).path;
+}
+
+// ══════════════════════════════════════════════════════════
+// A* STEP MODE (single pair, visualized)
+// ══════════════════════════════════════════════════════════
+function buildStepStates(src,dst_id){
+  const arr=[];
+  const gS={}; gS[src]=0;
+  const cameFrom={};
+  const open=[{id:src,f:H(src,dst_id)}];
+  const closed=new Set();
+  let iter=0;
+  while(open.length&&iter<800){
+    iter++;
+    open.sort((a,b)=>a.f-b.f);
+    const cur=open.shift();
+    if(closed.has(cur.id))continue;
+    closed.add(cur.id);
+    // path so far
+    let path=[cur.id],node=cur.id;
+    while(cameFrom[node]!=null){node=cameFrom[node];path.unshift(node);}
+    arr.push({
+      step:iter,current:cur.id,
+      g:gS[cur.id]||0,h:H(cur.id,dst_id),
+      f:(gS[cur.id]||0)+H(cur.id,dst_id),
+      openSet:open.map(o=>o.id),
+      closedSet:[...closed],
+      path:[...path]
+    });
+    if(cur.id===dst_id)break;
+    (adj[cur.id]||[]).forEach(({to,cost})=>{
+      if(closed.has(to))return;
+      const tg=(gS[cur.id]||0)+cost;
+      if(tg<(gS[to]??Infinity)){
+        cameFrom[to]=cur.id;
+        gS[to]=tg;
+        open.push({id:to,f:tg+H(to,dst_id)});
+      }
+    });
+  }
+  return arr;
+}
+
+// ══════════════════════════════════════════════════════════
+// A* STEP MODE — duyệt từng đoạn trong lộ trình
+// ══════════════════════════════════════════════════════════
+let _stepSt=null;
+// stepMode state
+// stepSegs = [{from, to, states[]}]  — all segments
+// stepSegIdx = which segment we're in
+// stepIdx = which step inside current segment
+let stepSegs=[], stepSegIdx=0;
+
+function buildAllSegments(order){
+  // order = [0, p1, p2, ..., pn, 0]
+  const segs=[];
+  for(let i=0;i<order.length-1;i++){
+    const from=order[i], to=order[i+1];
+    const states=buildStepStates(pts[from].nodeId, pts[to].nodeId);
+    segs.push({from, to, states});
+  }
+  return segs;
+}
+
+function toggleStepMode(){
+  if(stepMode){exitStepMode();return;}
+  if(pts.length<2)return;
+
+  // Build a sequential route order for stepping through
+  const order=[0,...Array.from({length:pts.length-1},(_,i)=>i+1),0];
+  setStatus('Đang xây dựng các bước A*...');
+  setTimeout(()=>{
+    stepSegs=buildAllSegments(order);
+    stepSegIdx=0; stepIdx=0; stepMode=true;
+    setStyle('asoverlay','display','block');
+    setText('fp-step','✕ Thoát Step');
+    renderStepState();
+    setStatus(`A* Step: ${order.length-1} đoạn đường, nhấn ▶ để xem từng bước`);
+  },20);
+}
+
+function exitStepMode(){
+  stepMode=false; _stepSt=null;
+  setStyle('asoverlay','display','none');
+  setText('fp-step','⏭ A* Step');
+  setStatus('Đã thoát chế độ step-by-step');
+}
+
+function renderStepState(){
+  if(!stepSegs.length)return;
+  const seg=stepSegs[stepSegIdx];
+  if(!seg||!seg.states.length)return;
+
+  const s=seg.states[Math.min(stepIdx, seg.states.length-1)];
+  _stepSt=s;
+
+  // Node info
+  const n=roadNodes[s.current];
+  const fromPt=pts[seg.from], toPt=pts[seg.to];
+
+  // Segment label
+  const segLbl=`${fromPt.name} → ${toPt.name}`;
+  setText('as-seg-label', segLbl);
+  setText('as-seg-progress',
+    `Đoạn ${stepSegIdx+1}/${stepSegs.length} · Bước ${stepIdx+1}/${seg.states.length}`);
+
+  // Metrics
+  setText('as-step',  `${stepIdx+1} / ${seg.states.length}`);
+  setText('as-node',  `${fromPt.isDepot?'KHO':fromPt.name} → nút (${n.col},${n.row})`);
+  setText('as-g',     s.g.toFixed(1)+' px  (đã đi)');
+  setText('as-h',     s.h.toFixed(1)+' px  (còn lại ước tính)');
+  setText('as-f',     s.f.toFixed(1)+' px');
+  setText('as-o',     s.openSet.length+' node đang chờ xét');
+  setText('as-c',     s.closedSet.length+' node đã xét');
+
+  // Cost so far for this segment
+  const segCost=s.g;
+  setText('as-cost',  segCost.toFixed(1)+' px ≈ '+(segCost*0.04).toFixed(2)+' km');
+
+  // Status message
+  const isLast= stepIdx>=seg.states.length-1;
+  const isDone= s.current===pts[seg.to].nodeId;
+  let msg='';
+  if(isDone||isLast){
+    msg=`✓ Đã tìm ra đường đến "${toPt.name}"! Chi phí: ${s.g.toFixed(0)}px`;
+    if(stepSegIdx<stepSegs.length-1)msg+=' → Nhấn ⏭ Kế để sang đoạn tiếp';
+    else msg+=' → Nhấn ✓ để kết thúc';
+  } else {
+    const nodesPending=s.openSet.length;
+    if(nodesPending===0) msg='Open list rỗng — không tìm thấy đường đi!';
+    else msg=`Đang xét node có f(n) nhỏ nhất (${s.f.toFixed(0)}px)...`;
+  }
+  setText('as-msg', msg);
+
+  // Overall progress
+  const totalSegs=stepSegs.length;
+  const doneSegs=stepSegIdx;
+  const pct=Math.round((doneSegs/totalSegs)*100);
+  setText('as-overall', `${doneSegs}/${totalSegs} đoạn hoàn thành`);
+  setStyle('as-prog-bar','width', pct+'%');
+
+  // Button states
+  setDisabled('stbPrev', stepIdx<=0 && stepSegIdx<=0);
+  setDisabled('stbNext', isLast && stepSegIdx>=stepSegs.length-1);
+  setDisabled('stbSeg',  stepSegIdx>=stepSegs.length-1);
+
+  // Focus camera on current node being examined
+  if(n&&cam.s>0.5){
+    const sp=W2S(n.x,n.y);
+    const mg=180;
+    if(sp.x<mg)cam.x+=8; else if(sp.x>cv.width-mg)cam.x-=8;
+    if(sp.y<mg)cam.y+=8; else if(sp.y>cv.height-mg)cam.y-=8;
+  }
+}
+
+function stepNext(){
+  if(!stepSegs.length)return;
+  const seg=stepSegs[stepSegIdx];
+  if(stepIdx<seg.states.length-1){
+    stepIdx++;
+  } else {
+    // At end of this segment, auto-advance to next
+    stepNextSeg();
+    return;
+  }
+  renderStepState();
+}
+
+function stepPrev(){
+  if(stepIdx>0){
+    stepIdx--;
+  } else if(stepSegIdx>0){
+    stepSegIdx--;
+    stepIdx=stepSegs[stepSegIdx].states.length-1;
+  }
+  renderStepState();
+}
+
+function stepNextSeg(){
+  if(stepSegIdx<stepSegs.length-1){
+    stepSegIdx++;
+    stepIdx=0;
+    renderStepState();
+  }
+}
+
+function finishStep(){exitStepMode();}
+
+// ══════════════════════════════════════════════════════════
+// GENETIC ALGORITHM (manual)
+// ══════════════════════════════════════════════════════════
+function rndChrom(n){
+  const a=Array.from({length:n},(_,i)=>i+1);
+  for(let i=a.length-1;i>0;i--){const j=rni(0,i+1);[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+function fitGA(c){
+  let t=dm[0][c[0]];
+  for(let i=0;i<c.length-1;i++)t+=dm[c[i]][c[i+1]];
+  return t+dm[c[c.length-1]][0];
+}
+function tourSel(pop,k=5){
+  let b=null,bf=Infinity;
+  for(let i=0;i<k;i++){const c=pop[rni(0,pop.length)];const f=fitGA(c);if(f<bf){bf=f;b=c;}}
+  return b;
+}
+function oxCross(p1,p2){
+  const n=p1.length,a=rni(0,n),b=rni(a+1,n+1);
+  const ch=new Array(n).fill(-1);
+  for(let i=a;i<b;i++)ch[i]=p1[i];
+  let pos=b%n,src=b%n,filled=b-a;
+  while(filled<n){if(!ch.includes(p2[src])){ch[pos]=p2[src];pos=(pos+1)%n;filled++;}src=(src+1)%n;}
+  return ch;
+}
+function mutate(c,rate){
+  const ch=[...c];
+  for(let i=0;i<ch.length;i++)if(Math.random()<rate/100){const j=rni(0,ch.length);[ch[i],ch[j]]=[ch[j],ch[i]];}
+  return ch;
+}
+async function runGA(){
+  const n=pts.length-1;
+  const popSz=+$('ps').value,G=+$('gens').value,mutR=+$('mr').value;
+  const elite=Math.max(2,Math.floor(popSz*.08));
+  conv=[];
+  setText('ga-max',G);
+  let pop=Array.from({length:popSz},()=>rndChrom(n));
+  for(let g=0;g<G;g++){
+    const ev=pop.map(c=>({c,f:fitGA(c)})).sort((a,b)=>a.f-b.f);
+    conv.push(ev[0].f);
+    if(g%10===0||g===G-1){
+      setText('ga-cur',g+1);
+      setStyle('ga-bar','width',((g+1)/G*100)+'%');
+      setText('ga-fit',ev[0].f.toFixed(0));
+      await new Promise(r=>setTimeout(r,0));
+    }
+    const np=ev.slice(0,elite).map(e=>e.c);
+    while(np.length<popSz){let ch=oxCross(tourSel(pop),tourSel(pop));ch=mutate(ch,mutR);np.push(ch);}
+    pop=np;
+  }
+  const fin=pop.map(c=>({c,f:fitGA(c)})).sort((a,b)=>a.f-b.f);
+  return{order:[0,...fin[0].c,0],cost:fin[0].f};
+}
+
+// ══════════════════════════════════════════════════════════
+// GENERATE POINTS
+// ══════════════════════════════════════════════════════════
+function doGen(){
+  const n=+$('np').value;
+  buildCity();
+  pts=[];dm=[];conv=[];doneSet.clear();
+  vehs=[];animDist=0;animSeg=0;
+  results={0:{dist:0,time:0,order:[],roadPaths:[]},1:{dist:0,time:0,order:[],roadPaths:[]},2:{dist:0,time:0,order:[],roadPaths:[]}};
+  if(animRAF){cancelAnimationFrame(animRAF);animRAF=null;}
+
+  // Depot at center-ish intersection
+  const dc=Math.floor(GCOLS/2), dr=Math.floor(GROWS/2);
+  const depotNode=nodeGrid[dc][dr];
+  const dn=roadNodes[depotNode];
+  pts.push({id:0,x:dn.x,y:dn.y,name:'KHO HÀNG',isDepot:true,nodeId:depotNode});
+
+  const used=new Set([depotNode]);
+  let tries=0;
+  while(pts.length-1<n&&tries<500){
+    tries++;
+    const c=rni(1,GCOLS-1),r=rni(1,GROWS-1);
+    const nid=nodeGrid[c][r];
+    if(used.has(nid))continue;
+    if(dst(roadNodes[nid],dn)<CELL*2)continue;
+    used.add(nid);
+    const node=roadNodes[nid];
+    const ni=rni(0,NAMES.length);
+    pts.push({id:pts.length,x:node.x,y:node.y,name:NAMES[ni%NAMES.length],nodeId:nid});
+  }
+
+  setStatus(`Bản đồ: ${pts.length-1} điểm giao, ${roadNodes.length} nút giao thông`);
+  setText('hbadge','READY');
+  setStyle('fp-step','display','flex');
+  setStyle('fp-result','display','none');
+  setStyle('fp-cmp','display','none');
+  setStyle('fp-export','display','none');
+  setStyle('fp-replay','display','none');
+  setStyle('fp-route','display','none');
+  // Ensure canvas has correct size before computing view
+  resizeCV();
+  fitPts();
+}
+
+// ══════════════════════════════════════════════════════════
+// MODE CONTROL
+// ══════════════════════════════════════════════════════════
+function setMode(m){
+  MODE=m;
+  document.querySelectorAll('.modeBtn').forEach((b,i)=>b.classList.toggle('active',i===m));
+  const labels=['A*+GA','A* Tuần tự','GA Di truyền','So sánh A* vs GA'];
+  setText('sh-mode',labels[m]);
+  setStatus(`Chế độ: ${labels[m]} — Nhấn ▶ Chạy`);
+}
+
+// ══════════════════════════════════════════════════════════
+// MAIN RUN DISPATCHER
+// ══════════════════════════════════════════════════════════
+async function doRun(){
+  if(!pts.length){doGen();}
+  exitStepMode();
+  vehs=[];doneSet.clear();animDist=0;
+  if(animRAF){cancelAnimationFrame(animRAF);animRAF=null;}
+
+  setStyle('fp-run','pointerEvents','none');
+  setText('fp-run','⏳ Đang chạy...');
+  setText('hbadge','RUNNING');
+
+  setStatus('Đang xây ma trận khoảng cách (A*)...');
+  await new Promise(r=>setTimeout(r,20));
+  buildDM();
+
+  if(MODE===0) await runMode0();
+  else if(MODE===1) await runMode1();
+  else if(MODE===2) await runMode2();
+  else await runMode3();
+
+  setStyle('fp-run','pointerEvents','');
+  setText('fp-run','▶ Chạy');
+  setStyle('fp-result','display','flex');
+  setStyle('fp-cmp','display',MODE===3?'flex':'none');
+  setStyle('fp-export','display','flex');
+  setStyle('fp-replay','display','flex');
+  setStyle('fp-route','display','flex');
+  setText('hbadge','DONE');
+  startAnim();
+}
+
+// ─── Mode 0: A* + GA ───────────────────────────
+async function runMode0(){
+  setStatus('Chạy GA tối ưu thứ tự...');
+  const {order,cost}=await runGA();
+  // Build road paths for full route
+  const paths=[];
+  let totalCost=0;
+  for(let i=0;i<order.length-1;i++){
+    const p=getRoadPath(order[i],order[i+1]);
+    paths.push(p);
+    totalCost+=dm[order[i]][order[i+1]];
+  }
+  results[0]={dist:totalCost,time:0,order,roadPaths:paths};
+  setResult(0,totalCost);
+  // One motorbike, cyan color
+  vehs=[makeVeh(order,paths,'#00d4ff','A*+GA')];
+}
+
+// ─── Mode 1: A* only, sequential ───────────────
+async function runMode1(){
+  setStatus('A* tìm đường tuần tự...');
+  const order=[0,...Array.from({length:pts.length-1},(_,i)=>i+1),0];
+  const paths=[],totalArr=[];
+  for(let i=0;i<order.length-1;i++){
+    paths.push(getRoadPath(order[i],order[i+1]));
+    totalArr.push(dm[order[i]][order[i+1]]);
+  }
+  const totalCost=totalArr.reduce((a,b)=>a+b,0);
+  results[1]={dist:totalCost,time:0,order,roadPaths:paths};
+  setResult(1,totalCost);
+  vehs=[makeVeh(order,paths,'#ff7b35','A* Tuần tự')];
+}
+
+// ─── Mode 2: GA only (using straight-line dm approx) ─
+async function runMode2(){
+  setStatus('GA tìm thứ tự tối ưu (không có A* road path)...');
+  const {order,cost}=await runGA();
+  // Road paths still needed for animation
+  const paths=[];
+  let totalCost=0;
+  for(let i=0;i<order.length-1;i++){
+    paths.push(getRoadPath(order[i],order[i+1]));
+    totalCost+=dm[order[i]][order[i+1]];
+  }
+  results[2]={dist:totalCost,time:0,order,roadPaths:paths};
+  setResult(2,totalCost);
+  vehs=[makeVeh(order,paths,'#a78bfa','GA Di truyền')];
+}
+
+// ─── Mode 3: Compare A* vs GA side by side ─────
+async function runMode3(){
+  const spd=+($('spd')?.value||40);
+
+  // ── Step 1: A* sequential ──
+  setStatus('Chạy A* tuần tự...');
+  await new Promise(r=>setTimeout(r,20));
+  const ordA=[0,...Array.from({length:pts.length-1},(_,i)=>i+1),0];
+  const pathsA=[];let costA=0;
+  const t0A=performance.now();
+  for(let i=0;i<ordA.length-1;i++){
+    pathsA.push(getRoadPath(ordA[i],ordA[i+1]));
+    costA+=dm[ordA[i]][ordA[i+1]];
+  }
+  const timeA=performance.now()-t0A;
+  const minsA=Math.round(costA*0.04/spd*60);
+  results[1]={
+    dist:costA, time:minsA, execMs:timeA,
+    order:ordA, roadPaths:pathsA,
+    nodes: ordA.length-2, // delivery stops
+    label:'A* Tuần tự', col:'#ff7b35'
+  };
+
+  // ── Step 2: GA + A* ──
+  setStatus('Chạy GA tối ưu thứ tự...');
+  const t0G=performance.now();
+  const {order:ordG, cost:gaFitness}=await runGA();
+  const pathsG=[];let costG=0;
+  for(let i=0;i<ordG.length-1;i++){
+    pathsG.push(getRoadPath(ordG[i],ordG[i+1]));
+    costG+=dm[ordG[i]][ordG[i+1]];
+  }
+  const timeG=performance.now()-t0G;
+  const minsG=Math.round(costG*0.04/spd*60);
+  results[0]={
+    dist:costG, time:minsG, execMs:timeG,
+    order:ordG, roadPaths:pathsG,
+    nodes: ordG.length-2,
+    label:'A*+GA', col:'#7ee787'
+  };
+
+  // ── Step 3: Update HUD stats (show GA result as primary) ──
+  const kmG=(costG*0.04).toFixed(1);
+  const hG=Math.floor(minsG/60),mG=minsG%60;
+  const imp=((costA-costG)/costA*100).toFixed(1);
+  setText('rs-dist', kmG+' km');
+  setText('rs-time', `${hG}g${mG}p`);
+  setText('rs-stops', (pts.length-1)+' điểm');
+  setText('rs-imp', '▼'+imp+'%');
+  setText('sh-dist', kmG);
+  setText('sh-time', `${hG}g${mG}p`);
+  setText('sh-stops','0/'+(pts.length-1));
+  renderRouteList(ordG);
+
+  setStatus(`So sánh xong — GA tiết kiệm ${imp}% so với A* tuần tự`);
+
+  // ── Step 4: Two bikes ──
+  vehs=[
+    makeVeh(ordA,pathsA,'#ff7b35','A* Tuần tự'),
+    makeVeh(ordG,pathsG,'#7ee787','GA Tối ưu')
+  ];
+
+  // Auto open compare modal after animation starts
+  setTimeout(showCompareModal, 800);
+}
+
+function setResult(modeIdx,cost){
+  const spd=+($('spd')?.value||40);
+  const km=(cost*0.04).toFixed(1);
+  const mins=Math.round(cost*0.04/spd*60);
+  const h=Math.floor(mins/60),m=mins%60;
+  results[modeIdx].dist=cost;
+  results[modeIdx].time=mins;
+  setText('rs-dist',km+' km');
+  setText('rs-time',`${h}g${m}p`);
+  setText('rs-stops',(pts.length-1)+' điểm');
+  setText('rs-imp','—');
+  setText('sh-dist',km);
+  setText('sh-time',`${h}g${m}p`);
+  setText('sh-stops','0/'+(pts.length-1));
+  renderRouteList(results[modeIdx].order);
+}
+
+function setStatus(msg){setText('topstatus',msg);}
+
+// ══════════════════════════════════════════════════════════
+// VEHICLE FACTORY
+// ══════════════════════════════════════════════════════════
+const SC=0.04; // px to km scale
+function makeVeh(order,paths,col,label){
+  // Flatten all waypoints from road paths
+  const waypoints=[];
+  for(let i=0;i<paths.length;i++){
+    const path=paths[i];
+    const start=i===0?0:1; // avoid duplicate at junctions
+    for(let j=start;j<path.length;j++){
+      waypoints.push(roadNodes[path[j]]);
+    }
+  }
+  return{
+    on:true,wpIdx:0,t:0,
+    x:waypoints[0].x,y:waypoints[0].y,
+    ang:0,trail:[],
+    waypoints,order,paths,
+    col,label,
+    deliveredPts:new Set(),
+    totalDist:0,distKm:0,
+    wheelRot:0,
+    // which delivery point index we're heading to
+    nextPtIdx:1
+  };
+}
+
+// ══════════════════════════════════════════════════════════
+// ANIMATION TICK (inside RAF)
+// ══════════════════════════════════════════════════════════
+function tickVehs(){
+  vehs.forEach(v=>{
+    if(!v.on)return;
+    v.t+=VEH_SPEED;
+    if(v.t>=1){
+      v.t=0;
+      // moved to next waypoint
+      const prev=v.waypoints[v.wpIdx];
+      v.wpIdx++;
+      if(v.wpIdx>=v.waypoints.length-1){
+        v.on=false;
+        return;
+      }
+      const seg=v.waypoints[v.wpIdx];
+      v.totalDist+=dst(prev,seg);
+      v.distKm=(v.totalDist*SC).toFixed(2);
+      // check if reached a delivery point
+      v.order.forEach((ptIdx,i)=>{
+        if(ptIdx>0&&!v.deliveredPts.has(ptIdx)){
+          const ptNode=pts[ptIdx].nodeId;
+          if(ptNode===seg.id){
+            v.deliveredPts.add(ptIdx);
+            if(vehs.length===1)doneSet.add(ptIdx);
+          }
+        }
+      });
+    }
+    const a=v.waypoints[v.wpIdx], b=v.waypoints[Math.min(v.wpIdx+1,v.waypoints.length-1)];
+    // ease in-out
+    const et=v.t<.5?2*v.t*v.t:1-(-2*v.t+2)**2/2;
+    v.x=lerp(a.x,b.x,et);
+    v.y=lerp(a.y,b.y,et);
+    v.ang=Math.atan2(b.y-a.y,b.x-a.x);
+    v.wheelRot+=0.25;
+    v.trail.push({x:v.x,y:v.y});
+    if(v.trail.length>60)v.trail.shift();
+  });
+
+  // Update HUD for first vehicle
+  if(vehs.length>0&&vehs[0].on){
+    const v=vehs[0];
+    const curPt=v.order[Math.max(0,v.nextPtIdx-1)];
+    const nextPt=v.order[Math.min(v.nextPtIdx,v.order.length-1)];
+    setText('vfrom',pts[curPt]?.name||'—');
+    setText('vto',pts[nextPt]?.name||'—');
+    setText('vdist',v.distKm+' km');
+    setStyle('vhud','display','block');
+    setText('sh-dist',v.distKm);
+    setText('sh-stops',v.deliveredPts.size+'/'+(pts.length-1));
+    // gentle follow
+    const sp=W2S(v.x,v.y);
+    const mg=150;
+    if(sp.x<mg)cam.x+=3;else if(sp.x>cv.width-mg)cam.x-=3;
+    if(sp.y<mg)cam.y+=3;else if(sp.y>cv.height-mg)cam.y-=3;
+  } else if(vehs.every(v=>!v.on)){
+    setStyle('vhud','display','none');
+  }
+}
+
+function replayAll(){
+  if(!pts.length)return;
+  doneSet.clear();
+  vehs.forEach(v=>{
+    v.on=true;v.wpIdx=0;v.t=0;v.trail=[];v.deliveredPts=new Set();v.totalDist=0;v.distKm=0;
+    v.x=v.waypoints[0].x;v.y=v.waypoints[0].y;
+  });
+  if(!animRAF)startAnim();
+}
+
+// startAnim — no-op, main loop handles everything
+function startAnim(){}
+
+// ══════════════════════════════════════════════════════════
+// DRAW
+// ══════════════════════════════════════════════════════════
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+
+  // No city built yet — show placeholder
+  if(!roadNodes.length){
+    ctx.fillStyle='#07111a';
+    ctx.fillRect(0,0,cv.width,cv.height);
+    ctx.font='13px Space Mono';
+    ctx.fillStyle='rgba(139,148,158,.35)';
+    ctx.textAlign='center';
+    ctx.fillText('Nhấn ⚙ Cấu hình → Tạo bản đồ mới',cv.width/2,cv.height/2);
+    return;
+  }
+
+  ctx.save();
+  ctx.setTransform(cam.s,0,0,cam.s,cam.x,cam.y);
+
+  // ── Sky / bg — fill entire world ──
+  ctx.fillStyle='#07111a';
+  ctx.fillRect(0,0,CW,CH);
+
+  // ── Parks (no random per frame — trees pre-baked) ──
+  parks.forEach(p=>{
+    ctx.fillStyle='#0e1e0e';ctx.fillRect(p.x,p.y,p.w,p.h);
+    if(p.trees){
+      p.trees.forEach(t=>{
+        ctx.beginPath();ctx.arc(t.x,t.y,5,0,Math.PI*2);
+        ctx.fillStyle='#18301a';ctx.fill();
+      });
+    }
+  });
+
+  // ── Water ──
+  waterBodies.forEach(w=>{
+    ctx.fillStyle='#0a1e2e';ctx.fillRect(w.x,w.y,w.w,w.h);
+    ctx.strokeStyle='rgba(0,80,140,.3)';ctx.lineWidth=1;ctx.strokeRect(w.x,w.y,w.w,w.h);
+  });
+
+  // ── Road shadows ──
+  roadEdges.forEach(e=>{
+    const na=roadNodes[e.a],nb=roadNodes[e.b];
+    ctx.strokeStyle='rgba(0,0,0,.5)';ctx.lineWidth=e.w+6;ctx.lineCap='square';
+    ctx.beginPath();ctx.moveTo(na.x,na.y);ctx.lineTo(nb.x,nb.y);ctx.stroke();
+  });
+
+  // ── Road surfaces ──
+  roadEdges.forEach(e=>{
+    const na=roadNodes[e.a],nb=roadNodes[e.b];
+    ctx.strokeStyle=e.main?'#1b2d3e':'#142030';
+    ctx.lineWidth=e.w;ctx.lineCap='square';
+    ctx.beginPath();ctx.moveTo(na.x,na.y);ctx.lineTo(nb.x,nb.y);ctx.stroke();
+  });
+
+  // ── Road markings ──
+  roadEdges.forEach(e=>{
+    if(!e.main)return;
+    const na=roadNodes[e.a],nb=roadNodes[e.b];
+    ctx.strokeStyle='rgba(255,200,50,.06)';ctx.lineWidth=1;ctx.setLineDash([16,12]);
+    ctx.beginPath();ctx.moveTo(na.x,na.y);ctx.lineTo(nb.x,nb.y);ctx.stroke();
+    ctx.setLineDash([]);
+  });
+
+  // ── Sidewalks (lighter strip beside roads) ──
+  roadEdges.forEach(e=>{
+    if(!e.main)return;
+    const na=roadNodes[e.a],nb=roadNodes[e.b];
+    const ang=Math.atan2(nb.y-na.y,nb.x-na.x);
+    const perp={x:Math.sin(ang)*(e.w/2+3),y:-Math.cos(ang)*(e.w/2+3)};
+    ctx.strokeStyle='rgba(255,255,255,.025)';ctx.lineWidth=3;ctx.lineCap='butt';
+    ctx.beginPath();ctx.moveTo(na.x+perp.x,na.y+perp.y);ctx.lineTo(nb.x+perp.x,nb.y+perp.y);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(na.x-perp.x,na.y-perp.y);ctx.lineTo(nb.x-perp.x,nb.y-perp.y);ctx.stroke();
+  });
+
+  // ── Intersections ──
+  if(cam.s>0.5){
+    roadNodes.forEach(n=>{
+      ctx.beginPath();ctx.arc(n.x,n.y,4,0,Math.PI*2);
+      ctx.fillStyle='#1b2d3e';ctx.fill();
+    });
+  }
+
+  // ── Buildings ──
+  buildings.forEach(b=>{
+    ctx.fillStyle='rgba(0,0,0,.3)';ctx.fillRect(b.x+3,b.y+4,b.w,b.h);
+    ctx.fillStyle=b.col;ctx.fillRect(b.x,b.y,b.w,b.h);
+    const ws=3,wg=6;
+    for(let wy=b.y+5;wy<b.y+b.h-ws;wy+=wg){
+      for(let wx=b.x+4;wx<b.x+b.w-ws;wx+=wg){
+        if(Math.random()<.5){
+          ctx.fillStyle=`rgba(255,220,100,${.02+b.fl*.014})`;
+          ctx.fillRect(wx,wy,ws,ws-1);
+        }
+      }
+    }
+    ctx.strokeStyle='rgba(255,255,255,.04)';ctx.lineWidth=.5;
+    ctx.strokeRect(b.x+.5,b.y+.5,b.w-1,b.h-1);
+  });
+
+  // ── A* step visualization ──
+  if(stepMode&&_stepSt){
+    const seg=stepSegs[stepSegIdx];
+    const srcNode=seg?pts[seg.from]?.nodeId:null;
+    const dstNode=seg?pts[seg.to]?.nodeId:null;
+
+    // Source node ring (orange)
+    if(srcNode!=null&&roadNodes[srcNode]){
+      const sn=roadNodes[srcNode];
+      ctx.beginPath();ctx.arc(sn.x,sn.y,22,0,Math.PI*2);
+      ctx.strokeStyle='rgba(255,123,53,.9)';ctx.lineWidth=3;ctx.stroke();
+    }
+    // Destination node ring + pulse (green)
+    if(dstNode!=null&&roadNodes[dstNode]){
+      const dn=roadNodes[dstNode];
+      ctx.beginPath();ctx.arc(dn.x,dn.y,22,0,Math.PI*2);
+      ctx.strokeStyle='rgba(126,231,135,.9)';ctx.lineWidth=3;ctx.stroke();
+      const tt=((Date.now())%1200)/1200;
+      ctx.beginPath();ctx.arc(dn.x,dn.y,22+tt*16,0,Math.PI*2);
+      ctx.strokeStyle=`rgba(126,231,135,${.5*(1-tt)})`;ctx.lineWidth=2;ctx.stroke();
+    }
+
+    // Closed set — grey tint
+    _stepSt.closedSet.forEach(nid=>{
+      const n=roadNodes[nid];if(!n)return;
+      ctx.beginPath();ctx.arc(n.x,n.y,9,0,Math.PI*2);
+      ctx.fillStyle='rgba(61,80,102,.55)';ctx.fill();
+    });
+
+    // Open set — orange
+    _stepSt.openSet.forEach(nid=>{
+      const n=roadNodes[nid];if(!n)return;
+      ctx.beginPath();ctx.arc(n.x,n.y,9,0,Math.PI*2);
+      ctx.fillStyle='rgba(255,123,53,.35)';ctx.fill();
+      ctx.strokeStyle='rgba(255,123,53,.7)';ctx.lineWidth=1.5;ctx.stroke();
+    });
+
+    // Path so far — cyan dashed
+    if(_stepSt.path&&_stepSt.path.length>1){
+      ctx.beginPath();ctx.setLineDash([10,7]);
+      ctx.strokeStyle='rgba(0,212,255,.75)';ctx.lineWidth=5;
+      ctx.lineCap='round';
+      _stepSt.path.forEach((nid,j)=>{
+        const n=roadNodes[nid];if(!n)return;
+        j===0?ctx.moveTo(n.x,n.y):ctx.lineTo(n.x,n.y);
+      });
+      ctx.stroke();ctx.setLineDash([]);ctx.lineCap='butt';
+    }
+
+    // Current node — bright cyan
+    const cn=roadNodes[_stepSt.current];
+    if(cn){
+      ctx.beginPath();ctx.arc(cn.x,cn.y,14,0,Math.PI*2);
+      ctx.fillStyle='rgba(0,212,255,.25)';ctx.fill();
+      ctx.strokeStyle='#00d4ff';ctx.lineWidth=2.5;
+      ctx.shadowColor='#00d4ff';ctx.shadowBlur=15;ctx.stroke();ctx.shadowBlur=0;
+      ctx.beginPath();ctx.arc(cn.x,cn.y,6,0,Math.PI*2);
+      ctx.fillStyle='#00d4ff';ctx.fill();
+      // f(n) label floating above node
+      ctx.font='bold 9px Space Mono';ctx.fillStyle='#ffd166';
+      ctx.textAlign='center';
+      ctx.fillText('f='+_stepSt.f.toFixed(0),cn.x,cn.y-22);
+    }
+  }
+
+  // ── Optimal routes (per vehicle) ──
+  vehs.forEach((v,vi)=>{
+    if(!v.waypoints||!v.waypoints.length)return;
+
+    // Outer glow (wide, soft)
+    ctx.beginPath();
+    v.waypoints.forEach((wp,j)=>j===0?ctx.moveTo(wp.x,wp.y):ctx.lineTo(wp.x,wp.y));
+    ctx.strokeStyle=v.col+'55';ctx.lineWidth=18;ctx.setLineDash([]);
+    ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();
+
+    // Mid glow
+    ctx.beginPath();
+    v.waypoints.forEach((wp,j)=>j===0?ctx.moveTo(wp.x,wp.y):ctx.lineTo(wp.x,wp.y));
+    ctx.strokeStyle=v.col+'99';ctx.lineWidth=8;ctx.stroke();
+
+    // Core line (solid, bright)
+    ctx.beginPath();
+    v.waypoints.forEach((wp,j)=>j===0?ctx.moveTo(wp.x,wp.y):ctx.lineTo(wp.x,wp.y));
+    ctx.strokeStyle=v.col;ctx.lineWidth=4;
+    ctx.shadowColor=v.col;ctx.shadowBlur=16;ctx.stroke();ctx.shadowBlur=0;
+
+    // Animated white dash overlay (movement feel)
+    ctx.setLineDash([14,20]);ctx.lineDashOffset=-((Date.now()/35)%34);
+    ctx.strokeStyle='rgba(255,255,255,.45)';ctx.lineWidth=2;
+    ctx.beginPath();
+    v.waypoints.forEach((wp,j)=>j===0?ctx.moveTo(wp.x,wp.y):ctx.lineTo(wp.x,wp.y));
+    ctx.stroke();ctx.setLineDash([]);ctx.lineDashOffset=0;
+    ctx.lineCap='butt';ctx.lineJoin='miter';
+  });
+
+  // ── Delivery points ──
+  const now=Date.now();
+  pts.forEach((p,i)=>{
+    const done=doneSet.has(p.id)||(vehs.length>0&&vehs[0].deliveredPts.has(p.id));
+    const R=p.isDepot?18:12;
+    const col=p.isDepot?'#ff7b35':done?'#7ee787':'#00d4ff';
+
+    // Strong glow halo
+    const grd=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,R+20);
+    grd.addColorStop(0,col+'88');grd.addColorStop(1,col+'00');
+    ctx.beginPath();ctx.arc(p.x,p.y,R+20,0,Math.PI*2);ctx.fillStyle=grd;ctx.fill();
+
+    // Pulse ring (animated)
+    if(!done||p.isDepot){
+      const tt=((now+i*300)%2000)/2000;
+      const pr=R+(tt*18), pa=.45*(1-tt);
+      ctx.beginPath();ctx.arc(p.x,p.y,pr,0,Math.PI*2);
+      const hexA=Math.round(pa*255).toString(16).padStart(2,'0');
+      ctx.strokeStyle=col+hexA;ctx.lineWidth=2.5;ctx.stroke();
+    }
+
+    // Drop shadow
+    ctx.beginPath();ctx.arc(p.x,p.y+5,R*.85,0,Math.PI*2);
+    ctx.fillStyle='rgba(0,0,0,.5)';ctx.fill();
+
+    // Main circle — bright filled
+    ctx.beginPath();ctx.arc(p.x,p.y,R,0,Math.PI*2);
+    ctx.fillStyle=col;
+    ctx.shadowColor=col;ctx.shadowBlur=20;ctx.fill();ctx.shadowBlur=0;
+    // White border
+    ctx.strokeStyle='rgba(255,255,255,.6)';ctx.lineWidth=2;ctx.stroke();
+
+    // Inner highlight ring
+    ctx.beginPath();ctx.arc(p.x,p.y,R-4,0,Math.PI*2);
+    ctx.strokeStyle='rgba(255,255,255,.2)';ctx.lineWidth=1;ctx.stroke();
+
+    // Icon
+    ctx.font=p.isDepot?'bold 11px Inter':'bold 9px Inter';
+    ctx.fillStyle='#000';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(p.isDepot?'🏭':done?'✓':`${i}`,p.x,p.y+.5);
+    ctx.textBaseline='alphabetic';
+
+    // Name tag — always visible, brighter
+    const nm=p.name.length>14?p.name.slice(0,13)+'…':p.name;
+    ctx.font='bold 8px Inter';
+    const tw=ctx.measureText(nm).width+14;
+    // tag background
+    ctx.fillStyle='rgba(7,17,26,.92)';
+    rrect(p.x-tw/2, p.y-R-22, tw, 15, 3);ctx.fill();
+    ctx.strokeStyle=col+'88';ctx.lineWidth=1;
+    rrect(p.x-tw/2, p.y-R-22, tw, 15, 3);ctx.stroke();
+    // tag text — bright
+    ctx.fillStyle=done?'#7ee787':p.isDepot?'#ff7b35':'#ffffff';
+    ctx.textAlign='center';
+    ctx.fillText(nm, p.x, p.y-R-11);
+  });
+
+  // ── Step badges on route (larger, clearer) ──
+  if(vehs.length===1&&vehs[0].order&&cam.s>0.35){
+    const ord=vehs[0].order;
+    for(let i=1;i<ord.length-1;i++){
+      const p=pts[ord[i]];
+      // Badge position: top-right of node
+      const bx=p.x+15, by=p.y-15;
+      ctx.beginPath();ctx.arc(bx,by,10,0,Math.PI*2);
+      ctx.fillStyle='rgba(7,17,26,.95)';ctx.fill();
+      ctx.strokeStyle=vehs[0].col;ctx.lineWidth=1.5;ctx.stroke();
+      ctx.fillStyle=vehs[0].col;ctx.font='bold 8px Space Mono';
+      ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(i,bx,by+.5);
+      ctx.textBaseline='alphabetic';
+    }
+  }
+
+  // ── Vehicle trails ──
+  vehs.forEach(v=>{
+    if(v.trail.length<2)return;
+    ctx.beginPath();
+    v.trail.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
+    ctx.strokeStyle=v.col+'40';ctx.lineWidth=6;ctx.lineCap='round';ctx.stroke();ctx.lineCap='butt';
+  });
+
+  // ── Motorbikes ──
+  vehs.forEach(v=>{if(v.on)drawMotorbike(v.x,v.y,v.ang,v.wheelRot,v.col,v.label);});
+
+  // ── Vehicle labels (mode 3, multiple) ──
+  if(vehs.length>1){
+    vehs.forEach(v=>{
+      if(!v.on)return;
+      const tw=ctx.measureText(v.label).width+12;
+      ctx.fillStyle='rgba(10,20,30,.88)';
+      rrect(v.x-tw/2,v.y-40,tw,13,3);ctx.fill();
+      ctx.fillStyle=v.col;ctx.font='7px Space Mono';ctx.textAlign='center';
+      ctx.fillText(v.label,v.x,v.y-30);
+    });
+  }
+
+  ctx.restore();
+  drawMinimap();
+}
+
+// ─── Motorbike sprite (2D top-down) ──────────────────────
+function drawMotorbike(tx,ty,ang,wRot,col,label){
+  ctx.save();
+  ctx.translate(tx,ty);
+  ctx.rotate(ang+Math.PI/2); // +90° — front of sprite faces direction of travel
+
+  const BH=28,BW=14;
+
+  // Shadow
+  ctx.fillStyle='rgba(0,0,0,.35)';
+  ctx.beginPath();ctx.ellipse(3,4,BW*.7,BH*.4,0,0,Math.PI*2);ctx.fill();
+
+  // Rear wheel
+  ctx.save();ctx.translate(0,BH/2-3);ctx.rotate(wRot);
+  ctx.fillStyle='#111';ctx.beginPath();ctx.ellipse(0,0,5,3.5,0,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.15)';ctx.lineWidth=.5;ctx.stroke();
+  ctx.restore();
+
+  // Front wheel
+  ctx.save();ctx.translate(0,-BH/2+3);ctx.rotate(wRot);
+  ctx.fillStyle='#111';ctx.beginPath();ctx.ellipse(0,0,5,3.5,0,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.15)';ctx.lineWidth=.5;ctx.stroke();
+  ctx.restore();
+
+  // Body (frame)
+  ctx.fillStyle=col;
+  ctx.beginPath();
+  ctx.moveTo(-BW/2,BH/2-6);
+  ctx.lineTo(-BW/2+2,-BH/2+6);
+  ctx.lineTo(BW/2-2,-BH/2+6);
+  ctx.lineTo(BW/2,BH/2-6);
+  ctx.closePath();ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,.3)';ctx.lineWidth=.5;ctx.stroke();
+
+  // Seat/tank
+  ctx.fillStyle=lightenHex(col,.2);
+  ctx.beginPath();ctx.ellipse(0,0,BW/2-2,BH/4,0,0,Math.PI*2);ctx.fill();
+
+  // Handlebars
+  ctx.strokeStyle='rgba(180,180,180,.6)';ctx.lineWidth=2;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(-BW/2+1,-BH/2+4);ctx.lineTo(BW/2-1,-BH/2+4);ctx.stroke();
+
+  // Headlight
+  ctx.fillStyle='rgba(255,245,150,.95)';
+  ctx.shadowColor='rgba(255,245,150,.8)';ctx.shadowBlur=12;
+  ctx.beginPath();ctx.ellipse(0,-BH/2+2,3,2,0,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+
+  // Headlight beam
+  const beam=ctx.createRadialGradient(0,-BH/2,2,0,-BH/2-40,55);
+  beam.addColorStop(0,'rgba(255,245,150,.2)');beam.addColorStop(1,'rgba(255,245,150,0)');
+  ctx.fillStyle=beam;
+  ctx.beginPath();ctx.moveTo(-8,-BH/2);ctx.lineTo(-30,-BH/2-70);ctx.lineTo(30,-BH/2-70);ctx.lineTo(8,-BH/2);ctx.closePath();ctx.fill();
+
+  // Tail light
+  ctx.fillStyle='rgba(255,50,30,.8)';
+  ctx.fillRect(-3,BH/2-4,6,3);
+
+  ctx.restore();
+}
+
+function lightenHex(hex,amt){
+  const n=parseInt(hex.replace('#',''),16);
+  const r=clamp((n>>16)+amt*255,0,255);
+  const g=clamp((n>>8&255)+amt*255,0,255);
+  const b=clamp((n&255)+amt*255,0,255);
+  return`rgb(${r|0},${g|0},${b|0})`;
+}
+
+function rrect(x,y,w,h,r){
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();
+}
+
+// ─── Minimap ──────────────────────────────────────────────
+function drawMinimap(){
+  if(!pts.length)return;
+  const MW=170,MH=110,MX=cv.width-MW-14,MY=cv.height-MH-14-60;
+  ctx.fillStyle='rgba(7,17,26,.88)';ctx.fillRect(MX,MY,MW,MH);
+  ctx.strokeStyle='rgba(42,63,84,.7)';ctx.lineWidth=1;ctx.strokeRect(MX,MY,MW,MH);
+  const sx=(MW*.9)/CW,sy=(MH*.9)/CH,ox=MX+MW*.05,oy=MY+MH*.05;
+  // roads (thin)
+  ctx.strokeStyle='rgba(27,45,62,.8)';ctx.lineWidth=.5;
+  roadEdges.forEach(e=>{
+    const na=roadNodes[e.a],nb=roadNodes[e.b];
+    ctx.beginPath();ctx.moveTo(ox+na.x*sx,oy+na.y*sy);ctx.lineTo(ox+nb.x*sx,oy+nb.y*sy);ctx.stroke();
+  });
+  // routes
+  vehs.forEach(v=>{
+    if(!v.waypoints||!v.waypoints.length)return;
+    ctx.beginPath();ctx.strokeStyle=v.col+'cc';ctx.lineWidth=1.5;
+    v.waypoints.forEach((wp,j)=>j===0?ctx.moveTo(ox+wp.x*sx,oy+wp.y*sy):ctx.lineTo(ox+wp.x*sx,oy+wp.y*sy));
+    ctx.stroke();
+  });
+  // points
+  pts.forEach(p=>{
+    ctx.beginPath();ctx.arc(ox+p.x*sx,oy+p.y*sy,p.isDepot?3:2,0,Math.PI*2);
+    ctx.fillStyle=p.isDepot?'#ff7b35':doneSet.has(p.id)?'#7ee787':'#00d4ff';ctx.fill();
+  });
+  // vehicles
+  vehs.forEach(v=>{
+    if(!v.on)return;
+    ctx.beginPath();ctx.arc(ox+v.x*sx,oy+v.y*sy,3,0,Math.PI*2);
+    ctx.fillStyle=v.col;ctx.shadowColor=v.col;ctx.shadowBlur=4;ctx.fill();ctx.shadowBlur=0;
+  });
+  // viewport
+  const vx=-cam.x/cam.s*sx+ox,vy=-cam.y/cam.s*sy+oy;
+  ctx.strokeStyle='rgba(0,212,255,.3)';ctx.lineWidth=1;
+  ctx.strokeRect(vx,vy,cv.width/cam.s*sx,cv.height/cam.s*sy);
+}
+
+// ══════════════════════════════════════════════════════════
+// CONVERGENCE CHART
+// ══════════════════════════════════════════════════════════
+function drawConv(){
+  const W=CC.offsetWidth||240, H=CC.offsetHeight||100;
+  if(CC.width!==W)CC.width=W;
+  if(CC.height!==H)CC.height=H;
+  cctx.clearRect(0,0,W,H);cctx.fillStyle='#07111a';cctx.fillRect(0,0,W,H);
+  if(conv.length<2){
+    cctx.fillStyle='rgba(139,148,158,.3)';cctx.font='8px Space Mono';
+    cctx.textAlign='center';cctx.fillText('Chạy GA để xem',W/2,H/2);return;
+  }
+  const pd={t:6,r:6,b:16,l:34};
+  const cW=W-pd.l-pd.r,cH=H-pd.t-pd.b;
+  const mn=Math.min(...conv),mx=Math.max(...conv),rng=mx-mn||1;
+  cctx.strokeStyle='rgba(42,63,84,.5)';cctx.lineWidth=.5;
+  for(let i=0;i<=4;i++){
+    const y=pd.t+cH*(i/4);
+    cctx.beginPath();cctx.moveTo(pd.l,y);cctx.lineTo(pd.l+cW,y);cctx.stroke();
+    cctx.fillStyle='rgba(139,148,158,.4)';cctx.font='6px Space Mono';cctx.textAlign='right';
+    cctx.fillText((mx-(mx-mn)*(i/4)).toFixed(0),pd.l-2,y+2);
+  }
+  const g2=cctx.createLinearGradient(0,pd.t,0,pd.t+cH);
+  g2.addColorStop(0,'rgba(126,231,135,.22)');g2.addColorStop(1,'rgba(126,231,135,0)');
+  cctx.beginPath();
+  conv.forEach((v,i)=>{const x=pd.l+(i/(conv.length-1))*cW,y=pd.t+cH-((v-mn)/rng)*cH;i===0?cctx.moveTo(x,y):cctx.lineTo(x,y);});
+  cctx.lineTo(pd.l+cW,pd.t+cH);cctx.lineTo(pd.l,pd.t+cH);cctx.closePath();cctx.fillStyle=g2;cctx.fill();
+  cctx.beginPath();cctx.strokeStyle='#7ee787';cctx.lineWidth=1.5;cctx.shadowColor='#7ee787';cctx.shadowBlur=4;
+  conv.forEach((v,i)=>{const x=pd.l+(i/(conv.length-1))*cW,y=pd.t+cH-((v-mn)/rng)*cH;i===0?cctx.moveTo(x,y):cctx.lineTo(x,y);});
+  cctx.stroke();cctx.shadowBlur=0;
+  const lv=conv[conv.length-1],lx=pd.l+cW,ly=pd.t+cH-((lv-mn)/rng)*cH;
+  cctx.beginPath();cctx.arc(lx,ly,3,0,Math.PI*2);cctx.fillStyle='#7ee787';cctx.fill();
+  cctx.fillStyle='rgba(139,148,158,.3)';cctx.font='6px Space Mono';cctx.textAlign='center';
+  cctx.fillText('Thế hệ →',pd.l+cW/2,H-2);
+}
+
+// ══════════════════════════════════════════════════════════
+// ROUTE LIST
+// ══════════════════════════════════════════════════════════
+function renderRouteList(order){
+  const el=$('rlist');
+  if(!el)return;
+  el.innerHTML='';
+  if(!order||!order.length)return;
+  order.forEach((idx,step)=>{
+    const p=pts[idx];if(!p)return;
+    const div=document.createElement('div');div.className='RI';div.style.animationDelay=(step*25)+'ms';
+    const n=document.createElement('div');n.className='RN'+(p.isDepot?' dp':'');
+    n.textContent=step===0||step===order.length-1?'⊙':step;div.appendChild(n);
+    const nm=document.createElement('span');nm.textContent=p.name;div.appendChild(nm);
+    if(step>0&&dm[order[step-1]]&&dm[order[step-1]][idx]){
+      const d=(dm[order[step-1]][idx]*SC).toFixed(1);
+      const de=document.createElement('span');de.className='RD';de.textContent=d+'km';div.appendChild(de);
+    }
+    el.appendChild(div);
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+// COMPARE MODAL
+// ══════════════════════════════════════════════════════════
+function showCompareModal(){
+  const spd=+($('spd')?.value||40);
+  // Safe access — results may not all be populated
+  const r0=results[0]||{dist:0,time:0,order:[],execMs:0};
+  const r1=results[1]||{dist:0,time:0,order:[],execMs:0};
+  if(!r0.dist&&!r1.dist){
+    const ov=$('modal-overlay');if(ov)ov.classList.add('on');
+    const tbody=$('cmp-body');
+    if(tbody)tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;color:var(--sub);padding:20px;">
+      Chạy chế độ <b style="color:var(--cyan)">⚡ So sánh A* vs GA</b> để xem kết quả đầy đủ
+    </td></tr>`;
+    setText('cmp-pct','—');
+    setText('cmp-sub','Chưa có dữ liệu so sánh');
+    return;
+  }
+  const SC_=0.04;
+  const km0=(r0.dist*SC_).toFixed(2), km1=(r1.dist*SC_).toFixed(2);
+  const min0=Math.round(r0.dist*SC_/spd*60),min1=Math.round(r1.dist*SC_/spd*60);
+  const h0=Math.floor(min0/60),m0=min0%60,h1=Math.floor(min1/60),m1=min1%60;
+  const hasBoth=r0.dist>0&&r1.dist>0;
+  const imp=hasBoth?((r1.dist-r0.dist)/r1.dist*100).toFixed(1):'—';
+  const tImp=hasBoth&&min1>0?((min1-min0)/min1*100).toFixed(1):'—';
+  const execMs0=r0.execMs?r0.execMs.toFixed(0)+'ms':'—';
+  const execMs1=r1.execMs?r1.execMs.toFixed(0)+'ms':'—';
+  const nPts=pts.length-1;
+  const W=(v0,v1,l0,l1)=>hasBoth
+    ?(v0<v1?`<span style="color:#7ee787;font-weight:700">✓ ${l0}</span>`:`<span style="color:#ff7b35;font-weight:700">✓ ${l1}</span>`)
+    :'—';
+  const row=(lbl,v1,v0,winner,note='')=>`<tr>
+    <td style="color:var(--sub);font-size:11px;line-height:1.5">${lbl}${note?`<br><small style="font-size:9px;opacity:.55">${note}</small>`:''}</td>
+    <td style="color:#ff7b35;font-weight:700">${v1}</td>
+    <td style="color:#7ee787;font-weight:700">${v0}</td>
+    <td>${winner}</td>
+  </tr>`;
+  const tbody=$('cmp-body');
+  if(tbody)tbody.innerHTML=
+    row('Tổng quãng đường',km1+' km',km0+' km',W(r0.dist,r1.dist,'A*+GA','A* TT'),'Đường thực trên road network')+
+    row('Thời gian di chuyển',`${h1}h${m1}m`,`${h0}h${m0}m`,W(min0,min1,'A*+GA','A* TT'),`Ước tính tốc độ ${spd} km/h`)+
+    row('Cải thiện quãng đường','Baseline',imp!=='—'?'▼ '+imp+'%':'—',imp!=='—'?`<span style="color:#7ee787;font-weight:700">GA tốt hơn ${imp}%</span>`:'—','So với A* tuần tự')+
+    row('Cải thiện thời gian','Baseline',tImp!=='—'?'▼ '+tImp+'%':'—',tImp!=='—'?`<span style="color:#7ee787;font-weight:700">Tiết kiệm ${tImp}%</span>`:'—','')+
+    row('Thời gian tính toán',execMs1,execMs0,W(+(r0.execMs||999),+(r1.execMs||999),'A*+GA','A* TT'),'Thời gian chạy thuật toán')+
+    row('Số điểm giao',''+nPts+' điểm',''+nPts+' điểm','<span style="color:var(--sub)">Như nhau</span>','')+
+    row('Thứ tự giao','1→2→…→'+nPts,'GA tối ưu',W(1,0,'A*+GA','A* TT'),'A* tuần tự, GA sắp xếp tối ưu')+
+    row('Heuristic',$('heur')?.value||'euclidean',$('heur')?.value||'euclidean','<span style="color:var(--sub)">Như nhau</span>','Dùng cho A* tìm đường')+
+    row('Tham số GA','—','pop='+($('ps')?.value||80)+' gen='+($('gens')?.value||300)+' mut='+($('mr')?.value||3)+'%','<span style="color:var(--sub)">—</span>','Chỉ GA mới có')+
+    row('Số lần gọi A*',''+nPts*(nPts+1)+' lần',''+nPts*(nPts+1)+' lần + GA','<span style="color:var(--sub)">A* như nhau</span>','Để xây ma trận khoảng cách')+
+    row('Độ phức tạp','O(n²·A*)','O(n²·A*)+O(pop·gen·n)',W(1,0,'A* TT','A*+GA'),'A* nhanh hơn, GA kết quả tốt hơn')+
+    row('Phù hợp khi','n nhỏ, đơn giản','n lớn, cần tối ưu','<span style="color:var(--sub)">Tuỳ bài toán</span>','');
+  setText('cmp-pct',hasBoth&&imp!=='—'?`▼ ${imp}%`:'—');
+  setText('cmp-sub',hasBoth
+    ?`GA cải thiện ${imp}% quãng đường, tiết kiệm ${tImp}% thời gian`
+    :'Chạy chế độ So sánh để xem đầy đủ');
+  const ov=$('modal-overlay');if(ov)ov.classList.add('on');
+}
+
+// ══════════════════════════════════════════════════════════
+// THEME TOGGLE
+// ══════════════════════════════════════════════════════════
+let _isLight=false;
+function toggleTheme(){
+  _isLight=!_isLight;
+  document.body.classList.toggle('light',_isLight);
+  const btn=$('themeBtn');
+  if(btn)btn.textContent=_isLight?'🌙 Tối':'☀️ Sáng';
+  // Redraw map background
+  draw();
+}
+
+// ══════════════════════════════════════════════════════════
+// TOOLTIP
+// ══════════════════════════════════════════════════════════
+function handleTip(e){
+  const tip=$('tip');
+  if(!tip){return;}
+  if(drag.on){tip.style.display='none';return;}
+  const rc=cv.getBoundingClientRect();
+  const mx=e.clientX-rc.left,my=e.clientY-rc.top;
+  const w=S2W(mx,my);
+  const f=pts.find(p=>dst(p,{x:w.x,y:w.y})<20/cam.s);
+  if(f){
+    tip.style.cssText=`display:block;left:${mx+14}px;top:${my-46}px;
+      position:fixed;background:rgba(10,20,30,.97);border:1px solid var(--c4);
+      border-radius:7px;padding:9px 13px;font-family:var(--fm);font-size:12px;
+      pointer-events:none;z-index:200;line-height:1.7;min-width:140px;`;
+    tip.innerHTML=`<b style="color:var(--cyan)">${f.name}</b><br>`+
+      `<span style="color:var(--sub)">(${f.x.toFixed(0)}, ${f.y.toFixed(0)})</span>`+
+      (f.isDepot?`<br><span style="color:var(--org)">■ Kho hàng</span>`:``)+
+      (doneSet.has(f.id)&&!f.isDepot?`<br><span style="color:var(--lime)">✓ Đã giao</span>`:``) ;
+  }else{tip.style.display='none';}
+}
+
+// ══════════════════════════════════════════════════════════
+// EXPORT PNG
+// ══════════════════════════════════════════════════════════
+function doExport(){
+  const OFF=document.createElement('canvas');
+  OFF.width=cv.width;OFF.height=cv.height+70;
+  const oc=OFF.getContext('2d');
+  oc.fillStyle='#07111a';oc.fillRect(0,0,OFF.width,OFF.height);
+  oc.drawImage(cv,0,0);
+  const spd=+($('spd')?.value||40);
+  oc.fillStyle='rgba(10,20,30,.95)';oc.fillRect(0,cv.height,cv.width,70);
+  oc.strokeStyle='rgba(42,63,84,.8)';oc.lineWidth=1;
+  oc.beginPath();oc.moveTo(0,cv.height);oc.lineTo(cv.width,cv.height);oc.stroke();
+  const labels=['A*+GA','A* Tuần tự','GA Di truyền'];
+  const activeRes=results[MODE];
+  const km=(activeRes.dist*SC).toFixed(1);
+  const mins=Math.round(activeRes.dist*SC/spd*60),h=Math.floor(mins/60),m=mins%60;
+  oc.font='bold 11px Space Mono';oc.fillStyle='#7ee787';oc.textAlign='left';
+  oc.fillText(`${labels[Math.min(MODE,2)]}: ${km}km | ${h}h${m}m | ${pts.length-1} điểm`,14,cv.height+24);
+  oc.font='8px Space Mono';oc.fillStyle='#8b949e';
+  oc.fillText('DelivRoute v5 — Tối ưu giao hàng bằng A* + GA',14,cv.height+46);
+  const a=document.createElement('a');a.download=`delivroute_${Date.now()}.png`;
+  a.href=OFF.toDataURL('image/png');a.click();
+  closeMdl();
+}
+
+// ══════════════════════════════════════════════════════════
+// PRESETS
+// ══════════════════════════════════════════════════════════
+function loadPreset(k){
+  const map={urban:{n:18,s:30},suburb:{n:8,s:60},mixed:{n:14,s:40},stress:{n:24,s:25}};
+  if(!map[k])return;
+  $('np').value=map[k].n;$('nv').textContent=map[k].n;
+  $('spd').value=map[k].s;$('sv').textContent=map[k].s;
+  doGen();closeDrawer('dr-setup');
+}
+
+// startAnim — vehicles are ticked in the main loop automatically
+function startAnim(){
+  // nothing needed — main loop handles tickVehs()
+}
+
+// ══════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════
+window.addEventListener('load',()=>{
+  resizeCV();
+  setText('sh-mode','A*+GA');
+  setStatus('Đang tải bản đồ...');
+
+  // Start render loop first
+  function loop(){
+    if(vehs.some(v=>v.on))tickVehs();
+    draw();
+    requestAnimationFrame(loop);
+  }
+  loop();
+
+  // Load default preset after first paint
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      loadPreset('mixed');
+    });
+  });
+});
+</script>
+</body>
+</html>
