@@ -7,8 +7,42 @@ import subprocess
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SERVER_FILE = PROJECT_ROOT / "server.py"
+SERVER_PORT = 5000
+
+def stop_existing_server():
+    if os.name != 'nt':
+        return
+    server_path = str(SERVER_FILE)
+    project_root = str(PROJECT_ROOT)
+    command = (
+        f"$server = '{server_path}'; "
+        f"$project = '{project_root}'; "
+        f"$conn = Get-NetTCPConnection -LocalPort {SERVER_PORT} -State Listen "
+        "-ErrorAction SilentlyContinue; "
+        "if ($conn) { "
+        "$conn | Select-Object -ExpandProperty OwningProcess -Unique | "
+        "ForEach-Object { "
+        "$ownerPid = $_; "
+        "$proc = Get-CimInstance Win32_Process -Filter \"ProcessId=$ownerPid\" "
+        "-ErrorAction SilentlyContinue; "
+        "if ($proc -and $proc.CommandLine -and "
+        "($proc.CommandLine -like \"*$server*\" -or "
+        "($proc.CommandLine -like \"*server.py*\" -and $proc.CommandLine -like \"*$project*\"))) { "
+        "Stop-Process -Id $ownerPid -Force -ErrorAction SilentlyContinue "
+        "} "
+        "} "
+        "}"
+    )
+    subprocess.run(
+        ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", command],
+        cwd=str(PROJECT_ROOT),
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    )
 
 def launch_server():
+    stop_existing_server()
     print("Khởi động Backend Server (Flask)...")
     creationflags = 0
     if os.name == 'nt':

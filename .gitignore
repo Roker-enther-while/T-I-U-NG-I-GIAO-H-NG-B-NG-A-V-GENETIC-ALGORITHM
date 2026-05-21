@@ -10,3 +10,11 @@ env/
 scratch/
 .idea/
 .DS_Store
+
+# Outputs and temp logs
+outputs/test_logs/
+outputs/debug/
+logs/algorithm_runs/*.jsonl
+logs/algorithm_runs/history/*.jsonl
+*.log
+.pytest_cache/

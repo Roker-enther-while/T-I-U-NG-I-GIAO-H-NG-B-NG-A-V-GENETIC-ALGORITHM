@@ -48,9 +48,18 @@ def split_routes(chromosome, vehicles=1, demands=None, capacity=None):
     if capacity and demands:
         vehicle_idx = 0
         load = 0
-        for point in chromosome:
+        for index, point in enumerate(chromosome):
             demand = demands.get(point, 0)
-            if routes[vehicle_idx] and load + demand > capacity and vehicle_idx < vehicles - 1:
+            remaining_points = len(chromosome) - index
+            remaining_vehicles = vehicles - vehicle_idx
+            max_current_size = max(1, (remaining_points + remaining_vehicles - 1) // remaining_vehicles)
+            should_balance = (
+                routes[vehicle_idx]
+                and len(routes[vehicle_idx]) >= max_current_size
+                and remaining_points >= remaining_vehicles - 1
+            )
+            should_split_capacity = routes[vehicle_idx] and load + demand > capacity
+            if (should_balance or should_split_capacity) and vehicle_idx < vehicles - 1:
                 vehicle_idx += 1
                 load = 0
             routes[vehicle_idx].append(point)

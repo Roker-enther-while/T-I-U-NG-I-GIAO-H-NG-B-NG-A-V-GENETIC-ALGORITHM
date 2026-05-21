@@ -388,8 +388,9 @@ select:focus{border-color:var(--cyan);}
 #modal-overlay.on{display:flex;}
 .modal{
   background:rgba(2,10,22,.98);border:1px solid var(--border);
-  border-radius:8px;padding:28px;max-width:580px;width:92%;max-height:88vh;overflow-y:auto;
+  border-radius:10px;padding:30px;max-width:1040px;width:94%;max-height:88vh;overflow-y:auto;
   position:relative;
+  box-shadow:0 24px 90px rgba(0,0,0,.5);
 }
 .modal::before,.modal::after{
   content:'';position:absolute;width:16px;height:16px;
@@ -398,7 +399,7 @@ select:focus{border-color:var(--cyan);}
 .modal::before{top:-1px;left:-1px;border-width:2px 0 0 2px;}
 .modal::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0;}
 .modal h3{
-  font-family:var(--fm);color:var(--cyan);margin-bottom:18px;font-size:14px;
+  font-family:var(--fm);color:var(--cyan);margin-bottom:20px;font-size:17px;
   letter-spacing:2px;text-transform:uppercase;text-shadow:var(--gc);
 }
 .mcl{
@@ -407,10 +408,10 @@ select:focus{border-color:var(--cyan);}
   transition:all .2s;
 }
 .mcl:hover{border-color:var(--red);color:var(--red);}
-.modal table{width:100%;border-collapse:collapse;font-family:var(--fm);}
+.modal table{width:100%;border-collapse:collapse;font-family:var(--fm);font-size:12px;}
 .modal th{color:var(--t3);font-size:9px;letter-spacing:1.5px;text-align:left;
-  padding:6px 8px;border-bottom:1px solid var(--border2);text-transform:uppercase;}
-.modal td{padding:8px 8px;border-bottom:1px solid rgba(0,212,255,.04);font-size:12px;}
+  padding:9px 10px;border-bottom:1px solid var(--border2);text-transform:uppercase;}
+.modal td{padding:11px 10px;border-bottom:1px solid rgba(0,212,255,.04);font-size:12px;vertical-align:top;}
 .banner{
   margin-top:18px;background:rgba(57,255,110,.04);
   border:1px solid rgba(57,255,110,.18);border-radius:8px;padding:16px;text-align:center;
