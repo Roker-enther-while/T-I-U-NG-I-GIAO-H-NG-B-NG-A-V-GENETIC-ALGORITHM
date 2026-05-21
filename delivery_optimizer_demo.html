@@ -969,7 +969,7 @@ function astarRoad(src,dst_id){
     });
   }
   // fallback straight
-  return{path:[src,dst_id],cost:dst(roadNodes[src],roadNodes[dst_id])};
+  return{path:[],cost:Infinity,found:false};
 }
 
 // Build full distance matrix (road-based A*)
