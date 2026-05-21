@@ -45,6 +45,19 @@ Về bản chất, bài toán có liên quan đến bài toán người giao hà
 - Tốc độ xe được xem là hằng số theo giá trị người dùng nhập.
 - Kết quả GA là nghiệm tối ưu gần đúng, có tính đến các ràng buộc về thời gian và tải trọng, không khẳng định là nghiệm tối ưu tuyệt đối trong mọi trường hợp.
 
+### 1.5. Cập nhật triển khai hiện tại
+
+Phiên bản mới nhất tách rõ bốn chế độ chạy để tránh nhầm lẫn giữa các kết quả:
+
+- **Tuyến tuần tự ban đầu**: tạo lộ trình tham chiếu theo thứ tự điểm giao ban đầu, không gọi A* và không gọi GA.
+- **A\***: chạy tìm đường trên đồ thị đường phố và ma trận chi phí A*, nhưng vẫn đi theo thứ tự tuần tự.
+- **GA**: tối ưu thứ tự giao hàng theo metric Euclid, sau đó quy đổi và hiển thị quãng đường thực tế trả về từ backend.
+- **A\* + GA**: dùng ma trận chi phí A* làm fitness cho GA, vì vậy tuyến tối ưu bám theo mạng đường và tránh vật cản.
+
+Tham số **số xe giao hàng** chỉ còn một nguồn cấu hình trên giao diện. Tham số này chỉ áp dụng cho GA, A* + GA và chế độ so sánh; A* tuần tự và tuyến ban đầu không chia nhiều xe. Backend đã cập nhật hàm `split_routes()` để khi người dùng chọn nhiều xe, GA trả về nhiều tuyến thật thay vì dồn toàn bộ điểm giao vào xe đầu tiên.
+
+Hệ thống cũng bổ sung log thuật toán dạng JSONL trong thư mục `logs/algorithm_runs/`. Mỗi lần chạy tạo các file `latest_astar.jsonl`, `latest_ga.jsonl`, `latest_astar_ga.jsonl` và bản lịch sử theo `run_id`, giúp trình bày lại quá trình chạy khi demo.
+
 ## 2. Cơ sở lý thuyết về các giải thuật áp dụng
 
 ### 2.1. TT1 - Thuật toán A*

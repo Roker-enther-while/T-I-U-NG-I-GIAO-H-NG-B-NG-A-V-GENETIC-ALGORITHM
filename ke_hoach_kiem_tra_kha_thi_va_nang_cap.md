@@ -12,6 +12,25 @@ Tài liệu này trình bày kế hoạch kiểm tra tính khả thi và kế ho
 
 Mục tiêu không chỉ là liệt kê chức năng mới, mà còn đánh giá chức năng nào có thể triển khai được trong phạm vi đồ án, chức năng nào cần thêm dữ liệu hoặc thay đổi lớn về thuật toán.
 
+## 1.1. Trạng thái cập nhật hiện tại
+
+Các hướng nâng cấp quan trọng đã được triển khai trong phiên bản hiện tại:
+
+- Bản đồ giao hàng dùng mạng đường đô thị thay vì chỉ nối thẳng giữa các điểm.
+- Vật cản/khu vực cấm được dùng để chặn tuyến đi không hợp lệ.
+- UI tách rõ tuyến tuần tự ban đầu, A*, GA, A* + GA và chế độ so sánh.
+- GA và A* + GA nhận đúng tham số số xe từ giao diện và trả về nhiều route khi người dùng chọn nhiều xe.
+- Backend ghi log thuật toán dạng JSONL để phục vụ demo, kiểm tra và trình bày lại quá trình chạy.
+
+Các file log chính:
+
+```text
+logs/algorithm_runs/latest_astar.jsonl
+logs/algorithm_runs/latest_ga.jsonl
+logs/algorithm_runs/latest_astar_ga.jsonl
+logs/algorithm_runs/history/
+```
+
 ## 2. Tiêu chí kiểm tra tính khả thi
 
 Mỗi hướng nâng cấp sẽ được đánh giá theo các tiêu chí sau:
@@ -70,6 +89,7 @@ Chức năng này phù hợp nhất với cấu trúc hiện tại vì dự án 
 - Nếu không có đường hợp lệ, hệ thống báo không tìm thấy đường.
 - Ma trận khoảng cách cập nhật đúng sau khi thêm vật cản.
 - GA không chọn tuyến có cạnh không hợp lệ.
+- UI chỉ vẽ tuyến theo `route_paths` trả từ backend, không nối tắt xuyên vật cản.
 
 #### Rủi ro
 

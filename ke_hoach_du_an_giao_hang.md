@@ -19,6 +19,9 @@
 - [x] Xác định thứ tự giao hàng tối ưu bằng GA (Module 8-11)
 - [x] Hiển thị lộ trình giao hàng trực quan (Nature UI)
 - [x] Thống kê: tổng quãng đường, tổng thời gian, số điểm giao hoàn thành.
+- [x] Tách rõ các chế độ: tuyến tuần tự ban đầu, A*, GA, A* + GA và so sánh tổng hợp.
+- [x] Hỗ trợ nhiều xe thật trong GA/A* + GA theo tham số `vehicles` từ giao diện.
+- [x] Ghi log thuật toán dạng JSONL để demo lại quá trình chạy.
 
 ---
 
@@ -37,10 +40,21 @@ delivery_optimizer/
 ├── algorithms/
 │   ├── astar.py              # Lõi A* Step-by-step
 │   └── genetic.py            # Lõi GA xử lý Multi-vehicle, Capacity, Time Windows
+├── logging_utils.py          # Ghi log thuật toán A*, GA, A*+GA
 │
 ├── delivery_optimizer_demo.html # Giao diện Web UI (Nature Friendly)
 ├── server.py                 # Backend Flask cung cấp REST API & SSE
 └── delivery_optimizer/gui.py # Desktop Launcher mở Web UI
+```
+
+Log chạy thuật toán được sinh trong:
+
+```text
+logs/algorithm_runs/
+├── latest_astar.jsonl
+├── latest_ga.jsonl
+├── latest_astar_ga.jsonl
+└── history/
 ```
 
 ---
@@ -67,11 +81,17 @@ delivery_optimizer/
 ## Phase 3 — Genetic Algorithm (Hoàn thành)
 - `run_ga()`: Tích hợp Elitism và OX Crossover.
 - Tham số chuẩn hóa: `Pop: 120`, `Gen: 500`, `Mut: 4%`.
+- `split_routes()`: Chia nghiệm GA thành nhiều tuyến theo số xe, không còn dồn toàn bộ điểm vào một xe khi capacity lớn.
+- GA thuần dùng metric Euclid để tối ưu hoán vị, nhưng UI hiển thị `actual_dist` do backend tính lại theo mạng đường.
+- A* + GA dùng ma trận A* làm fitness, phù hợp khi cần tuyến bám theo đường và tránh vật cản.
 
 ## Phase 4 — Giao diện & Thống kê (Hoàn thành)
 - Hệ thống màu sắc Nature: Teal `#4db8a0`, Amber `#f5a623`, Lime `#6bcf7f`.
 - Chế độ Step-by-step trực quan.
 - Bảng so sánh hiệu quả giữa GA và lộ trình ngẫu nhiên.
+- Một control duy nhất `Số xe giao hàng`; chỉ bật khi chạy GA, A* + GA hoặc so sánh.
+- Chế độ so sánh hiện gồm tuyến ban đầu, A*, GA và A* + GA.
+- Mỗi lần chạy thuật toán sinh log `latest_*.jsonl` để mở lại khi demo.
 
 ---
 
@@ -98,6 +118,8 @@ delivery_optimizer/
 - [x] Viết `order_crossover()`
 - [x] Viết `swap_mutation()`
 - [x] Viết `run_ga()`
+- [x] Cập nhật `split_routes()` để nhiều xe tạo nhiều route thật
+- [x] Truyền đúng `vehicles` từ UI xuống backend khi chạy GA/A*+GA
 
 ### Phase 4 — Giao diện
 - [x] Thiết kế UI Nature Friendly với CustomTkinter
@@ -105,6 +127,8 @@ delivery_optimizer/
 - [x] Viết hàm `animate_delivery()` (mô phỏng xe chạy)
 - [x] Vẽ đồ thị hội tụ GA
 - [x] Bảng so sánh hiệu quả (Comparison Dialog)
+- [x] Tách mode tuyến ban đầu, A*, GA, A*+GA
+- [x] Ghi log thuật toán phục vụ demo
 
 ---
 
