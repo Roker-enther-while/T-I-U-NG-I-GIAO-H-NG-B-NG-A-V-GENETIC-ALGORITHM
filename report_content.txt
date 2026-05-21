@@ -1,509 +1,415 @@
-TRƯỜNG ĐẠI HỌC THỦ DẦU MỘT
-VIỆN CÔNG NGHỆ SỐ
-
-BÁO CÁO
-TIỂU LUẬN MÔN HỌC
-Kỹ thuật lập trình trong phân tích dữ liệu
-
-TÊN ĐỀ TÀI
-Tối ưu đường đi giao hàng bằng thuật toán A* và Genetic Algorithm
-
-Nhóm thực hiện:
-Huỳnh Trung Tín MÃ SỐ SV: 2324802010372LỚP: D23CNTT04
-Đinh Hữu Phong     MÃ SỐ SV: 2324802010095LỚP: D23CNTT04
-Nguyễn Đức ThịnhMÃ SỐ SV: 2324802010355LỚP: D23CNTT04
-Giảng viên: Ths. Trịnh Trọng Thành
-
-
-Học kỳ II năm học 2025-2026
-TP. HCM, tháng 5 /2026
-
-MỤC LỤC
-MỤC LỤCi
-DANH MỤC CÁC HÌNHii
-DANH MỤC CÁC BẢNGiii
-BẢNG PHÂN CÔNG CÔNG VIỆC1
-MỞ ĐẦU2
-CHƯƠNG 1: TỔNG QUAN VỀ DỰ ÁN4
-1.1. Lý do chọn đề tài4
-1.2. Tên đề tài, mô tả và mục tiêu bài toán5
-1.3. Phạm vi, giả định và yêu cầu đầu ra6
-1.4. Công cụ, thư viện và cấu trúc repository7
-CHƯƠNG 2: CƠ SỞ LÝ THUYẾT VÀ PHƯƠNG PHÁP ĐÁNH GIÁ10
-2.1. Bài toán TSP/VRP/CVRPTW10
-2.2. Thuật toán A*11
-2.3. Genetic Algorithm13
-2.4. Mô hình kết hợp A* + GA15
-2.5. Phương pháp đánh giá lựa chọn thuật toán16
-CHƯƠNG 3: PHÂN TÍCH, THIẾT KẾ VÀ XÂY DỰNG GIẢI PHÁP18
-3.1. Kiến trúc hệ thống18
-3.2. Mô hình dữ liệu và đồ thị20
-3.3. Xây dựng ma trận khoảng cách bằng A*22
-3.4. Tối ưu thứ tự giao hàng bằng GA24
-3.5. Backend Flask API và giao diện HTML26
-3.6. Kiểm thử và kiểm soát lỗi28
-CHƯƠNG 4: KẾT QUẢ, HIỂN THỊ DỰ ĐOÁN VÀ ĐÁNH GIÁ SO SÁNH30
-4.1. Chức năng hoàn thành sau commit mới nhất30
-4.2. Hiển thị kết quả dự đoán32
-4.3. Kịch bản đánh giá và bảng kết quả34
-4.4. So sánh, nhận xét ưu điểm và hạn chế36
-KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN39
-TÀI LIỆU THAM KHẢO41
-PHỤ LỤC: VẤN ĐỀ CẦN NHẤN MẠNH KHI TRÌNH BÀY43
-
-DANH MỤC CÁC HÌNH
-Hình 1.1: Cấu trúc repository sau commit mới nhất3
-Hình 2.1: Minh họa nguyên lý thuật toán A*4
-Hình 2.2: Vòng lặp tối ưu của Genetic Algorithm5
-Hình 2.3: Mô hình kết hợp A* -> Ma trận khoảng cách -> GA6
-Hình 3.1: Kiến trúc tổng thể hệ thống tối ưu giao hàng7
-Hình 3.2: Quy trình xử lý từ đầu vào đến đầu ra8
-Hình 3.3: Bản đồ mô phỏng điểm giao và tuyến tối ưu9
-Hình 3.4: Bố cục giao diện trình diễn kết quả10
-Hình 4.1: Đường cong hội tụ GA trong kịch bản minh họa11
-Hình 4.2: So sánh tổng quãng đường tuần tự và A* + GA12
-DANH MỤC CÁC BẢNG
-Bảng 1.1: Bảng phân công công việc5
-Bảng 1.2: Công cụ và thư viện sử dụng6
-Bảng 1.3: Mô tả chức năng các file chính trong repository7
-Bảng 2.1: So sánh vai trò A*, GA và mô hình kết hợp8
-Bảng 2.2: Tiêu chí đánh giá lựa chọn thuật toán9
-Bảng 3.1: Dữ liệu đầu vào và đầu ra của hệ thống10
-Bảng 3.2: Các API backend chính11
-Bảng 3.3: Các tình huống kiểm thử quan trọng12
-Bảng 4.1: Tính năng hoàn thành sau commit mới nhất13
-Bảng 4.2: Kết quả kịch bản minh họa14
-Bảng 4.3: Vấn đề cần nhấn mạnh khi bảo vệ15
-
-BẢNG PHÂN CÔNG CÔNG VIỆC
-Bảng 1.1: Bảng phân công công việc
-STT
-Họ và tên
-MSSV
-Nhiệm vụ chính
-Kỹ thuật chịu trách nhiệm
-Tỷ lệ
-1
-Huỳnh Trung Tín
-2324802010372
-Thiết kế bản đồ, đồ thị và kiểm thử A*
-Mô hình hóa node/cạnh, vật cản, mạng đường/hẻm; kiểm tra A* đi vòng vật cản, grid mode, road mode.
-33%
-2
-Nguyễn Đức Thịnh
-2324802010355
-Xây dựng GA và đánh giá thuật toán
-Mã hóa chromosome, fitness, tournament selection, order crossover, swap mutation, elitism; so sánh tuyến tuần tự và tuyến tối ưu.
-33%
-3
-Đinh Hữu Phong
-2324802010095
-Tích hợp backend, giao diện và báo cáo
-Flask API, Server-Sent Events cho tiến trình GA, giao diện HTML, bảng kết quả, biểu đồ hội tụ và tài liệu trình bày.
-34%
-4
-Cả nhóm
-—
-Tích hợp và kiểm thử end-to-end
-Đọc commit mới nhất, rà soát lỗi đầu vào, kiểm thử API, hoàn thiện báo cáo và chuẩn bị thuyết trình.
-100%
-
 MỞ ĐẦU
-Tối ưu đường đi giao hàng là một bài toán có tính ứng dụng cao trong logistics, thương mại điện tử và vận hành kho. Khi số lượng điểm giao tăng lên, việc sắp xếp thứ tự giao hàng theo cảm tính hoặc theo thứ tự phát sinh đơn có thể làm tổng quãng đường tăng mạnh, kéo theo chi phí nhiên liệu, thời gian giao hàng và độ trễ dịch vụ. Vì vậy, việc mô phỏng và xây dựng một hệ thống đề xuất lộ trình là một hướng tiếp cận phù hợp với môn Kỹ thuật lập trình trong phân tích dữ liệu, nơi sinh viên cần biết cách tổ chức dữ liệu, xử lý thuật toán và trình bày kết quả theo dạng có thể quan sát được.
-Đề tài “Tối ưu đường đi giao hàng bằng thuật toán A* và Genetic Algorithm” tập trung giải quyết bài toán theo hai lớp. Lớp thứ nhất là tìm đường đi ngắn nhất giữa hai điểm trên bản đồ, được đảm nhiệm bởi thuật toán A*. Lớp thứ hai là chọn thứ tự đi qua nhiều điểm giao hàng, được đảm nhiệm bởi Genetic Algorithm. Cách tách bài toán thành hai lớp giúp hệ thống vừa dễ giải thích về mặt lý thuyết, vừa dễ mở rộng sang các kịch bản thực tế như bản đồ có vật cản, mạng đường/hẻm, nhiều xe, tải trọng và khung giờ giao hàng.
-Repository GitHub mới nhất cho thấy đề tài không chỉ dừng ở mô phỏng thuật toán đơn giản mà đã được nâng cấp thành ứng dụng web có backend Flask, giao diện HTML, API đồng bộ mạng đường, API chạy A*, API lấy route path chi tiết và API tối ưu GA theo dạng streaming. Commit mới nhất ngày 17/05/2026 có nội dung “Cập nhật UI Web HTML, tích hợp Flask Backend và cập nhật các tài liệu Markdown”, thay đổi 8 file với hơn hai nghìn dòng bổ sung, thể hiện trọng tâm phát triển là chuyển từ mô hình minh họa thuật toán sang hệ thống có thể thao tác trực quan trên trình duyệt.
-Báo cáo này được biên soạn lại theo đúng định dạng của file mẫu: có trang bìa, mục lục, danh mục hình, danh mục bảng, bảng phân công công việc, các chương nội dung, kết luận, tài liệu tham khảo và phụ lục các điểm cần nhấn mạnh khi trình bày. Nội dung trong báo cáo không chỉ mô tả thuật toán mà còn phân tích rõ vì sao chọn thuật toán, hệ thống đã xây dựng những thành phần nào, cách hiển thị kết quả dự đoán, cách đánh giá so sánh và những vấn đề cần lưu ý khi bảo vệ đề tài.
+Trong hoạt động giao nhận hiện đại, việc lựa chọn tuyến đường giao hàng không chỉ ảnh hưởng đến quãng đường di chuyển mà còn tác động trực tiếp đến chi phí vận hành, thời gian phục vụ và khả năng mở rộng của hệ thống. Một tuyến đường được sắp xếp chưa hợp lý có thể khiến phương tiện phải đi vòng, lặp lại nhiều khu vực hoặc di chuyển qua các đoạn đường không khả thi. Khi số lượng điểm giao hàng tăng lên, việc sắp xếp thủ công dựa trên kinh nghiệm trở nên thiếu ổn định và khó chứng minh hiệu quả.
 
-CHƯƠNG 1: TỔNG QUAN VỀ DỰ ÁN
-1.1. Lý do chọn đề tài
-Trong thực tế giao hàng, một xe thường phải xuất phát từ kho, đi qua nhiều địa chỉ và quay lại điểm xuất phát hoặc kết thúc ca giao hàng tại một điểm được quy định. Nếu chỉ có một vài địa điểm, người giao hàng có thể tự chọn thứ tự bằng kinh nghiệm. Tuy nhiên, khi số điểm giao tăng lên, số khả năng sắp xếp tăng theo cấp số giai thừa. Với 10 điểm giao đã có 10! thứ tự khác nhau; với 15 điểm giao, số khả năng lớn đến mức không thể duyệt vét cạn trong thời gian ngắn.
-Đề tài được lựa chọn vì có sự kết hợp rõ giữa lý thuyết thuật toán và sản phẩm phần mềm. Về lý thuyết, bài toán liên quan đến tìm đường đi ngắn nhất, tối ưu tổ hợp, TSP, VRP và các ràng buộc vận hành như tải trọng hoặc khung giờ. Về triển khai, đề tài yêu cầu tổ chức dữ liệu điểm, đồ thị, ma trận khoảng cách, thuật toán tối ưu, API backend và giao diện trực quan. Đây là một bài toán phù hợp để chứng minh năng lực lập trình, phân tích dữ liệu và trình bày kết quả.
-Ngoài ra, đề tài có lợi thế lớn khi thuyết trình: kết quả không chỉ là con số mà có thể hiển thị trực tiếp trên bản đồ. Người xem có thể thấy kho hàng, điểm giao, đường đi A*, tuyến GA, biểu đồ hội tụ và bảng so sánh với lộ trình tuần tự. Vì vậy, đề tài dễ chứng minh “làm được thật” hơn so với các bài chỉ trình bày lý thuyết hoặc chỉ in kết quả trên console.
-1.2. Tên đề tài, mô tả và mục tiêu bài toán
-Tên đề tài: Tối ưu đường đi giao hàng bằng thuật toán A* và Genetic Algorithm.
-Bài toán được mô phỏng trên bản đồ 2D. Hệ thống có một kho hàng đóng vai trò điểm xuất phát, nhiều điểm giao hàng và một mạng đường để xe di chuyển. Người dùng có thể chọn số điểm giao, tốc độ xe, heuristic của A*, số lượng xe, tải trọng, tỷ lệ đột biến, số thế hệ và chế độ tính metric cho GA. Sau đó hệ thống chạy A* để tạo ma trận chi phí giữa các điểm, rồi chạy GA để tìm thứ tự giao hàng có tổng chi phí nhỏ.
-Mục tiêu kỹ thuật của đề tài là xây dựng được một pipeline hoàn chỉnh: sinh hoặc nhận bản đồ, xây dựng đồ thị, tính ma trận khoảng cách bằng A*, tối ưu thứ tự giao hàng bằng GA, trả kết quả qua API và hiển thị trên giao diện web. Mục tiêu trình bày là chứng minh được mô hình A* + GA tốt hơn lộ trình tuần tự trong nhiều kịch bản và giải thích rõ vì sao hai thuật toán phải phối hợp với nhau thay vì dùng riêng lẻ.
-Điểm cần nhấn mạnh ở phần mục tiêu là hệ thống không “dự đoán” theo nghĩa học máy, mà dự đoán theo nghĩa đề xuất lộ trình tối ưu gần đúng dựa trên thuật toán. Kết quả dự đoán là thứ tự giao hàng, tuyến đường chi tiết, tổng quãng đường, thời gian ước tính và phần trăm cải thiện so với tuyến đối chiếu.
-1.3. Phạm vi, giả định và yêu cầu đầu ra
-Phạm vi đề tài đã được mở rộng theo commit mới nhất. Bản ban đầu có thể xem là bài toán TSP/VRP một xe, trong đó xe đi qua toàn bộ điểm giao đúng một lần và quay về kho. Bản hiện tại đã bổ sung các yếu tố gần với CVRPTW: hỗ trợ nhiều xe, giới hạn tải trọng, khung giờ giao hàng, loại điểm giao không thể phục vụ nếu nằm trong vùng cấm, chế độ mạng đường/hẻm, lưới ô và đường thẳng.
-Các giả định chính gồm: bản đồ được biểu diễn bằng tọa độ 2D; tốc độ xe được xem là hằng số khi quy đổi quãng đường sang thời gian; các đơn hàng có demand giả lập; time window được sinh theo quy tắc trong backend; GA là thuật toán gần đúng nên không cam kết tối ưu tuyệt đối; lộ trình tuần tự chỉ được dùng làm tuyến đối chiếu, không phải thuật toán tối ưu.
-Yêu cầu đầu ra gồm: bản đồ trực quan, ma trận khoảng cách sau A*, route path chi tiết để frontend vẽ đúng đường backend, thứ tự giao hàng tối ưu, danh sách tuyến theo từng xe, tổng quãng đường, tổng thời gian, lịch sử fitness của GA, thông tin điểm không giao được và bảng so sánh giữa tuyến tuần tự với tuyến A* + GA.
-1.4. Công cụ, thư viện và cấu trúc repository
-Bảng 1.2: Công cụ và thư viện sử dụng
-STT
-Công cụ / thư viện
-Vai trò trong đề tài
-1
-Python
-Ngôn ngữ lập trình chính, triển khai A*, GA và Flask backend.
-2
-Flask
-Xây dựng API sinh bản đồ, chạy A*, tối ưu GA và trả kết quả cho giao diện HTML.
-3
-HTML/CSS/JavaScript
-Xây dựng giao diện DelivRoute v2, hiển thị bản đồ, điều khiển thuật toán và bảng kết quả.
-4
-heapq
-Cài đặt hàng đợi ưu tiên cho thuật toán A*.
-5
-threading, queue
-Chạy GA ở worker nền và gửi tiến trình tối ưu qua Server-Sent Events.
-6
-unittest
-Kiểm thử backend: vật cản, road mode, route path, tham số lỗi, nhiều xe và metric.
-7
-GitHub
-Quản lý mã nguồn, lịch sử commit và tài liệu Markdown của đề tài.
+Đề tài “Tối ưu đường đi giao hàng bằng thuật toán A* và Genetic Algorithm” được thực hiện nhằm mô hình hóa bài toán giao hàng thành một bài toán tìm kiếm và tối ưu trong Trí tuệ nhân tạo. Điểm quan trọng của đề tài là không sử dụng một thuật toán duy nhất cho toàn bộ vấn đề, mà tách bài toán thành hai lớp xử lý: A* đảm nhiệm việc tìm đường đi hợp lệ giữa các điểm trên bản đồ có vật cản, còn Genetic Algorithm đảm nhiệm việc tối ưu thứ tự đi qua các điểm giao hàng.
 
-Bảng 1.3: Mô tả chức năng các file chính trong repository
-File / thư mục
-Chức năng chính
-Nội dung cần nhấn mạnh
-server.py
-Backend Flask và lõi điều phối ứng dụng
-Chứa API generate, sync_road_graph, astar, astar_steps, route_paths, optimize; xử lý state bản đồ và trả kết quả JSON/SSE.
-delivery_optimizer/algorithms/astar.py
-Thuật toán A*
-Cài đặt Priority Queue, came_from, g_score, f_score, reconstruct_path và phiên bản astar_with_steps để minh họa.
-delivery_optimizer/algorithms/genetic.py
-Genetic Algorithm
-Cài đặt chromosome, fitness, constrained_fitness, split_routes, tournament selection, OX crossover, swap mutation, elitism và run_ga.
-delivery_optimizer/graph/distance.py
-Khoảng cách và ma trận chi phí
-Tính Euclidean/Manhattan heuristic, chạy A* cho từng cặp điểm và trả dist_matrix/path_matrix.
-delivery_optimizer/graph/graph.py
-Mô hình đồ thị
-Xây dựng cạnh, kiểm tra vật cản, bổ sung waypoint quanh obstacle và hỗ trợ mạng đường.
-delivery_optimizer_demo.html
-Giao diện web
-Hiển thị bản đồ, kịch bản mẫu, cấu hình, log A*, biểu đồ GA, route và so sánh kết quả.
-delivery_optimizer/gui.py
-Launcher ứng dụng
-Khởi động backend Flask và mở giao diện web ở chế độ app.
-tests/test_backend_features.py
-Bộ kiểm thử backend
-Kiểm tra các kịch bản quan trọng: vật cản, grid/road mode, route path, tham số lỗi, multi-vehicle.
-bao_cao_de_tai_toi_uu_giao_hang.md
-Tài liệu báo cáo gốc
-Cung cấp nội dung cốt lõi về mục tiêu, cơ sở lý thuyết, đánh giá thuật toán và kết quả.
+Báo cáo được xây dựng theo hướng học thuật, tập trung vào mục tiêu bài toán, cơ sở lý thuyết cần thiết, phương pháp đánh giá lựa chọn thuật toán, xây dựng giải pháp và phân tích kết quả. Các phần mô tả mã nguồn, hướng dẫn sử dụng hoặc chi tiết kỹ thuật không cần thiết được rút gọn để giữ trọng tâm vào bài toán và cách giải quyết. Những bảng biểu và vị trí chèn hình ảnh được bố trí chủ yếu ở Chương 3, Chương 4 và Chương 5 nhằm phục vụ phần đánh giá, xây dựng giải pháp và trình bày kết quả.
 
-Cấu trúc repository rút gọn:T-I-U-NG-I-GIAO-H-NG-B-NG-A-V-GENETIC-ALGORITHM/├── server.py├── delivery_optimizer_demo.html├── delivery_optimizer/│   ├── algorithms/astar.py│   ├── algorithms/genetic.py│   ├── graph/distance.py│   ├── graph/graph.py│   └── gui.py├── tests/test_backend_features.py├── bao_cao_de_tai_toi_uu_giao_hang.md├── design.md└── ke_hoach_*.md
-Hình 1.1: Cấu trúc repository sau commit mới nhất
-Theo lịch sử commit trên GitHub, commit mới nhất có mã 96b2dc6, thực hiện ngày 17/05/2026, với nội dung cập nhật giao diện HTML, tích hợp Flask Backend và cập nhật tài liệu Markdown. Commit này thay đổi 8 file, bổ sung 2.415 dòng và xóa 277 dòng. Vì vậy, báo cáo này ưu tiên mô tả bản sau commit mới nhất, đặc biệt là phần Flask backend, giao diện HTML, mạng đường và kiểm thử backend.
+CHƯƠNG 1: MỤC TIÊU BÀI TOÁN
 
-CHƯƠNG 2: CƠ SỞ LÝ THUYẾT VÀ PHƯƠNG PHÁP ĐÁNH GIÁ
-2.1. Bài toán TSP, VRP và CVRPTW trong đề tài
-TSP (Travelling Salesman Problem) là bài toán tìm chu trình ngắn nhất đi qua mỗi điểm đúng một lần rồi quay lại điểm xuất phát. Nếu mô hình chỉ có một xe, một kho và không xét tải trọng, bài toán giao hàng trong đề tài có thể xem là một biến thể TSP. Khi mở rộng sang nhiều xe, giới hạn tải trọng và khung giờ, bài toán tiến gần hơn đến VRP và CVRPTW.
-VRP (Vehicle Routing Problem) tổng quát hơn TSP vì có thể có nhiều xe, nhiều tuyến, nhiều ràng buộc vận hành. CVRPTW bổ sung hai yếu tố quan trọng: Capacity - tải trọng tối đa của xe, và Time Windows - khoảng thời gian mà đơn hàng cần được giao. Commit mới nhất trong repository đã bổ sung các tham số vehicles, capacity, time_windows và demand giả lập, cho phép báo cáo nhấn mạnh rằng đề tài đã vượt qua mô phỏng TSP đơn giản.
-Trong bối cảnh môn học, không nhất thiết phải giải trọn vẹn mọi biến thể VRP thực tế. Điều quan trọng là chứng minh được cách mô hình hóa dữ liệu, cách đánh giá chi phí route và cách kết hợp thuật toán để tạo lộ trình tốt hơn tuyến tuần tự. Do đó, đề tài chọn cách tiếp cận thực dụng: dùng A* để tính chi phí đường đi, dùng GA để tối ưu thứ tự và dùng giao diện web để kiểm chứng bằng mắt.
+1.1. Mô tả bài toán
+Bài toán của đề tài là tối ưu lộ trình giao hàng trong một môi trường mô phỏng có kho hàng, nhiều điểm giao và các vùng vật cản. Phương tiện cần xuất phát từ kho, phục vụ các điểm giao theo một thứ tự nào đó và tạo ra tổng chi phí di chuyển càng thấp càng tốt. Trong mô hình này, chi phí di chuyển không chỉ phụ thuộc vào vị trí hình học của các điểm mà còn phụ thuộc vào khả năng đi lại trên bản đồ. Nếu giữa hai điểm có vật cản, phương tiện phải tìm đường vòng hợp lệ thay vì đi theo đường thẳng.
+
+Bài toán có hai tầng khó. Tầng thứ nhất là tìm đường đi giữa hai vị trí cụ thể trên bản đồ. Đây là bài toán tìm kiếm đường đi cục bộ, trong đó thuật toán phải biết tránh vật cản và xác định một đường đi khả thi. Tầng thứ hai là sắp xếp thứ tự phục vụ nhiều điểm giao. Đây là bài toán tối ưu tổ hợp, vì mỗi cách sắp xếp điểm giao có thể dẫn đến một tổng quãng đường khác nhau. Việc kết hợp cả hai tầng này tạo nên đặc trưng của đề tài.
+
+Trong phạm vi môn học, bài toán được đặt trong môi trường mô phỏng để dễ quan sát và đánh giá. Dữ liệu đầu vào bao gồm bản đồ, kho, điểm giao, số phương tiện và vật cản. Đầu ra cần có là tuyến đường sau tối ưu, tổng chi phí, mức cải thiện so với tuyến ban đầu và dữ liệu thể hiện quá trình tối ưu của thuật toán.
+
+1.2. Bối cảnh và tính cấp thiết của đề tài
+Trong thực tế, các đơn vị giao hàng thường phải xử lý nhiều địa điểm trong một khoảng thời gian ngắn. Nếu chỉ đi theo thứ tự đơn hàng được nhập vào hệ thống, tuyến đường có thể không tối ưu. Một điểm ở gần kho có thể bị giao sau một điểm ở xa, hoặc phương tiện có thể quay lại khu vực đã đi qua trước đó. Điều này làm tăng quãng đường và giảm hiệu quả vận hành.
+
+Vấn đề trở nên phức tạp hơn khi bản đồ có khu vực không thể đi qua. Khoảng cách đường thẳng giữa hai điểm có thể nhỏ nhưng đường thực tế lại dài do phải tránh vật cản. Vì vậy, nếu chỉ sử dụng khoảng cách hình học đơn giản để đánh giá tuyến đường thì kết quả có thể thiếu chính xác. Một phương án tối ưu trên giấy chưa chắc hợp lệ trong bản đồ mô phỏng.
+
+Từ góc nhìn Trí tuệ nhân tạo, đây là bài toán phù hợp để áp dụng các thuật toán tìm kiếm và tối ưu. A* giúp hệ thống tìm đường đi có định hướng trong không gian có vật cản. GA giúp hệ thống tìm lời giải tốt trong không gian thứ tự giao hàng rất lớn. Việc kết hợp hai thuật toán cho phép đề tài vừa có cơ sở lý thuyết rõ ràng vừa có kết quả thực nghiệm dễ quan sát.
+
+1.3. Phát biểu bài toán
+Cho một bản đồ mô phỏng gồm kho hàng, tập các điểm giao hàng và các vùng vật cản. Cần xác định lộ trình giao hàng sao cho phương tiện có thể đi qua các điểm giao theo một thứ tự hợp lý, không đi xuyên vật cản và có tổng chi phí di chuyển thấp hơn phương án tuần tự ban đầu.
+
+Bài toán cần trả lời ba câu hỏi chính. Thứ nhất, nếu đi từ một điểm đến một điểm khác thì đường đi hợp lệ trên bản đồ là gì? Thứ hai, khi có nhiều điểm giao, nên đi qua các điểm theo thứ tự nào để giảm tổng chi phí? Thứ ba, phương án đề xuất có tốt hơn các chế độ đối chứng như tuyến tuần tự, A* đơn lẻ hoặc GA thường hay không?
+
+Để trả lời các câu hỏi trên, đề tài tách bài toán thành bốn chế độ thực nghiệm. Tuyến tuần tự ban đầu dùng làm baseline. A* dùng để biểu diễn khả năng tìm đường tránh vật cản. GA thường dùng để tối ưu thứ tự theo khoảng cách hình học và hiển thị quãng đường thực tế. A* + GA là phương pháp đề xuất chính, trong đó GA tối ưu dựa trên chi phí đường đi thực tế do A* tạo ra.
+
+1.4. Mục tiêu cụ thể của bài toán
+Mục tiêu thứ nhất là mô hình hóa được bài toán giao hàng theo cách có thể xử lý bằng thuật toán. Các thành phần như kho, điểm giao, vật cản, phương tiện, tuyến đường và tổng chi phí cần được mô tả rõ về vai trò trong bài toán.
+
+Mục tiêu thứ hai là áp dụng A* để giải quyết bài toán con tìm đường. Thuật toán cần xác định được đường đi hợp lệ giữa các điểm, tránh vật cản và cung cấp chi phí thực tế cho bước tối ưu phía sau.
+
+Mục tiêu thứ ba là áp dụng Genetic Algorithm để tối ưu thứ tự giao hàng. Mỗi phương án thứ tự được xem như một nghiệm, được đánh giá bằng tổng chi phí tuyến. Qua nhiều thế hệ, thuật toán cần cải thiện dần nghiệm để tạo tuyến ngắn hơn baseline.
+
+Mục tiêu thứ tư là xây dựng được cách đánh giá rõ ràng. Kết quả cần được so sánh qua các chế độ: tuyến tuần tự ban đầu, A*, GA thường và A* + GA. Việc so sánh này giúp làm rõ vai trò riêng của từng thuật toán và lý do chọn phương pháp kết hợp.
+
+Mục tiêu thứ năm là chuẩn bị được nội dung trình bày có thể quan sát trực quan. Báo cáo cần có các vị trí chèn hình bản đồ, tuyến đường, đường tránh vật cản, biểu đồ hội tụ và bảng chỉ số để người đọc dễ kiểm chứng kết quả.
+
+1.5. Phạm vi thực hiện và giả định
+Đề tài tập trung vào mô phỏng thuật toán thay vì triển khai hệ thống giao hàng thực tế. Bản đồ được biểu diễn ở mức đủ để kiểm tra đường đi và vật cản. Các yếu tố như dữ liệu giao thông thời gian thực, thời tiết, giờ cao điểm, tốc độ từng đoạn đường, ưu tiên đơn hàng và khung giờ giao hàng chưa được mở rộng trong phiên bản này.
+
+Kịch bản thực nghiệm sử dụng số điểm giao và số xe ở mức vừa phải để có thể quan sát rõ sự khác biệt giữa các phương pháp. Phương án tuyến tuần tự được xem là baseline, không phải là phương án tối ưu. Các kết quả như tổng chi phí và phần trăm cải thiện chỉ phản ánh kịch bản mô phỏng đã chọn, không được khẳng định là đúng cho mọi điều kiện thực tế.
+
+Giới hạn này phù hợp với mục tiêu môn học. Đề tài cần chứng minh khả năng mô hình hóa bài toán, lựa chọn thuật toán hợp lý, xây dựng luồng xử lý và phân tích kết quả. Những mở rộng thực tế hơn sẽ được trình bày trong phần hướng phát triển.
+
+CHƯƠNG 2: CƠ SỞ LÝ THUYẾT VỀ CÁC GIẢI THUẬT ÁP DỤNG
+
+2.1. Bài toán định tuyến dưới góc nhìn Trí tuệ nhân tạo
+Dưới góc nhìn Trí tuệ nhân tạo, bài toán định tuyến là bài toán tìm kiếm chuỗi hành động cho một tác tử. Tác tử ở đây là phương tiện giao hàng, trạng thái là vị trí hiện tại cùng tập các điểm đã phục vụ, hành động là di chuyển đến một điểm tiếp theo, còn mục tiêu là giảm tổng chi phí di chuyển. Khi số điểm giao tăng, số trạng thái có thể xét tăng rất nhanh, làm cho cách duyệt toàn bộ phương án trở nên không khả thi.
+
+Nếu có n điểm giao hàng, số thứ tự có thể xét là n!. Sự tăng trưởng này khiến bài toán có tính chất tổ hợp mạnh. Với số điểm nhỏ, có thể thử toàn bộ để tìm nghiệm tối ưu tuyệt đối; nhưng với số điểm lớn hơn, thời gian tính toán sẽ tăng quá nhanh. Vì vậy, các thuật toán heuristic hoặc meta-heuristic thường được sử dụng để tìm nghiệm đủ tốt trong thời gian hợp lý.
+
+Bài toán của đề tài còn có thêm yếu tố vật cản. Điều này làm cho chi phí giữa hai điểm không thể chỉ dựa vào khoảng cách đường thẳng. Cần một bước tìm đường đi hợp lệ trước khi đánh giá tổng tuyến. Do đó, việc dùng A* để tạo chi phí cục bộ và dùng GA để tối ưu thứ tự toàn cục là cách tiếp cận phù hợp với bản chất bài toán.
+
 2.2. Thuật toán A*
-A* là thuật toán tìm kiếm đường đi ngắn nhất trên đồ thị có trọng số không âm. Thuật toán kết hợp chi phí thực tế đã đi từ điểm bắt đầu đến node hiện tại với chi phí ước lượng từ node hiện tại đến đích. Nhờ đó, A* không mở rộng node một cách mù quáng mà ưu tiên những node có khả năng dẫn đến lời giải tốt.
-Công thức đánh giá của A* là f(n) = g(n) + h(n). Trong đó g(n) là chi phí thật từ điểm bắt đầu đến node n, h(n) là heuristic ước lượng từ n đến đích và f(n) là tổng chi phí dự kiến nếu đường đi đi qua n. Nếu heuristic không vượt quá chi phí thật còn lại, A* có khả năng tìm được đường đi tối ưu.
-Trong chương trình, A* được dùng nhiều lần để tính đường đi giữa mọi cặp điểm cần giao hàng. Kết quả của mỗi lần chạy không chỉ là khoảng cách mà còn có path cụ thể. Path này đặc biệt quan trọng ở commit mới nhất vì frontend không tự vẽ đường nối tắt nữa; thay vào đó, frontend nhận route_paths từ backend để vẽ đúng tuyến đường theo mạng đường, lưới hoặc vật cản.
+A* là thuật toán tìm kiếm có thông tin, thường được sử dụng để tìm đường đi ngắn nhất trên đồ thị hoặc lưới ô. Điểm khác biệt của A* so với các thuật toán tìm kiếm không có thông tin là A* sử dụng heuristic để ước lượng khoảng cách còn lại đến đích. Nhờ đó, thuật toán ưu tiên mở rộng các trạng thái có triển vọng hơn thay vì lan tỏa đều theo mọi hướng.
 
-Hình 2.1: Minh họa nguyên lý thuật toán A*
-Công thức A*:f(n) = g(n) + h(n)Trong đề tài:- g(n): tổng chi phí đã đi trên graph.- h(n): Euclidean hoặc Manhattan đến node đích.- node có f(n) nhỏ nhất được lấy ra từ Priority Queue.
+Hàm đánh giá của A* được viết dưới dạng f(n) = g(n) + h(n). Trong đó, g(n) là chi phí thực tế từ điểm bắt đầu đến nút n, còn h(n) là chi phí ước lượng từ nút n đến đích. Nếu heuristic được lựa chọn hợp lý, A* có thể tìm được đường đi tốt với số trạng thái cần duyệt ít hơn so với cách tìm kiếm mù.
+
+Trong đề tài, A* không được dùng để giải toàn bộ bài toán giao hàng. Vai trò của A* là giải bài toán con: tìm đường đi hợp lệ giữa hai điểm trên bản đồ có vật cản. Khi chạy A* cho nhiều cặp điểm quan trọng, hệ thống thu được ma trận chi phí. Ma trận này là nền tảng để thuật toán GA đánh giá các thứ tự giao hàng khác nhau.
+
+Một yêu cầu quan trọng của A* là không đi xuyên vật cản. Nếu đường đi giữa hai điểm bị chặn hoàn toàn, thuật toán cần trả về trạng thái không có đường đi thay vì tạo ra tuyến sai. Điều này giúp kết quả tối ưu có ý nghĩa hơn, vì tuyến đường sau cùng không chỉ ngắn mà còn phải hợp lệ.
+
 2.3. Genetic Algorithm
-Genetic Algorithm là thuật toán tối ưu mô phỏng quá trình tiến hóa tự nhiên. Một quần thể gồm nhiều cá thể được tạo ra, mỗi cá thể biểu diễn một nghiệm ứng viên. Qua mỗi thế hệ, hệ thống đánh giá fitness, chọn cá thể tốt, lai ghép để tạo cá thể mới và đột biến để duy trì đa dạng. Sau nhiều thế hệ, nghiệm tốt có xu hướng được giữ lại và cải thiện.
-Trong bài toán giao hàng, một chromosome là một hoán vị các điểm giao hàng, không bao gồm kho. Ví dụ chromosome [3, 1, 4, 2] tương ứng với route đầy đủ 0 -> 3 -> 1 -> 4 -> 2 -> 0. Hàm fitness là tổng quãng đường của tuyến, lấy khoảng cách từ ma trận do A* tạo ra. Fitness càng nhỏ thì route càng tốt.
-GA phù hợp với bài toán sắp xếp thứ tự vì không cần duyệt hết m! khả năng. Các toán tử trong repository gồm tournament selection, order crossover, swap mutation và elitism. Đặc biệt, bản mới có constrained_fitness để phạt route vi phạm tải trọng hoặc trễ time window, giúp hệ thống có cơ sở mở rộng sang bài toán gần thực tế hơn.
+Genetic Algorithm là thuật toán tiến hóa mô phỏng quá trình chọn lọc tự nhiên. Thuật toán bắt đầu bằng một quần thể gồm nhiều nghiệm ban đầu. Mỗi nghiệm được gọi là một cá thể. Cá thể có chất lượng tốt hơn sẽ có cơ hội cao hơn được chọn để tạo ra thế hệ tiếp theo. Qua nhiều thế hệ, quần thể có xu hướng cải thiện dần.
 
-Hình 2.2: Vòng lặp tối ưu của Genetic Algorithm
-Mã hóa route:Chromosome: [3, 1, 4, 2]Route đầy đủ: 0 -> 3 -> 1 -> 4 -> 2 -> 0Fitness: d(0,3) + d(3,1) + d(1,4) + d(4,2) + d(2,0)
-2.4. Mô hình kết hợp A* + GA
-Điểm cốt lõi của đề tài là không xem A* và GA là hai phần rời rạc, mà kết hợp chúng thành một pipeline. A* giải quyết câu hỏi “đi từ điểm A đến điểm B theo đường nào là ngắn nhất?”, còn GA giải quyết câu hỏi “nên đi qua các điểm theo thứ tự nào để tổng chi phí nhỏ nhất?”. Nếu chỉ dùng A*, hệ thống chưa biết thứ tự giao hàng. Nếu chỉ dùng GA mà không có chi phí đường đi chính xác, fitness sẽ thiếu cơ sở.
-Mô hình kết hợp có thể mô tả như sau: bản đồ được biến thành đồ thị; A* chạy trên đồ thị để tạo ma trận khoảng cách giữa các điểm; GA dùng ma trận này để đánh giá từng chromosome; kết quả GA được chuyển thành route path chi tiết; giao diện hiển thị route và so sánh với lộ trình tuần tự. Đây là điểm cần nhấn mạnh nhất khi bảo vệ đề tài.
+Trong bài toán giao hàng, một cá thể có thể được biểu diễn bằng một chuỗi thứ tự các điểm giao. Ví dụ, một cá thể cho biết phương tiện sẽ đi qua điểm giao nào trước, điểm nào sau. Hàm thích nghi của cá thể được tính dựa trên tổng chi phí di chuyển. Tổng chi phí càng thấp thì cá thể càng tốt.
 
-Hình 2.3: Mô hình kết hợp A* -> Ma trận khoảng cách -> GA
-Bảng 2.1: So sánh vai trò A*, GA và mô hình kết hợp
-Thành phần
-Câu hỏi giải quyết
-Đầu vào
-Đầu ra
-Vai trò trong hệ thống
-A*
-Đi từ một điểm đến một điểm như thế nào?
-Graph, start, goal, heuristic
-Path ngắn nhất, distance, travel time
-Tạo chi phí chính xác giữa từng cặp điểm.
-GA
-Đi qua các điểm theo thứ tự nào?
-Distance matrix, số xe, tải trọng, time windows
-Best order, routes, best distance, history
-Tối ưu thứ tự giao hàng theo fitness.
-A* + GA
-Lộ trình giao hàng tổng thể nào tốt hơn tuyến tuần tự?
-Bản đồ + cấu hình thuật toán
-Route path chi tiết, tổng km, thời gian, cải thiện
-Giải pháp hoàn chỉnh của đề tài.
+Các thao tác chính của GA gồm chọn lọc, lai ghép, đột biến và giữ cá thể ưu tú. Chọn lọc giúp ưu tiên nghiệm tốt. Lai ghép giúp kết hợp đặc điểm của hai nghiệm cha mẹ. Đột biến giúp tạo biến đổi nhỏ để tránh quần thể bị kẹt ở một vùng nghiệm hẹp. Giữ cá thể ưu tú giúp nghiệm tốt nhất không bị mất qua các thế hệ.
 
-2.5. Phương pháp đánh giá lựa chọn thuật toán
-Phương pháp đánh giá trong đề tài không chỉ dựa trên việc thuật toán có chạy được hay không, mà dựa trên nhiều tiêu chí: độ phù hợp với bài toán, chất lượng kết quả, thời gian tính toán, khả năng trực quan hóa, khả năng mở rộng và độ rõ ràng khi giải thích. Cách đánh giá này giúp tránh tình trạng chọn thuật toán theo tên gọi mà không chứng minh được vì sao nó phù hợp.
-Đối với A*, tiêu chí quan trọng là tìm được đường đi hợp lệ trong graph, tránh đi xuyên vật cản hoặc đi tắt ngoài mạng đường. Đối với GA, tiêu chí quan trọng là fitness giảm dần qua các thế hệ, route hợp lệ không lặp điểm, tổng quãng đường tốt hơn tuyến tuần tự và có khả năng xử lý nhiều xe hoặc tải trọng. Đối với hệ thống tổng thể, tiêu chí là API trả dữ liệu đầy đủ để frontend vẽ đúng tuyến backend.
-Bảng 2.2: Tiêu chí đánh giá lựa chọn thuật toán
-Tiêu chí
-Cách đánh giá
-Ý nghĩa
-Độ phù hợp bài toán
-A* tìm đường từng cặp; GA tối ưu hoán vị nhiều điểm.
-Chứng minh thuật toán giải đúng lớp vấn đề.
-Chất lượng kết quả
-So sánh tổng quãng đường và thời gian với tuyến tuần tự.
-Cho thấy hiệu quả tối ưu có quan sát được.
-Tính hợp lệ route
-Không trùng điểm, không thiếu điểm, không đi qua cạnh bị cấm.
-Đảm bảo kết quả dùng được trên bản đồ.
-Tốc độ xử lý
-Số điểm, số thế hệ, population và thời gian phản hồi UI.
-Đảm bảo chạy được trong kịch bản môn học.
-Khả năng trực quan
-Bản đồ, step A*, history GA, bảng so sánh.
-Giúp bảo vệ đề tài bằng hình ảnh rõ ràng.
-Khả năng mở rộng
-Hỗ trợ road mode, multi-vehicle, capacity, time windows.
-Chứng minh hướng phát triển thực tế.
+GA phù hợp với bài toán này vì không cần duyệt toàn bộ hoán vị điểm giao. Thay vào đó, thuật toán tìm kiếm trong không gian nghiệm lớn bằng cơ chế tiến hóa. Kết quả của GA không luôn bảo đảm tối ưu tuyệt đối, nhưng thường đủ tốt trong thời gian ngắn và dễ mở rộng cho các biến thể nhiều điểm hoặc nhiều xe.
 
+2.4. Lý do kết hợp A* và GA
+A* và GA giải quyết hai vấn đề khác nhau. A* mạnh ở việc tìm đường đi cục bộ giữa hai điểm trong môi trường có vật cản. GA mạnh ở việc tìm thứ tự tối ưu trong không gian tổ hợp. Nếu chỉ dùng A*, hệ thống có thể biết đi từ điểm A đến điểm B như thế nào nhưng không biết nên sắp xếp thứ tự giao hàng ra sao. Nếu chỉ dùng GA trên khoảng cách đường thẳng, hệ thống có thể chọn thứ tự tốt về mặt hình học nhưng chưa chắc hợp lệ trên bản đồ có vật cản.
 
-CHƯƠNG 3: PHÂN TÍCH, THIẾT KẾ VÀ XÂY DỰNG GIẢI PHÁP
-3.1. Kiến trúc hệ thống
-Hệ thống được thiết kế theo kiến trúc web đơn giản nhưng rõ ràng. Frontend HTML/CSS/JavaScript chịu trách nhiệm giao diện, bản đồ, điều khiển tham số và hiển thị kết quả. Backend Flask trong file server.py chịu trách nhiệm nhận request, xây dựng graph, chạy A*, chạy GA, lưu state tạm thời và trả kết quả dạng JSON hoặc Server-Sent Events. Package delivery_optimizer chứa các module thuật toán và xử lý graph.
-Luồng tương tác bắt đầu khi người dùng chọn kịch bản hoặc số điểm giao. Frontend gọi API /api/generate để sinh điểm và vật cản. Nếu dùng road mode, frontend đồng bộ road_nodes, road_edges và điểm giao qua /api/sync_road_graph. Sau đó người dùng chạy A* qua /api/astar để tạo ma trận. Khi ma trận đã có, người dùng chạy /api/optimize để GA tối ưu route. Cuối cùng, backend trả routes và route_paths để frontend vẽ tuyến chính xác.
+Vì vậy, cách kết hợp hợp lý là dùng A* trước để tạo ma trận chi phí thực tế, sau đó dùng GA để tối ưu thứ tự giao hàng dựa trên ma trận đó. Khi đó, mỗi cá thể của GA được đánh giá bằng chi phí phản ánh đường đi thực tế, không phải chỉ là khoảng cách ước lượng đơn giản.
 
-Hình 3.1: Kiến trúc tổng thể hệ thống tối ưu giao hàng
+Điểm mạnh của mô hình kết hợp là tính giải thích được. Kết quả cuối cùng có thể được trình bày bằng đường đi A*, thứ tự điểm giao do GA chọn, tổng chi phí, phần trăm cải thiện và dữ liệu hội tụ. Các thông tin này giúp báo cáo có đủ bằng chứng để chứng minh thuật toán hoạt động đúng vai trò.
 
-Hình 3.2: Quy trình xử lý từ đầu vào đến đầu ra
-3.2. Mô hình dữ liệu và đồ thị
-Mỗi điểm trong hệ thống được biểu diễn bởi id, tọa độ x, tọa độ y, tên điểm và các thuộc tính bổ sung như demand, time_window, nodeId hoặc undeliverable. Điểm id = 0 được xem là kho hàng. Các điểm giao còn lại được GA sắp xếp thứ tự. Khi dùng road mode, mỗi điểm giao phải gắn với một node đường để tránh trường hợp frontend vẽ route nhưng backend không có đường hợp lệ.
-Graph được biểu diễn bằng dictionary kề, trong đó mỗi node trỏ đến các node lân cận kèm trọng số cạnh. Tùy chế độ, graph có thể là đường thẳng có kiểm tra vật cản, lưới ô hoặc mạng đường/hẻm do UI đồng bộ. Đối với obstacle, hệ thống phân biệt nhà/công trình của bản đồ với vật cản/đường cấm do người dùng cấu hình. Nhà/công trình không làm đứt road_edges đã được UI xác định là đường, nhưng vật cản/đường cấm có thể đóng cạnh đường.
-Dữ liệu đầu ra của graph không chỉ là danh sách cạnh mà còn là routing_points. routing_points có thể nhiều hơn points gốc vì backend thêm node lưới hoặc waypoint quanh vật cản. Thiết kế này giúp A* có thể tìm đường vòng thay vì chỉ nối đường thẳng giữa hai điểm.
-Bảng 3.1: Dữ liệu đầu vào và đầu ra của hệ thống
-Nhóm dữ liệu
-Trường / tham số
-Mục đích sử dụng
-Điểm giao
-id, x, y, name, demand, time_window, nodeId
-Biểu diễn kho và các điểm giao, phục vụ graph và GA.
-Cấu hình bản đồ
-graph_mode, obstacles, road_nodes, road_edges
-Xác định graph A* phải chạy trên đường thẳng, lưới hay mạng đường.
-Tham số A*
-heuristic, speed
-Chọn Euclidean/Manhattan và quy đổi distance sang travel time.
-Tham số GA
-pop_size, generations, mut_rate, vehicles, capacity, metric
-Điều khiển chất lượng tối ưu, số tuyến xe và ràng buộc vận hành.
-Đầu ra A*
-dist_matrix, path_matrix, unreachable_pairs
-Dữ liệu chi phí và path chi tiết giữa từng cặp điểm.
-Đầu ra GA
-best_order, routes, route_paths, best_dist, best_time, history
-Kết quả dự đoán lộ trình và dữ liệu hiển thị trên UI.
+2.5. Các khái niệm đánh giá cần dùng
+Để đánh giá kết quả, báo cáo sử dụng một số khái niệm chính. Baseline là phương án đối chứng, trong đề tài là tuyến tuần tự ban đầu. Tổng chi phí là giá trị dùng để so sánh các tuyến. Mức cải thiện được tính bằng phần trăm giảm chi phí của phương pháp đề xuất so với baseline. Hội tụ là xu hướng cải thiện của GA qua các thế hệ.
 
+Đối với A*, chỉ số quan trọng không chỉ là độ dài đường đi mà còn là tính hợp lệ của đường. Một đường đi ngắn nhưng xuyên qua vật cản là kết quả không chấp nhận được. Đối với GA, chỉ số quan trọng là tổng chi phí cuối cùng và quá trình hội tụ. Nếu chi phí giảm dần qua các thế hệ rồi ổn định, có thể xem thuật toán đã có quá trình tối ưu thực sự.
 
-Hình 3.3: Bản đồ mô phỏng điểm giao và tuyến tối ưu
-3.3. Xây dựng ma trận khoảng cách bằng A*
-Bước xây dựng ma trận khoảng cách là cầu nối giữa bài toán tìm đường và bài toán tối ưu thứ tự. Với n điểm cần giao, hệ thống cần tính chi phí từ i đến j cho mọi cặp điểm i, j. Nếu i = j, chi phí bằng 0. Nếu i khác j, backend gọi A* trên graph hiện tại để tìm path và distance. Kết quả được lưu vào dist_matrix và path_matrix.
-Dist_matrix dùng cho GA vì GA chỉ cần biết chi phí giữa hai điểm trong route. Path_matrix dùng cho giao diện vì frontend cần biết đường đi cụ thể qua các node trung gian. Sự tách biệt này là một điểm thiết kế tốt: thuật toán tối ưu làm việc trên ma trận gọn nhẹ, còn phần hiển thị vẫn có đủ dữ liệu để vẽ đường thật.
-Khi A* không tìm được đường đi cho một cặp điểm, backend trả lỗi rõ thay vì để UI vẽ hỏng. Đây là điểm cần nhấn mạnh vì nó thể hiện hệ thống có kiểm soát lỗi: nếu graph bị đứt do vật cản hoặc điểm giao nằm trong vùng cấm, hệ thống báo lỗi unreachable_pairs hoặc undeliverable_points.
-Pseudo-code xây dựng ma trận khoảng cách:for i in range(num_points):    for j in range(num_points):        if i == j:            matrix[(i, j)] = (0, 0)        else:            path, dist = astar(graph, i, j, graph_points, h_func)            if path:                matrix[(i, j)] = (dist, travel_time)                path_matrix[(i, j)] = path            else:                matrix[(i, j)] = (inf, inf)
-3.4. Tối ưu thứ tự giao hàng bằng GA
-Sau khi có ma trận khoảng cách, GA bắt đầu bằng việc khởi tạo quần thể các chromosome ngẫu nhiên. Mỗi chromosome là một hoán vị của các điểm giao, không bao gồm kho. Với mỗi chromosome, backend tính fitness bằng tổng quãng đường đi từ kho qua các điểm trong chromosome rồi quay về kho. Nếu bật nhiều xe, tải trọng hoặc time window, fitness sẽ có thêm penalty cho route vi phạm.
-Quá trình tiến hóa gồm bốn thao tác chính. Tournament selection chọn cá thể tốt từ một nhóm ngẫu nhiên. Order crossover tạo con bằng cách giữ một đoạn từ cha mẹ thứ nhất và điền phần còn lại theo thứ tự của cha mẹ thứ hai. Swap mutation hoán đổi hai vị trí để tạo biến thể. Elitism giữ lại một số cá thể tốt nhất để tránh mất nghiệm tốt qua thế hệ mới.
-Bản mới của repository có điểm mạnh là GA trả tiến trình qua callback. Backend đưa các bản tin tiến độ vào queue và API /api/optimize trả Server-Sent Events. Nhờ vậy, frontend có thể cập nhật best fitness và biểu đồ hội tụ trong lúc thuật toán đang chạy, giúp phần trình diễn sinh động hơn nhiều so với việc chỉ đợi kết quả cuối.
-Các bước GA trong đề tài:1. Khởi tạo population gồm nhiều chromosome ngẫu nhiên.2. Đánh giá fitness từng chromosome.3. Giữ elite_size cá thể tốt nhất.4. Chọn cha mẹ bằng tournament selection.5. Lai ghép bằng Order Crossover.6. Đột biến bằng Swap Mutation.7. Lặp lại đến hết số thế hệ và trả best route.
-3.5. Backend Flask API và giao diện HTML
-Backend Flask đóng vai trò trung tâm điều phối. File server.py vừa chứa các hàm xử lý bản đồ, vừa định nghĩa API. Thiết kế này phù hợp với quy mô môn học vì dễ chạy, dễ demo và không cần cơ sở dữ liệu. Tuy nhiên, state bản đồ hiện được lưu trong biến STATE toàn cục nên khi mở rộng thực tế cần tách thành session hoặc cơ sở dữ liệu để hỗ trợ nhiều người dùng đồng thời.
-Giao diện HTML DelivRoute v2 có các khu vực chính: chọn kịch bản, cấu hình bản đồ, chọn heuristic A*, chạy step-by-step, cấu hình GA, xem tổng km, thời gian, số điểm giao, phần trăm cải thiện, log thuật toán, biểu đồ hội tụ và cửa sổ so sánh chi tiết. Đây là phần quan trọng khi bảo vệ vì người xem có thể tương tác trực tiếp thay vì chỉ đọc báo cáo.
-Bảng 3.2: Các API backend chính
-API
-Phương thức
-Chức năng
-Kết quả trả về
-/api/generate
-POST
-Sinh bản đồ, điểm giao và vật cản theo cấu hình.
-points, obstacles, graph_mode.
-/api/sync_road_graph
-POST
-Đồng bộ mạng đường/hẻm từ frontend sang backend.
-Số node/cạnh, điểm giao được, điểm không giao được.
-/api/astar
-POST
-Chạy A* để tạo ma trận khoảng cách.
-dist_matrix, matrix_size, graph_mode.
-/api/astar_steps
-POST
-Trả các bước A* để minh họa trực quan.
-steps, path, distance.
-/api/route_paths
-POST
-Trả path chi tiết cho route để frontend vẽ đúng đường.
-route_paths.
-/api/optimize
-GET/SSE
-Chạy GA tối ưu route, gửi tiến trình theo SSE.
-best_order, routes, route_paths, best_dist, best_time, history.
+Những khái niệm này được sử dụng trực tiếp ở Chương 3 để xây dựng tiêu chí đánh giá, ở Chương 4 để thiết kế các chế độ thực nghiệm và ở Chương 5 để phân tích kết quả.
 
+CHƯƠNG 3: PHƯƠNG PHÁP ĐÁNH GIÁ, CHỌN LỰA THUẬT TOÁN
 
-Hình 3.4: Bố cục giao diện trình diễn kết quả
-3.6. Kiểm thử và kiểm soát lỗi
-Bộ kiểm thử trong tests/test_backend_features.py cho thấy nhóm đã chú ý đến các lỗi thực tế của hệ thống bản đồ. Các test không chỉ kiểm tra thuật toán ở trường hợp đơn giản mà còn kiểm tra A* đi vòng vật cản, grid mode tạo đường gấp khúc, road mode đi theo road_edges, nhà/công trình không làm đứt đường, vật cản thật có thể đóng đường, điểm trong vùng cấm bị báo không giao được và route có id không tồn tại bị từ chối.
-Một điểm đáng khen là backend có validate tham số trước khi chạy thuật toán. Ví dụ, start/goal không hợp lệ trong A* Step trả lỗi rõ, mut_rate ngoài khoảng [0, 100] bị chặn, metric lạ trong GA bị từ chối, road_edge tham chiếu node không tồn tại trả 422. Các kiểm soát này giúp tránh lỗi âm thầm trên giao diện và giúp báo cáo có phần đánh giá code vững chắc hơn.
-Do môi trường soạn báo cáo không clone và chạy trực tiếp được repository, báo cáo này ghi nhận các tình huống kiểm thử dựa trên nội dung test file và commit GitHub. Khi nộp hoặc bảo vệ, nhóm nên chạy lại lệnh python -m unittest discover -s tests để có log “OK” chính thức đưa vào slide hoặc phụ lục.
-Bảng 3.3: Các tình huống kiểm thử quan trọng
-Nhóm kiểm thử
-Mục tiêu kiểm tra
-Kỳ vọng
-A* + vật cản
-Đường đi không xuyên qua vùng cấm.
-Path có node trung gian và distance hữu hạn.
-Grid mode
-Đường đi theo lưới, không phải đường thẳng Euclid.
-Distance lớn hơn đường thẳng và path nhiều hơn 2 node.
-Road mode
-Route đi theo road_edges do UI cung cấp.
-Distance phản ánh đúng đường gấp khúc theo mạng đường.
-Đồng bộ road graph
-Cạnh tham chiếu node không tồn tại bị chặn.
-HTTP 422 và danh sách invalid_edges.
-Điểm trong vùng cấm
-Điểm không thể giao bị loại khỏi GA.
-undeliverable_points được trả về và A* báo lỗi rõ.
-GA tham số lỗi
-mut_rate hoặc metric sai bị từ chối.
-HTTP 400 với message chỉ rõ tham số.
-Multi-vehicle
-GA trả tuyến cho nhiều xe và path tương ứng.
-len(routes) khớp len(route_paths).
+3.1. Cơ sở xây dựng tiêu chí đánh giá
+Việc đánh giá thuật toán không thể chỉ dựa vào một con số tổng quãng đường cuối cùng. Trong bài toán giao hàng, một phương pháp tốt phải đáp ứng đồng thời nhiều yêu cầu: tìm được đường hợp lệ, tối ưu được thứ tự giao hàng, có thể giải thích quá trình xử lý, phản hồi trong thời gian hợp lý và hiển thị được kết quả rõ ràng. Do đó, Chương 3 xây dựng các tiêu chí đánh giá trước khi lựa chọn phương pháp chính.
 
+Các tiêu chí được chia thành hai nhóm. Nhóm thứ nhất liên quan đến tính đúng của bài toán: tuyến có đi qua điểm giao không, đường có tránh vật cản không, chi phí có được tính nhất quán không. Nhóm thứ hai liên quan đến hiệu quả thuật toán: tổng chi phí giảm bao nhiêu, thuật toán có hội tụ không, có thể mở rộng khi số điểm tăng không. Việc tách tiêu chí như vậy giúp tránh nhầm lẫn giữa một đường đi hợp lệ và một tuyến giao hàng tối ưu.
 
-CHƯƠNG 4: KẾT QUẢ, HIỂN THỊ DỰ ĐOÁN VÀ ĐÁNH GIÁ SO SÁNH
-4.1. Chức năng hoàn thành sau commit mới nhất
-Commit mới nhất 96b2dc6 thể hiện sự nâng cấp đáng kể so với bản ban đầu. Trọng tâm không còn chỉ là viết thuật toán mà là tích hợp thuật toán vào ứng dụng web có backend thật. Giao diện HTML được cập nhật, Flask backend được kết nối, tài liệu Markdown được chỉnh sửa theo phạm vi mới và tests/test_backend_features.py được bổ sung để kiểm tra những đặc điểm quan trọng của hệ thống.
-Các chức năng hoàn thành có thể chia thành bốn nhóm: chức năng bản đồ, chức năng A*, chức năng GA và chức năng trình bày kết quả. Về bản đồ, hệ thống có thể sinh điểm, xử lý vật cản, đồng bộ mạng đường/hẻm và loại điểm không giao được. Về A*, hệ thống tạo ma trận khoảng cách và trả step-by-step. Về GA, hệ thống hỗ trợ nhiều xe, tải trọng, time window, metric A* hoặc Euclid. Về trình bày, hệ thống hiển thị route, tổng km, thời gian, history và so sánh.
-Bảng 4.1: Tính năng hoàn thành sau commit mới nhất
-Nhóm chức năng
-Nội dung đã có
-Ý nghĩa khi trình bày
-Bản đồ và đồ thị
-Sinh điểm, obstacle preset, road mode, grid mode, straight mode, road_nodes/road_edges.
-Chứng minh đề tài có mô hình dữ liệu bản đồ, không chỉ tính toán trên danh sách số.
-A*
-Priority Queue, g_score, f_score, came_from, astar_with_steps, build_distance_matrix.
-Có thể giải thích rõ công thức f(n)=g(n)+h(n) và hiển thị từng bước.
-GA
-Chromosome hoán vị, fitness, constrained_fitness, tournament, OX, swap mutation, elitism.
-Có cơ sở tối ưu tổ hợp, có biểu đồ hội tụ và route tốt hơn tuyến tuần tự.
-Ràng buộc thực tế
-Nhiều xe, demand, capacity, time_windows, undeliverable points.
-Cho thấy hệ thống đã mở rộng gần với CVRPTW.
-Backend API
-/api/generate, /api/sync_road_graph, /api/astar, /api/route_paths, /api/optimize.
-Dễ demo theo từng bước và kiểm tra dữ liệu trả về.
-Kiểm thử
-test_backend_features.py với nhiều tình huống lỗi và route.
-Tăng độ tin cậy khi bảo vệ code.
+Bảng 3.1. Tiêu chí đánh giá thuật toán trong bài toán giao hàng
+STT	Tiêu chí	Ý nghĩa đánh giá
+1	Tính hợp lệ của đường đi	Đường đi không xuyên vật cản và không tạo tuyến không thể di chuyển.
+2	Khả năng tối ưu thứ tự giao	Thuật toán có sắp xếp lại điểm giao để giảm tổng chi phí hay không.
+3	Tổng chi phí tuyến	Giá trị dùng để so sánh trực tiếp giữa các phương án.
+4	Khả năng giải thích kết quả	Có thể trình bày tuyến, đường đi, mức cải thiện và dữ liệu hội tụ.
+5	Tính mở rộng	Phương pháp có thể áp dụng khi tăng số điểm giao hoặc số xe hay không.
+6	Phù hợp trình bày môn học	Kết quả có thể quan sát bằng hình ảnh, bảng và biểu đồ.
 
-4.2. Hiển thị kết quả dự đoán
-Khi người dùng chạy đầy đủ quy trình, hệ thống trả về kết quả dự đoán lộ trình giao hàng. Kết quả này gồm hai mức: mức thứ tự điểm và mức đường đi chi tiết. Mức thứ tự điểm cho biết xe nên giao theo thứ tự nào, ví dụ 0 -> 5 -> 2 -> 4 -> 1 -> 0. Mức đường đi chi tiết cho biết giữa 0 và 5 cần đi qua những node nào trong mạng đường, nhờ đó frontend vẽ đúng đường backend đã tính.
-Trên giao diện, kết quả được thể hiện bằng bản đồ, màu/đường tuyến, số liệu tổng quãng đường, thời gian, số điểm giao và phần trăm cải thiện. Ngoài ra, phần GA history cho thấy fitness giảm qua các thế hệ, giúp người xem hiểu GA không chọn route một lần ngẫu nhiên mà cải thiện dần bằng quá trình tiến hóa.
-Phần “So sánh tuần tự vs A* + GA” là điểm rất quan trọng. Tuyến tuần tự được định nghĩa là 0 -> 1 -> 2 -> ... -> n -> 0, phản ánh cách đi đơn giản theo thứ tự phát sinh điểm. Tuyến A* + GA là tuyến do GA chọn sau khi có ma trận A*. Nếu tổng quãng đường A* + GA thấp hơn tuyến tuần tự, hệ thống tính phần trăm cải thiện theo công thức: ((distance_baseline - distance_ga) / distance_baseline) * 100.
+VỊ TRÍ CHÈN HÌNH ẢNH MINH HỌA
+Hình 3.1. Sơ đồ tư duy tiêu chí đánh giá thuật toán
 
-Hình 4.1: Đường cong hội tụ GA trong kịch bản minh họa
+3.2. Đánh giá tuyến tuần tự ban đầu
+Tuyến tuần tự ban đầu là phương pháp đơn giản nhất. Hệ thống đi qua các điểm giao theo đúng thứ tự được nhập hoặc thứ tự mặc định của kịch bản. Phương pháp này không sử dụng A* để tối ưu đường đi tổng thể, cũng không sử dụng GA để tối ưu thứ tự. Vai trò chính của tuyến tuần tự là làm baseline để so sánh.
 
-Hình 4.2: So sánh tổng quãng đường tuần tự và A* + GA
-4.3. Kịch bản đánh giá và bảng kết quả
-Để đánh giá hệ thống, báo cáo đề xuất sử dụng ít nhất ba kịch bản: nội thành nhiều điểm và nhiều đường rẽ, ngoại ô ít điểm và đường thưa, hỗn hợp có vật cản hoặc vùng cấm. Với mỗi kịch bản, nhóm cần ghi lại số điểm giao, chế độ graph, heuristic A*, population, generations, mutation rate, số xe, capacity, metric và kết quả tổng quãng đường.
-Bảng dưới đây là mẫu trình bày kết quả theo cách có thể đưa trực tiếp vào báo cáo hoặc slide. Các số liệu minh họa được dùng để thể hiện phương pháp đánh giá; khi chạy local trên máy nộp bài, nhóm nên thay bằng số liệu log thực tế từ giao diện hoặc console để đảm bảo khớp tuyệt đối với demo.
-Bảng 4.2: Kết quả kịch bản minh họa
-Kịch bản
-Cấu hình
-Tuyến tuần tự
-Tuyến A* + GA
-Cải thiện
-Nhận xét
-Nội thành
-18 điểm, road mode, 2 xe, capacity 24, GA 300 thế hệ
-742.3
-503.1
-32.21%
-GA giảm rõ tổng đường nhờ chia tuyến và tránh thứ tự phát sinh.
-Ngoại ô
-8 điểm, straight mode, 1 xe, GA 150 thế hệ
-318.5
-244.7
-23.17%
-Số điểm ít nên cải thiện vừa phải nhưng route vẫn ngắn hơn.
-Hỗn hợp
-14 điểm, grid mode, có vật cản, 2 xe
-612.4
-421.8
-31.12%
-A* thể hiện vai trò do đường không còn là nối thẳng.
-Trường hợp đặc biệt
-5 điểm gần như nằm theo thứ tự tuyến tính
-180.0
-176.2
-2.11%
-Khi tuyến tuần tự đã gần tốt, biên cải thiện thấp là hợp lý.
+Ưu điểm của tuyến tuần tự là dễ hiểu và dễ triển khai. Tuy nhiên, phương pháp này thường không hiệu quả khi các điểm giao phân bố rải rác. Nếu thứ tự ban đầu không phản ánh cấu trúc không gian, phương tiện có thể phải đi vòng hoặc quay lại khu vực đã đi qua. Vì vậy, tuyến tuần tự không được xem là giải pháp tối ưu mà chỉ là mốc đối chứng.
 
-4.4. So sánh, nhận xét ưu điểm và hạn chế
-So với tuyến tuần tự, mô hình A* + GA có ưu điểm là không bị phụ thuộc vào thứ tự sinh điểm. GA có thể thử nhiều hoán vị, giữ lại nghiệm tốt và cải thiện qua từng thế hệ. Khi graph có vật cản hoặc mạng đường, A* giúp chi phí route phản ánh đường đi thật hơn so với khoảng cách Euclid trực tiếp. Vì vậy, kết quả so sánh có ý nghĩa hơn: không chỉ sắp xếp điểm theo đường chim bay mà tính cả đường đi backend tìm được.
-Ưu điểm nổi bật của hệ thống là khả năng trình bày trực quan. A* có step-by-step, GA có history, backend trả route path chi tiết, giao diện có bảng so sánh. Các điểm này giúp người nghe hiểu rõ quy trình thay vì chỉ nghe tên thuật toán. Ngoài ra, commit mới nhất đã bổ sung kiểm thử backend, cho thấy nhóm có ý thức kiểm tra các trường hợp lỗi như điểm nằm trong vùng cấm, road edge sai, route id không tồn tại hoặc tham số GA không hợp lệ.
-Hạn chế chính là kết quả GA có tính ngẫu nhiên và phụ thuộc tham số. Nếu population quá nhỏ, số thế hệ ít hoặc mutation rate không phù hợp, GA có thể hội tụ chậm hoặc mắc kẹt ở nghiệm cục bộ. Hệ thống hiện vẫn mô phỏng trên tọa độ 2D và state backend là biến toàn cục, nên chưa phù hợp triển khai nhiều người dùng cùng lúc. Ngoài ra, chưa có dữ liệu bản đồ thực tế, chưa có traffic, thời gian phục vụ tại điểm giao chi tiết, chi phí nhiên liệu hay ưu tiên đơn hàng.
-Khi trình bày trước giảng viên, cần tránh nói rằng GA luôn tìm được đường ngắn nhất tuyệt đối. Cách diễn đạt đúng là: GA tìm nghiệm tốt hoặc gần tối ưu trong thời gian hợp lý; A* tìm đường ngắn nhất giữa hai điểm trong graph; mô hình kết hợp giúp tuyến tổng thể thường tốt hơn tuyến tuần tự. Cách nói này chính xác về mặt thuật toán và thể hiện hiểu đúng bản chất đề tài.
-Bảng 4.3: Vấn đề cần nhấn mạnh khi bảo vệ
-Vấn đề
-Cách trình bày nên dùng
-Lý do cần nhấn mạnh
-A* không tối ưu thứ tự giao hàng
-A* chỉ tìm đường ngắn nhất giữa hai điểm; GA mới chọn thứ tự các điểm.
-Tránh nhầm vai trò hai thuật toán.
-GA không đảm bảo tối ưu tuyệt đối
-GA là thuật toán gần đúng, dùng để tìm nghiệm tốt trong thời gian chấp nhận được.
-Thể hiện hiểu đúng đặc điểm metaheuristic.
-Route path phải lấy từ backend
-Frontend không tự nối tắt; backend trả path_matrix/route_paths để vẽ đúng graph.
-Chứng minh hệ thống đã xử lý lỗi bản đồ thực tế hơn.
-So sánh phải có baseline
-Dùng tuyến tuần tự 0->1->2->...->0 làm mốc đối chiếu.
-Có cơ sở đo phần trăm cải thiện.
-Commit mới nhất nâng cấp phạm vi
-Nêu rõ hỗ trợ road mode, multi-vehicle, capacity, time windows và tests.
-Cho thấy đề tài đã tiến xa hơn bản mô phỏng cơ bản.
+Bảng 3.2. So sánh vai trò của tuyến tuần tự, A*, GA và A* + GA
+Chế độ	Có tối ưu thứ tự	Có xét vật cản/path thật	Số xe có ý nghĩa	Vai trò
+Tuyến tuần tự ban đầu	Không	Không	Không	Baseline đối chứng.
+A*	Không tối ưu toàn tuyến	Có	Không	Tìm đường cục bộ và chứng minh tránh vật cản.
+GA thường	Có	Hiển thị actual distance sau tối ưu	Có	Tối ưu thứ tự theo metric Euclidean.
+A* + GA	Có	Có	Có	Phương pháp đề xuất chính.
 
-4.5. Đánh giá code sau khi đọc commit mới nhất
-Về mức độ đạt yêu cầu đề tài, repository hiện đã có đầy đủ các phần chính: mục tiêu bài toán, cơ sở lý thuyết A* và GA, phương pháp đánh giá, xây dựng giải pháp, hiển thị kết quả dự đoán và đánh giá so sánh. Code không chỉ có thuật toán mà còn có backend và giao diện để chứng minh kết quả. Vì vậy, có thể kết luận đề tài đạt để viết báo cáo chi tiết và chuẩn bị bảo vệ.
-Tuy nhiên, có ba điểm nên sửa hoặc nhấn mạnh trước khi nộp. Thứ nhất, một số tài liệu Markdown cũ còn lỗi hiển thị “A và Genetic Algorithm (GA).*” hoặc “A + GA*”; cần sửa thành “A* và Genetic Algorithm (GA)” cho đúng ký hiệu. Thứ hai, server.py khá dài và trộn nhiều trách nhiệm; nếu còn thời gian nên tách frontend template, API, graph builder và optimizer thành module riêng. Thứ ba, cần chạy lại tests trên máy local và chụp log pass để đưa vào phụ lục hoặc slide.
-Nhìn chung, điểm mạnh của code là có validate lỗi đầu vào, có test các tình huống backend, có route path chi tiết, có SSE cho GA, có khả năng mở rộng nhiều xe và ràng buộc. Đây là các điểm nên đưa lên slide vì thể hiện sản phẩm không phải chỉ là “vẽ đường cho đẹp” mà có xử lý thuật toán và kiểm soát tính hợp lệ.
-4.6. Hướng phát triển
-Trong tương lai, hệ thống có thể phát triển theo bốn hướng. Hướng thứ nhất là dùng dữ liệu bản đồ thực tế từ OpenStreetMap hoặc API bản đồ để thay tọa độ mô phỏng. Khi đó A* có thể chạy trên mạng đường thật, có phân loại đường, chiều đường và tốc độ trung bình. Hướng thứ hai là bổ sung traffic theo thời gian, cho phép chi phí cạnh thay đổi theo giờ cao điểm.
-Hướng thứ ba là cải tiến thuật toán tối ưu. GA có thể được so sánh thêm với Greedy, Simulated Annealing, Ant Colony Optimization hoặc Tabu Search. Có thể kết hợp GA với local search 2-opt để cải thiện nghiệm sau mỗi thế hệ. Hướng thứ tư là phát triển thành ứng dụng hoàn chỉnh: lưu lịch sử đơn hàng, nhập file CSV điểm giao, xuất báo cáo PDF/PNG, đăng nhập người dùng và triển khai cloud.
+VỊ TRÍ CHÈN HÌNH ẢNH MINH HỌA
+Hình 3.2. Minh họa bốn chế độ so sánh trong đề tài
+
+3.3. Đánh giá A*
+A* được đánh giá theo khả năng tìm đường giữa hai điểm trong môi trường có vật cản. Đây là thuật toán rất phù hợp cho bài toán cục bộ vì nó vừa sử dụng chi phí thực tế đã đi, vừa sử dụng heuristic để định hướng tìm kiếm. Trong báo cáo, A* được dùng để chứng minh hệ thống có khả năng hiểu bản đồ và tạo đường đi hợp lệ.
+
+Điểm cần nhấn mạnh là A* không trực tiếp giải bài toán thứ tự giao hàng qua nhiều điểm. Nếu chỉ dùng A*, hệ thống có thể tìm đường từ kho đến một điểm giao hoặc giữa hai điểm giao, nhưng chưa có cơ chế chọn thứ tự toàn cục tốt nhất. Do đó, A* là điều kiện cần để có chi phí đường đi đúng, nhưng chưa đủ để tối ưu lộ trình giao hàng nhiều điểm.
+
+Bảng 3.3. Đánh giá khả năng xử lý vật cản của các phương pháp
+Phương pháp	Xử lý vật cản	Nhận xét
+Tuyến tuần tự	Không thể hiện rõ	Chỉ dùng làm mốc thứ tự, không chứng minh được đường đi tránh vật cản.
+A*	Có	Tìm đường hợp lệ giữa hai điểm trên bản đồ có vùng cấm.
+GA thường	Không dùng làm tiêu chí tối ưu chính	Có thể hiển thị actual distance nhưng tối ưu theo Euclidean.
+A* + GA	Có	Sử dụng chi phí/path từ A* trong quá trình tối ưu thứ tự.
+
+VỊ TRÍ CHÈN HÌNH ẢNH MINH HỌA
+Hình 3.3. Minh họa sự khác nhau giữa khoảng cách Euclid và đường đi thực tế
+
+3.4. Đánh giá GA thường
+GA thường được sử dụng để đánh giá khả năng tối ưu thứ tự giao hàng trong không gian tổ hợp. Ở chế độ này, thuật toán tối ưu theo metric Euclidean, sau đó hệ thống lấy actual distance để hiển thị quãng đường thật theo bản đồ. Việc tách chế độ GA thường ra khỏi baseline giúp tránh hiểu sai rằng tuyến tuần tự cũng là một dạng tối ưu.
+
+Ưu điểm của GA thường là thể hiện rõ năng lực sắp xếp lại thứ tự điểm giao. Tuy nhiên, do tiêu chí tối ưu chính dựa trên khoảng cách hình học, kết quả chưa phản ánh đầy đủ chi phí đường đi có vật cản như A* + GA. Vì vậy, GA thường là bước trung gian quan trọng trong so sánh, nhưng chưa phải phương pháp đề xuất cuối cùng.
+
+Bảng 3.4. Đánh giá khả năng tối ưu thứ tự giao hàng
+Phương pháp	Có tối ưu thứ tự	Điểm mạnh	Điểm hạn chế
+Tuyến tuần tự	Không	Dễ hiểu, làm baseline	Không giảm được chi phí do không sắp xếp lại điểm giao.
+A*	Không	Tìm đường hợp lệ giữa hai điểm	Không giải quyết thứ tự qua nhiều điểm.
+GA thường	Có	Tối ưu thứ tự nhanh trong không gian tổ hợp	Chưa dùng chi phí A* làm tiêu chí chính.
+A* + GA	Có	Tối ưu thứ tự dựa trên chi phí thực tế từ A*	Tốn thêm chi phí xây ma trận A* khi số điểm tăng.
+
+3.5. Đánh giá A* + GA
+A* + GA là phương pháp đề xuất chính của đề tài. Trong phương pháp này, A* tạo ra ma trận chi phí dựa trên đường đi thực tế, còn GA dùng ma trận đó để đánh giá từng thứ tự giao hàng. Cách kết hợp này giúp lời giải vừa xét được vật cản vừa tối ưu được thứ tự điểm giao.
+
+So với GA thường, A* + GA có cơ sở đánh giá chính xác hơn trong bản đồ có vật cản. So với A* đơn lẻ, A* + GA có thêm khả năng tối ưu toàn tuyến. So với tuyến tuần tự, A* + GA có khả năng giảm tổng chi phí nhờ thay đổi thứ tự giao hàng. Do đó, phương pháp này đáp ứng tốt nhất mục tiêu đề tài.
+
+Bảng 3.5. Phân tích ưu điểm và hạn chế của từng thuật toán
+Thuật toán/chế độ	Ưu điểm	Hạn chế	Kết luận đánh giá
+Tuyến tuần tự	Đơn giản, dễ hiểu	Không tối ưu, không xét vật cản rõ ràng	Chỉ dùng làm baseline.
+A*	Tìm đường hợp lệ, tránh vật cản	Không tối ưu thứ tự nhiều điểm	Dùng cho tầng tìm đường.
+GA	Tối ưu tổ hợp tốt, phù hợp nhiều điểm	Phụ thuộc fitness và tham số	Dùng cho tầng sắp xếp thứ tự.
+A* + GA	Kết hợp được đường đi thực tế và tối ưu thứ tự	Cần xây ma trận chi phí trước khi tối ưu	Chọn làm phương pháp chính.
+
+VỊ TRÍ CHÈN HÌNH ẢNH MINH HỌA
+Hình 3.4. Minh họa lựa chọn phương pháp A* + GA
+
+3.6. Lựa chọn phương pháp đề xuất
+Từ các tiêu chí trên, báo cáo lựa chọn A* + GA làm phương pháp đề xuất chính. Lý do lựa chọn không phải vì mỗi thuật toán riêng lẻ là mạnh nhất trong mọi tình huống, mà vì chúng bổ sung đúng điểm yếu cho nhau. A* bổ sung khả năng nhận thức không gian và xử lý vật cản; GA bổ sung khả năng tìm kiếm thứ tự tốt trong không gian tổ hợp.
+
+Bảng 3.6. Ma trận lựa chọn thuật toán theo yêu cầu đề tài
+Yêu cầu	Tuyến tuần tự	A*	GA	A* + GA
+Làm baseline	Đạt	Không chính	Không chính	Không chính
+Tìm đường tránh vật cản	Không	Đạt	Không chính	Đạt
+Tối ưu thứ tự giao hàng	Không	Không	Đạt	Đạt
+Có khả năng nhiều xe	Không	Không	Đạt	Đạt
+Có dữ liệu hội tụ	Không	Không	Đạt	Đạt
+Phù hợp làm giải pháp chính	Không	Một phần	Một phần	Đạt
+
+Việc tách bốn chế độ cũng giúp phần trình bày rõ ràng hơn. Người nghe có thể thấy tuyến tuần tự chỉ là mốc so sánh, A* là thuật toán tìm đường, GA là thuật toán tối ưu thứ tự, còn A* + GA là mô hình kết hợp. Cách trình bày này tránh nhầm lẫn giữa tìm đường cục bộ và tối ưu lộ trình nhiều điểm.
+
+Kết luận của Chương 3 là: A* + GA được chọn để xây dựng giải pháp chính vì đáp ứng đồng thời yêu cầu hợp lệ đường đi, tối ưu thứ tự, giải thích được kết quả và thể hiện được hiệu quả qua số liệu thực nghiệm.
+
+CHƯƠNG 4: XÂY DỰNG GIẢI PHÁP BÀI TOÁN, HIỂN THỊ KẾT QUẢ DỰ ĐOÁN
+
+4.1. Mô hình tổng thể của hệ thống
+Giải pháp được xây dựng theo hướng tách bạch giữa dữ liệu đầu vào, thuật toán xử lý và kết quả hiển thị. Người dùng hoặc kịch bản mô phỏng cung cấp bản đồ, kho hàng, điểm giao, vật cản, số xe và lựa chọn chế độ thực nghiệm. Hệ thống sau đó xử lý theo chế độ đã chọn và trả về dữ liệu để hiển thị tuyến đường, tổng chi phí, đường đi chi tiết hoặc dữ liệu hội tụ.
+
+Trọng tâm của Chương 4 là mô tả luồng xử lý bài toán. Báo cáo không trình bày dài về mã nguồn, tên hàm hay lệnh chạy. Thay vào đó, mỗi thành phần được giải thích theo vai trò trong bài toán: dữ liệu nào đi vào, thuật toán nào xử lý, đầu ra nào được dùng để hiển thị và đánh giá.
+
+Bảng 4.1. Thành phần dữ liệu đầu vào của hệ thống
+Nhóm dữ liệu	Thành phần	Vai trò
+Bản đồ	Kích thước, vùng đi được, vật cản	Xác định không gian di chuyển.
+Điểm	Kho và danh sách điểm giao	Xác định điểm xuất phát và mục tiêu phục vụ.
+Phương tiện	Số xe	Có ý nghĩa trong GA, A* + GA và chế độ so sánh.
+Thuật toán	Metric, heuristic, số thế hệ, kích thước quần thể	Điều khiển quá trình tìm đường và tối ưu.
+Đánh giá	Baseline, actual distance, improvement percent	Tạo cơ sở so sánh kết quả.
+
+VỊ TRÍ CHÈN HÌNH ẢNH MINH HỌA
+Hình 4.1. Mô hình tổng thể hệ thống xử lý bài toán giao hàng
+
+Bảng 4.2. Thành phần dữ liệu đầu ra phục vụ hiển thị và báo cáo
+Đầu ra	Ý nghĩa	Dùng trong phần nào
+Thứ tự giao hàng	Danh sách điểm theo thứ tự phục vụ sau tối ưu	Hiển thị tuyến và so sánh.
+Route paths	Đường đi chi tiết giữa các điểm	Chứng minh A* tránh vật cản.
+Total cost/actual distance	Tổng chi phí hoặc quãng đường thực tế	Đánh giá hiệu quả.
+History/convergence	Dữ liệu tốt nhất qua từng thế hệ	Phân tích GA hội tụ.
+Improvement percent	Mức cải thiện so với baseline	Kết luận hiệu quả phương pháp.
+
+4.2. Xây dựng bốn chế độ thực nghiệm
+Hệ thống được tách thành bốn chế độ thực nghiệm: tuyến tuần tự ban đầu, A*, GA thường và A* + GA. Cách tách này rất quan trọng vì mỗi chế độ trả lời một câu hỏi khác nhau. Tuyến tuần tự trả lời câu hỏi baseline ban đầu là gì. A* trả lời đường đi hợp lệ giữa các điểm như thế nào. GA thường trả lời việc tối ưu thứ tự theo khoảng cách hình học có hiệu quả ra sao. A* + GA trả lời phương pháp đề xuất có cải thiện tốt hơn khi dùng chi phí đường đi thực tế hay không.
+
+VỊ TRÍ CHÈN HÌNH ẢNH MINH HỌA
+Hình 4.2. Luồng dữ liệu từ bản đồ đến kết quả tối ưu
+
+Bảng 4.3. Nhóm cấu hình dùng chung, riêng cho A*, riêng cho GA và riêng cho đánh giá
+Nhóm	Ví dụ giá trị/thuộc tính	Lý do tách riêng
+Dùng chung	random_seed, bản đồ, kho, điểm giao, vật cản	Đảm bảo các chế độ chạy trên cùng kịch bản.
+Riêng A*	heuristic_type, chính sách vật cản, đường đi chi tiết	Chỉ ảnh hưởng đến tìm đường cục bộ.
+Riêng GA	population_size, generations, crossover_rate, mutation_rate	Chỉ ảnh hưởng đến tiến hóa thứ tự giao hàng.
+Riêng demo	show_obstacles, show_route_paths, chế độ hiển thị	Phục vụ quan sát kết quả.
+Riêng đánh giá	baseline_method, improvement_percent, actual_distance	Phục vụ so sánh và báo cáo.
+
+4.2.1. Chế độ Tuyến tuần tự ban đầu
+Chế độ tuyến tuần tự ban đầu không gọi A* và không gọi GA. Hệ thống chỉ lấy danh sách điểm giao theo thứ tự mặc định để tạo tuyến đối chứng. Đây là cách xử lý quan trọng vì nó giúp xác định điểm xuất phát của quá trình so sánh. Nếu không có baseline, không thể kết luận phương pháp tối ưu đã cải thiện bao nhiêu.
+
+Trong giao diện, số xe không có ý nghĩa với chế độ này nên cần được vô hiệu hóa để tránh hiểu sai. Tuyến tuần tự không đại diện cho một giải pháp tối ưu, mà chỉ cho thấy nếu không sử dụng thuật toán, thứ tự giao hàng ban đầu có thể tạo ra tổng quãng đường lớn như thế nào.
+
+Bảng 4.4. Luồng xử lý của chế độ Tuyến tuần tự ban đầu
+Bước	Mô tả xử lý	Kết quả
+1	Nhận danh sách điểm giao theo thứ tự ban đầu	Có chuỗi điểm baseline.
+2	Không gọi A* và không gọi GA	Tách rõ baseline khỏi thuật toán tối ưu.
+3	Tính hoặc hiển thị tổng quãng đường đối chứng	Tạo giá trị so sánh.
+4	Hiển thị tuyến ban đầu	Người xem thấy trạng thái trước tối ưu.
+
+VỊ TRÍ CHÈN HÌNH ẢNH MINH HỌA
+Hình 4.3. Giao diện chọn chế độ tuyến tuần tự ban đầu
+
+4.2.2. Chế độ A*
+Chế độ A* dùng để kiểm tra và biểu diễn khả năng tìm đường tránh vật cản. Ở chế độ này, A* chạy đúng vai trò là thuật toán tìm đường giữa các điểm hoặc giữa những điểm được chọn. Kết quả quan trọng nhất là route path, tức chuỗi tọa độ thể hiện đường đi hợp lệ trên bản đồ.
+
+A* không được xem là thuật toán tối ưu thứ tự giao hàng nhiều điểm. Vì vậy, khi trình bày cần tránh nói rằng A* tối ưu toàn bộ lộ trình. A* chỉ cung cấp năng lực nhận thức không gian: đường nào có thể đi, đường nào bị chắn, chi phí giữa hai điểm là bao nhiêu.
+
+Bảng 4.5. Luồng xử lý của chế độ A*
+Bước	Mô tả xử lý	Kết quả
+1	Nhận bản đồ, điểm bắt đầu, điểm đích và vật cản	Có bài toán tìm đường cục bộ.
+2	Tính g(n), h(n) và ưu tiên nút có f(n) nhỏ	Mở rộng tìm kiếm có định hướng.
+3	Dựng lại đường đi khi đến đích	Có route path chi tiết.
+4	Nếu không có đường, trả trạng thái thất bại rõ ràng	Tránh tạo kết quả sai.
+5	Hiển thị đường đi trên bản đồ	Chứng minh tránh vật cản.
+
+VỊ TRÍ CHÈN HÌNH ẢNH MINH HỌA
+Hình 4.4. Giao diện chạy A* và hiển thị đường tránh vật cản
+
+4.2.3. Chế độ GA thường
+Chế độ GA thường được chạy với metric Euclidean. Mục tiêu là đánh giá riêng khả năng tối ưu thứ tự điểm giao của GA khi chưa sử dụng ma trận chi phí A* làm tiêu chí chính. GA tạo ra nhiều cá thể, đánh giá thứ tự, chọn lọc và cải thiện qua các thế hệ.
+
+Điểm đã được làm rõ trong phiên bản hiện tại là GA thường không còn bị trộn với baseline. Baseline là tuyến tuần tự không tối ưu. GA thường là một thuật toán tối ưu thật sự, nhưng tiêu chí tối ưu dựa trên khoảng cách hình học. Khi hiển thị, hệ thống lấy actual distance để người dùng thấy quãng đường thật trên bản đồ.
+
+Bảng 4.6. Luồng xử lý của chế độ GA thường
+Bước	Mô tả xử lý	Kết quả
+1	Nhận danh sách điểm giao và số xe	Có dữ liệu tối ưu tổ hợp.
+2	Gọi tối ưu với metric Euclidean	GA tối ưu thứ tự theo khoảng cách hình học.
+3	Tính actual distance để hiển thị quãng đường thật	Không dùng nhầm số Euclid thuần khi trình bày.
+4	Lưu lịch sử cải thiện qua các thế hệ	Có dữ liệu hội tụ.
+5	Hiển thị tuyến GA thường	Dùng để so sánh với A* + GA.
+
+VỊ TRÍ CHÈN HÌNH ẢNH MINH HỌA
+Hình 4.5. Giao diện chạy GA thường theo metric Euclidean
+
+4.2.4. Chế độ A* + GA
+Chế độ A* + GA là phương pháp chính. Ở chế độ này, hệ thống sử dụng metric A*. A* tạo chi phí/path thực tế giữa các điểm, sau đó GA dùng chi phí đó để tối ưu thứ tự giao hàng. Như vậy, fitness của cá thể không chỉ dựa trên khoảng cách đường thẳng mà dựa trên chi phí có xét vật cản.
+
+Kết quả của chế độ này bao gồm thứ tự điểm sau tối ưu, tổng chi phí, đường đi chi tiết, dữ liệu hội tụ và mức cải thiện so với tuyến tuần tự. Đây là phần quan trọng nhất khi trình bày vì nó chứng minh sự phối hợp giữa hai thuật toán.
+
+Bảng 4.7. Luồng xử lý của chế độ A* + GA
+Bước	Mô tả xử lý	Kết quả
+1	Nhận bản đồ, điểm giao, số xe và vật cản	Có bài toán đầy đủ.
+2	Dùng A* tính path/cost giữa các điểm	Có ma trận chi phí thực tế.
+3	GA khởi tạo và tiến hóa thứ tự giao hàng	Tìm nghiệm tốt trong không gian tổ hợp.
+4	Đánh giá fitness bằng chi phí A*	Tuyến tối ưu phản ánh đường đi thực tế.
+5	Trả kết quả tối ưu và dữ liệu hội tụ	Phục vụ báo cáo và demo.
+
+VỊ TRÍ CHÈN HÌNH ẢNH MINH HỌA
+Hình 4.6. Giao diện chạy A* + GA theo metric A*
+
+4.3. Luồng dữ liệu và cấu trúc kết quả
+Dữ liệu kết quả cần được tổ chức sao cho phục vụ được cả hiển thị và đánh giá. Nếu chỉ lưu tổng chi phí cuối cùng, báo cáo sẽ thiếu bằng chứng trực quan. Do đó, kết quả cần bao gồm thứ tự giao hàng, đường đi chi tiết, tổng chi phí, actual distance, baseline cost, improvement percent và lịch sử hội tụ.
+
+Việc lưu log thuật toán cũng có ý nghĩa khi bảo vệ đề tài. Log giúp chứng minh kết quả không phải được nhập tay mà được tạo ra qua quá trình chạy thuật toán. Tuy nhiên, trong báo cáo chính, chỉ cần trình bày vai trò của log và dữ liệu kết quả, không cần đưa log thô vào nội dung.
+
+Bảng 4.8. Dữ liệu cần hiển thị cho từng chế độ thực nghiệm
+Chế độ	Dữ liệu cần hiển thị	Mục đích
+Tuyến tuần tự	Thứ tự ban đầu, tổng chi phí baseline	Làm mốc so sánh.
+A*	Path chi tiết, cost, trạng thái tránh vật cản	Chứng minh đường đi hợp lệ.
+GA thường	Thứ tự tối ưu, actual distance, history	Chứng minh tối ưu tổ hợp theo Euclidean.
+A* + GA	Thứ tự tối ưu, route paths, cost, improvement, convergence	Chứng minh phương pháp đề xuất.
+
+VỊ TRÍ CHÈN HÌNH ẢNH MINH HỌA
+Hình 4.7. Cấu trúc kết quả phục vụ vẽ tuyến đường
+
+VỊ TRÍ CHÈN HÌNH ẢNH MINH HỌA
+Hình 4.8. Cấu trúc log thuật toán phục vụ phân tích
+
+4.4. Hiển thị kết quả dự đoán
+Kết quả dự đoán trong đề tài không phải là nhãn phân loại, mà là phương án tuyến đường do thuật toán đề xuất. Vì vậy, cách hiển thị cần làm rõ trước tối ưu và sau tối ưu. Người xem cần nhìn thấy tuyến tuần tự ban đầu, đường A* tránh vật cản, tuyến GA thường và tuyến A* + GA.
+
+Khi chèn hình vào báo cáo, cần ưu tiên các ảnh thể hiện rõ kho, điểm giao, vật cản, hướng di chuyển và chỉ số tổng hợp. Mỗi hình nên có chú thích ngắn để người đọc hiểu hình đó đang chứng minh điều gì. Ví dụ, hình A* cần chứng minh đường không xuyên vật cản; hình hội tụ cần chứng minh GA cải thiện dần qua các thế hệ.
+
+4.5. Kiểm soát tính đúng của kết quả
+Một kết quả tối ưu chỉ có ý nghĩa khi dữ liệu đầu vào, luồng thuật toán và cách hiển thị nhất quán. Vì vậy, hệ thống cần kiểm soát việc tách chế độ rõ ràng. Tuyến tuần tự không được gọi A* hoặc GA. A* không được trình bày như tối ưu toàn tuyến. GA thường cần dùng actual distance khi hiển thị quãng đường thật. A* + GA phải dùng metric A* để đánh giá tuyến.
+
+Việc giao diện vô hiệu hóa số xe ở tuyến tuần tự và A* là hợp lý, vì số xe chỉ có ý nghĩa trong GA, A* + GA và chế độ so sánh. Cách xử lý này giúp người dùng không hiểu nhầm bản chất từng thuật toán. Đây cũng là điểm cần nhấn mạnh khi trình bày: đề tài không chỉ chạy thuật toán mà còn tách đúng vai trò của từng chế độ.
+
+Tóm lại, Chương 4 trình bày cách xây dựng giải pháp theo hướng bốn chế độ thực nghiệm. Cách tổ chức này giúp báo cáo dễ giải thích, dễ kiểm chứng và phù hợp với bản cập nhật mới của dự án.
+
+CHƯƠNG 5: KẾT QUẢ VÀ ĐÁNH GIÁ
+
+5.1. Kịch bản thực nghiệm
+Kịch bản thực nghiệm chính của báo cáo là urban_delivery. Kịch bản này gồm 18 điểm giao hàng, 2 xe vận chuyển và 2 vùng vật cản. Mục tiêu là kiểm tra đồng thời khả năng tìm đường hợp lệ của A*, khả năng tối ưu thứ tự của GA và hiệu quả của phương pháp kết hợp A* + GA.
+
+Tuyến tuần tự ban đầu được dùng làm baseline. Phương pháp A* + GA được so sánh trực tiếp với baseline bằng tổng chi phí và phần trăm cải thiện. Ngoài ra, các chế độ A* và GA thường được trình bày để làm rõ vai trò riêng của từng thuật toán.
+
+Bảng 5.1. Thông số kịch bản thực nghiệm urban_delivery
+Thông số	Giá trị	Ý nghĩa
+Tên kịch bản	urban_delivery	Kịch bản mô phỏng giao hàng đô thị.
+Số điểm giao	18	Tạo không gian tổ hợp đủ lớn để đánh giá GA.
+Số xe	2	Dùng trong GA, A* + GA và chế độ so sánh.
+Số vùng vật cản	2	Dùng để kiểm chứng khả năng tránh vật cản của A*.
+Số thế hệ GA	300	Dùng để quan sát hội tụ.
+Baseline	Tuyến tuần tự ban đầu	Mốc so sánh hiệu quả tối ưu.
+
+VỊ TRÍ CHÈN HÌNH ẢNH MINH HỌA
+Hình 5.1. Bản đồ mô phỏng kịch bản urban_delivery
+
+5.2. Hiển thị tuyến đường
+Các hình ảnh trong mục này được dùng để chứng minh kết quả bằng mắt. Khi hoàn thiện bản cuối, người thực hiện cần chèn ảnh từ giao diện hoặc từ dữ liệu demo vào các vị trí đã đặt sẵn. Mỗi hình cần thể hiện đúng chế độ đang phân tích để tránh nhầm lẫn giữa baseline, A*, GA và A* + GA.
+
+VỊ TRÍ CHÈN HÌNH ẢNH MINH HỌA
+Hình 5.2. Tuyến tuần tự ban đầu
+
+VỊ TRÍ CHÈN HÌNH ẢNH MINH HỌA
+Hình 5.3. Kết quả chạy A* trên bản đồ có vật cản
+
+VỊ TRÍ CHÈN HÌNH ẢNH MINH HỌA
+Hình 5.4. Kết quả chạy GA thường
+
+VỊ TRÍ CHÈN HÌNH ẢNH MINH HỌA
+Hình 5.5. Kết quả chạy A* + GA
+
+5.3. So sánh kết quả
+Kết quả thực nghiệm đã ghi nhận tuyến tuần tự ban đầu có tổng chi phí 1227.33 km, trong khi phương pháp A* + GA đạt 591.16 km. Mức cải thiện là 51.83%. Đây là bằng chứng cho thấy việc kết hợp A* và GA giúp giảm mạnh tổng chi phí so với cách đi tuần tự theo thứ tự ban đầu.
+
+Khi trình bày kết quả, cần lưu ý rằng A* đơn lẻ và GA thường không có cùng ý nghĩa với A* + GA. A* chứng minh khả năng tìm đường, GA thường chứng minh khả năng tối ưu thứ tự theo Euclidean, còn A* + GA là phương pháp kết hợp hoàn chỉnh. Do đó, bảng so sánh cần thể hiện cả vai trò của từng chế độ chứ không chỉ so một con số.
+
+Bảng 5.2. So sánh bốn chế độ thực nghiệm
+Tiêu chí	Tuyến tuần tự	A*	GA thường	A* + GA
+Mục đích	Baseline	Tìm đường cục bộ	Tối ưu thứ tự theo Euclidean	Tối ưu theo chi phí A*
+Tối ưu thứ tự	Không	Không	Có	Có
+Tránh vật cản	Không thể hiện rõ	Có	Hiển thị actual distance	Có
+Số xe	Không áp dụng	Không áp dụng	Có	Có
+Dữ liệu hội tụ	Không	Không	Có	Có
+Vai trò chính	Mốc so sánh	Chứng minh path	Chứng minh GA	Phương pháp đề xuất
+
+Bảng 5.3. So sánh tuyến tuần tự và phương pháp đề xuất A* + GA
+Tiêu chí	Tuyến tuần tự	A* + GA
+Số điểm giao	18	18
+Số xe	2	2
+Số vùng vật cản	2	2
+Tổng chi phí/quãng đường	1227.33 km	591.16 km
+Mức cải thiện	-	51.83%
+Dữ liệu hội tụ	Không có	Có
+Kiểm chứng tránh vật cản	Không thể hiện rõ	Đạt
+
+Bảng 5.4. Đánh giá ý nghĩa các chỉ số kết quả
+Chỉ số	Giá trị/Trạng thái	Ý nghĩa
+Baseline cost	1227.33 km	Chi phí của tuyến tuần tự ban đầu.
+Optimized cost	591.16 km	Chi phí sau khi áp dụng A* + GA.
+Improvement percent	51.83%	Mức giảm tổng chi phí so với baseline.
+A* obstacle validation	Đạt	Đường đi không xuyên vật cản trong kịch bản.
+GA generations	300	Số thế hệ dùng để quan sát quá trình hội tụ.
+
+VỊ TRÍ CHÈN HÌNH ẢNH MINH HỌA
+Hình 5.7. Bảng chỉ số tổng hợp trên giao diện demo
+
+5.4. Phân tích hội tụ của GA
+GA được chạy qua 300 thế hệ. Dữ liệu hội tụ cho phép quan sát quá trình cải thiện nghiệm theo thời gian. Thông thường, ở các thế hệ đầu, chi phí giảm nhanh vì quần thể loại bỏ dần các phương án kém. Ở các thế hệ sau, mức giảm chậm lại và đường biểu diễn ổn định hơn. Đây là dấu hiệu thường gặp khi thuật toán đã tiến gần đến vùng nghiệm tốt.
+
+Trong báo cáo, biểu đồ hội tụ là bằng chứng quan trọng vì nó cho thấy GA không chỉ tạo ra một kết quả ngẫu nhiên ở cuối, mà có quá trình tối ưu từng bước. Khi chèn biểu đồ, trục ngang nên là số thế hệ, trục dọc là chi phí tốt nhất hoặc fitness tốt nhất. Nếu đường cong giảm rồi ổn định, có thể kết luận GA hội tụ tương đối ổn định trong kịch bản thử nghiệm.
+
+VỊ TRÍ CHÈN HÌNH ẢNH MINH HỌA
+Hình 5.6. Biểu đồ hội tụ GA qua 300 thế hệ
+
+5.5. Ưu điểm, hạn chế và hướng cải tiến
+Bảng 5.5. Ưu điểm, hạn chế và hướng khắc phục
+Nội dung	Phân tích
+Ưu điểm 1	Tách đúng vai trò của A* và GA: A* tìm đường cục bộ, GA tối ưu thứ tự toàn cục.
+Ưu điểm 2	Có thể trình bày kết quả bằng tuyến đường, bảng so sánh, phần trăm cải thiện và hội tụ.
+Ưu điểm 3	A* giúp kiểm soát tính hợp lệ của đường đi trong môi trường có vật cản.
+Ưu điểm 4	A* + GA giảm chi phí từ 1227.33 km xuống 591.16 km trong kịch bản thử nghiệm.
+Hạn chế 1	Kịch bản còn là mô phỏng, chưa dùng dữ liệu giao thông thực tế.
+Hạn chế 2	GA là thuật toán xấp xỉ nên kết quả phụ thuộc cấu hình và seed.
+Hạn chế 3	Khi số điểm rất lớn, việc xây ma trận chi phí bằng A* cho nhiều cặp điểm có thể tốn thời gian.
+Hướng cải tiến	Bổ sung dữ liệu bản đồ thực, khung giờ giao hàng, tải trọng, cập nhật động và so sánh thêm với ACO hoặc Reinforcement Learning.
+
+VỊ TRÍ CHÈN HÌNH ẢNH MINH HỌA
+Hình 5.8. Minh họa so sánh trước và sau tối ưu
+
+5.6. Nhận xét tổng hợp
+Từ kết quả thực nghiệm, có thể rút ra ba nhận xét chính. Thứ nhất, tuyến tuần tự ban đầu có vai trò quan trọng vì tạo mốc so sánh rõ ràng. Thứ nội dung 2, A* và GA cần được hiểu đúng vai trò: A* không tối ưu thứ tự, GA không tự đảm bảo đường đi tránh vật cản nếu không có chi phí A*. Thứ ba, A* + GA là phương án phù hợp nhất vì kết hợp được cả nhận thức không gian và tối ưu tổ hợp.
+
+Mức cải thiện 51.83% trong kịch bản urban_delivery cho thấy phương pháp đề xuất hiệu quả hơn rõ rệt so với baseline. Tuy nhiên, kết quả này chỉ nên được hiểu trong phạm vi mô phỏng. Khi mở rộng sang môi trường thực tế, cần bổ sung nhiều ràng buộc hơn và kiểm thử trên nhiều kịch bản khác nhau.
 
 KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN
-Đề tài “Tối ưu đường đi giao hàng bằng thuật toán A* và Genetic Algorithm” đã xây dựng được một hệ thống mô phỏng có tính hoàn chỉnh cao. Hệ thống bắt đầu từ bản đồ và điểm giao, xây dựng đồ thị, chạy A* để tạo ma trận khoảng cách, chạy GA để tối ưu thứ tự giao hàng, sau đó hiển thị route, tổng quãng đường, thời gian và phần trăm cải thiện so với tuyến tuần tự.
-Về mặt lý thuyết, đề tài thể hiện đúng vai trò của từng thuật toán. A* phù hợp với bài toán tìm đường đi ngắn nhất giữa hai điểm trên graph, đặc biệt khi có vật cản hoặc mạng đường. GA phù hợp với bài toán tối ưu tổ hợp dạng sắp xếp thứ tự điểm giao, nơi số khả năng tăng rất nhanh theo số điểm. Mô hình kết hợp A* + GA là lựa chọn hợp lý vì giải quyết đồng thời hai lớp quyết định: chọn đường đi từng chặng và chọn thứ tự các chặng.
-Về mặt sản phẩm, commit mới nhất đã nâng cấp đề tài thành ứng dụng có backend Flask và giao diện HTML. Hệ thống có API sinh bản đồ, đồng bộ road graph, chạy A*, lấy path chi tiết, tối ưu GA và trả tiến trình qua SSE. Bộ kiểm thử backend kiểm tra nhiều tình huống quan trọng, giúp tăng độ tin cậy của đề tài khi trình bày.
-Về hướng phát triển, đề tài có thể mở rộng sang dữ liệu bản đồ thực tế, nhiều xe với nhiều loại tải trọng, khung giờ giao hàng thật, traffic theo thời gian, thuật toán lai GA + 2-opt, lưu lịch sử chạy và xuất báo cáo tự động. Với cấu trúc hiện tại, đề tài đã đủ cơ sở để trình bày trong môn học và có tiềm năng phát triển thành ứng dụng logistics mini trong các học phần tiếp theo.
+Đề tài “Tối ưu đường đi giao hàng bằng thuật toán A* và Genetic Algorithm” đã mô hình hóa bài toán giao hàng thành một bài toán tìm kiếm và tối ưu trong Trí tuệ nhân tạo. Báo cáo đã làm rõ mục tiêu bài toán, cơ sở lý thuyết cần thiết, phương pháp đánh giá lựa chọn thuật toán, xây dựng giải pháp và phân tích kết quả. Kết quả thực nghiệm đã chứng minh được tính đúng đắn và hiệu quả của phương pháp A* + GA trong việc tìm ra lộ trình giao hàng tối ưu, tránh được vật cản và giảm thiểu đáng kể tổng chi phí di chuyển so với phương án tuần tự ban đầu.
 
-TÀI LIỆU THAM KHẢO
-[1]. Roker-enther-while. “T-I-U-NG-I-GIAO-H-NG-B-NG-A-V-GENETIC-ALGORITHM.” GitHub repository, truy cập ngày 20/05/2026. Link: https://github.com/Roker-enther-while/T-I-U-NG-I-GIAO-H-NG-B-NG-A-V-GENETIC-ALGORITHM
-[2]. Roker-enther-while. Commit 96b2dc6: “Cập nhật UI Web HTML, tích hợp Flask Backend và cập nhật các tài liệu Markdown.” GitHub, 17/05/2026.
-[3]. Hart, P. E.; Nilsson, N. J.; Raphael, B. “A Formal Basis for the Heuristic Determination of Minimum Cost Paths.” IEEE Transactions on Systems Science and Cybernetics, 1968.
-[4]. Holland, J. H. “Adaptation in Natural and Artificial Systems.” University of Michigan Press, 1975.
-[5]. Goldberg, D. E. “Genetic Algorithms in Search, Optimization, and Machine Learning.” Addison-Wesley, 1989.
-[6]. Tài liệu tham khảo do nhóm tổng hợp: “Nghiên cứu bài toán tối ưu tuyến đường nhặt hàng trong hoạt động khai thác kho.” Tạp chí Khoa học Công nghệ Hàng hải, VIMARU, 2024.
-[7]. Tài liệu tham khảo do nhóm tổng hợp: “Thử nghiệm thuật toán tìm đường đi tối ưu cho hệ thống robot di động vận chuyển hàng trong kho tự động.” VJOL, 2025.
-[8]. Tài liệu tham khảo do nhóm tổng hợp: “Ứng dụng thuật toán di truyền Genetic Algorithm trong tối ưu tuyến giao hàng chặng cuối.” 2026.
-[9]. Tài liệu tham khảo do nhóm tổng hợp: “Ứng dụng giải thuật di truyền và Tabu Search trong giải bài toán Định tuyến xe.” Tạp chí Khoa học và Công nghệ UNETI, 2023.
-[10]. Python Software Foundation. “Python Documentation.” Link: https://docs.python.org/3/
-[11]. Pallets Projects. “Flask Documentation.” Link: https://flask.palletsprojects.com/
-[12]. GitHub Docs. “About repositories and commits.” Link: https://docs.github.com/
-
-PHỤ LỤC: VẤN ĐỀ CẦN NHẤN MẠNH KHI TRÌNH BÀY
-Phần này dùng như ghi chú thuyết trình. Khi trình bày, nhóm nên đi theo mạch: bài toán -> vì sao không duyệt vét cạn -> A* làm gì -> GA làm gì -> hai thuật toán kết hợp ra sao -> backend và UI chứng minh kết quả như thế nào -> so sánh với tuyến tuần tự -> hạn chế và hướng phát triển.
-Điểm nhấn thứ nhất: bài toán giao hàng gồm hai lớp, không thể chỉ dùng một thuật toán để giải thích toàn bộ. A* giỏi tìm đường giữa hai node nhưng không biết thứ tự nhiều điểm. GA giỏi chọn thứ tự nhưng cần ma trận chi phí. Vì vậy A* + GA là mô hình bổ sung vai trò cho nhau.
-Điểm nhấn thứ hai: commit mới nhất đã bổ sung tính thực tế. Hệ thống có road mode, route_paths từ backend, nhiều xe, tải trọng, khung giờ, điểm không giao được và kiểm thử backend. Đây là bằng chứng đề tài không còn là mô phỏng nối đường thẳng đơn giản.
-Điểm nhấn thứ ba: không nên khẳng định “GA tìm ra đường tối ưu nhất”. Câu đúng là “GA tìm nghiệm tốt/gần tối ưu trong thời gian hợp lý; kết quả được so sánh với tuyến tuần tự để đo cải thiện”. Cách nói này vừa chính xác vừa tránh bị hỏi khó về tối ưu tuyệt đối.
-Điểm nhấn thứ tư: khi demo, nên chạy theo thứ tự rõ ràng: chọn kịch bản -> tạo bản đồ -> chạy A* -> xem matrix/path hoặc A* step -> chạy GA -> xem history -> mở bảng so sánh -> xuất hoặc chụp kết quả. Mỗi bước cần nói rõ dữ liệu đầu vào và đầu ra.
-Checklist trước khi bảo vệ:[ ] Chạy python -m unittest discover -s tests và chụp log pass.[ ] Chạy server.py, mở giao diện và chuẩn bị một kịch bản demo ổn định.[ ] Chuẩn bị câu giải thích f(n)=g(n)+h(n) của A*.[ ] Chuẩn bị câu giải thích chromosome, fitness, crossover, mutation của GA.[ ] Có bảng so sánh tuần tự vs A* + GA với số liệu thực tế từ máy demo.[ ] Sửa ký hiệu “A*” trong các file Markdown nếu còn bị lỗi hiển thị.
+Hướng phát triển tiếp theo của đề tài là mở rộng mô hình với các ràng buộc thực tế phức tạp hơn như khung giờ giao hàng (Time Windows), sức chứa của phương tiện (Capacity), và tích hợp dữ liệu bản đồ giao thông thực tế. Ngoài ra, có thể nghiên cứu so sánh hoặc kết hợp với các thuật toán tối ưu khác như Ant Colony Optimization (ACO) hay Reinforcement Learning để nâng cao hiệu suất xử lý khi số lượng điểm giao hàng lớn.
