@@ -2011,17 +2011,23 @@ PYTHON_BACKEND_OVERRIDE = r"""
   }
 
   async function runBaselineMode(){
+    await buildBackendMatrix();
     const order = sequentialOrder();
-    const km = directRouteKm(order);
+    const km = routeKm(order);
     setBaselineResult(order, km);
     setResult(3, kmToCost(km));
     results[3].label = 'Tuyen ban dau';
     results[3].col = '#facc15';
     results[3].execMs = 0;
     results[4] = {...results[3]};
-    vehs = [makeDirectBaselineVehicle(order, km)];
+    const routePaths = await fetchBackendRoutePaths([order]);
+    vehs = makeBackendVehicles([order], order, 'Tuyen ban dau', routePaths, {
+      algorithmKey: 'baseline',
+      algorithmLabel: 'Tuyen ban dau',
+      palette: ['#facc15']
+    });
     renderVehicleRoutes();
-    setStatus(`Hoan tat tuyen tuan tu ban dau: ${km.toFixed(1)} km, khong dung A* / GA`);
+    setStatus(`Hoan tat tuyen tuan tu ban dau: ${km.toFixed(1)} km, dung A* de tranh vat can`);
   }
 
   async function runAstarMode(){
@@ -2084,11 +2090,16 @@ PYTHON_BACKEND_OVERRIDE = r"""
     results[0].execMs = gaHybridExecMs;
 
     const baselineOrder = sequentialOrder();
-    const baselineKm = directRouteKm(baselineOrder);
+    const baselineKm = routeKm(baselineOrder);
     setBaselineResult(baselineOrder, baselineKm);
+    const baselineRoutePaths = await fetchBackendRoutePaths([baselineOrder]);
 
     vehs = [
-      makeDirectBaselineVehicle(baselineOrder, baselineKm),
+      ...makeBackendVehicles([baselineOrder], baselineOrder, 'Tuyen ban dau', baselineRoutePaths, {
+        algorithmKey:'baseline',
+        algorithmLabel:'Tuyen ban dau',
+        palette:['#facc15']
+      }),
       ...makeBackendVehicles([orderA], orderA, 'A* Tuan tu', routePathsA, {
         algorithmKey:'astar_base',
         algorithmLabel:'A* tuan tu',

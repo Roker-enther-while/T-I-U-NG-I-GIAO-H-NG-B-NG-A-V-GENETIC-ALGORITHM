@@ -1,0 +1,52 @@
+{
+  "common": {
+    "random_seed": 42,
+    "map_width": 100,
+    "map_height": 100,
+    "delivery_points": 18,
+    "obstacles": 2,
+    "distance_unit": "km",
+    "return_to_depot": true,
+    "default_vehicle_count": 2,
+    "output_dir": "outputs/demo",
+    "log_dir": "outputs/test_logs"
+  },
+  "astar": {
+    "heuristic_type": "euclidean",
+    "speed_kmh": 40,
+    "allow_diagonal": true,
+    "obstacle_policy": "avoid",
+    "padding": 4
+  },
+  "ga": {
+    "population_size": 100,
+    "generations": 300,
+    "crossover_rate": 0.8,
+    "mutation_rate": 0.05,
+    "elite_size": 10,
+    "selection_method": "tournament",
+    "crossover_method": "order",
+    "mutation_method": "swap",
+    "tournament_size": 3,
+    "capacity": 24,
+    "service_time": 5
+  },
+  "demo": {
+    "show_grid": false,
+    "show_obstacles": true,
+    "show_astar_paths": true,
+    "show_ga_order": true,
+    "show_convergence_chart": true,
+    "save_demo_images": true,
+    "demo_case_name": "urban_delivery",
+    "number_of_demo_orders": 18
+  },
+  "evaluation": {
+    "baseline_method": "sequential",
+    "metric_distance": true,
+    "metric_runtime": true,
+    "metric_improvement_percent": true,
+    "repeat_runs": 1,
+    "seed_list": [42]
+  }
+}

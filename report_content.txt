@@ -1,0 +1,509 @@
+TRƯỜNG ĐẠI HỌC THỦ DẦU MỘT
+VIỆN CÔNG NGHỆ SỐ
+
+BÁO CÁO
+TIỂU LUẬN MÔN HỌC
+Kỹ thuật lập trình trong phân tích dữ liệu
+
+TÊN ĐỀ TÀI
+Tối ưu đường đi giao hàng bằng thuật toán A* và Genetic Algorithm
+
+Nhóm thực hiện:
+Huỳnh Trung Tín MÃ SỐ SV: 2324802010372LỚP: D23CNTT04
+Đinh Hữu Phong     MÃ SỐ SV: 2324802010095LỚP: D23CNTT04
+Nguyễn Đức ThịnhMÃ SỐ SV: 2324802010355LỚP: D23CNTT04
+Giảng viên: Ths. Trịnh Trọng Thành
+
+
+Học kỳ II năm học 2025-2026
+TP. HCM, tháng 5 /2026
+
+MỤC LỤC
+MỤC LỤCi
+DANH MỤC CÁC HÌNHii
+DANH MỤC CÁC BẢNGiii
+BẢNG PHÂN CÔNG CÔNG VIỆC1
+MỞ ĐẦU2
+CHƯƠNG 1: TỔNG QUAN VỀ DỰ ÁN4
+1.1. Lý do chọn đề tài4
+1.2. Tên đề tài, mô tả và mục tiêu bài toán5
+1.3. Phạm vi, giả định và yêu cầu đầu ra6
+1.4. Công cụ, thư viện và cấu trúc repository7
+CHƯƠNG 2: CƠ SỞ LÝ THUYẾT VÀ PHƯƠNG PHÁP ĐÁNH GIÁ10
+2.1. Bài toán TSP/VRP/CVRPTW10
+2.2. Thuật toán A*11
+2.3. Genetic Algorithm13
+2.4. Mô hình kết hợp A* + GA15
+2.5. Phương pháp đánh giá lựa chọn thuật toán16
+CHƯƠNG 3: PHÂN TÍCH, THIẾT KẾ VÀ XÂY DỰNG GIẢI PHÁP18
+3.1. Kiến trúc hệ thống18
+3.2. Mô hình dữ liệu và đồ thị20
+3.3. Xây dựng ma trận khoảng cách bằng A*22
+3.4. Tối ưu thứ tự giao hàng bằng GA24
+3.5. Backend Flask API và giao diện HTML26
+3.6. Kiểm thử và kiểm soát lỗi28
+CHƯƠNG 4: KẾT QUẢ, HIỂN THỊ DỰ ĐOÁN VÀ ĐÁNH GIÁ SO SÁNH30
+4.1. Chức năng hoàn thành sau commit mới nhất30
+4.2. Hiển thị kết quả dự đoán32
+4.3. Kịch bản đánh giá và bảng kết quả34
+4.4. So sánh, nhận xét ưu điểm và hạn chế36
+KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN39
+TÀI LIỆU THAM KHẢO41
+PHỤ LỤC: VẤN ĐỀ CẦN NHẤN MẠNH KHI TRÌNH BÀY43
+
+DANH MỤC CÁC HÌNH
+Hình 1.1: Cấu trúc repository sau commit mới nhất3
+Hình 2.1: Minh họa nguyên lý thuật toán A*4
+Hình 2.2: Vòng lặp tối ưu của Genetic Algorithm5
+Hình 2.3: Mô hình kết hợp A* -> Ma trận khoảng cách -> GA6
+Hình 3.1: Kiến trúc tổng thể hệ thống tối ưu giao hàng7
+Hình 3.2: Quy trình xử lý từ đầu vào đến đầu ra8
+Hình 3.3: Bản đồ mô phỏng điểm giao và tuyến tối ưu9
+Hình 3.4: Bố cục giao diện trình diễn kết quả10
+Hình 4.1: Đường cong hội tụ GA trong kịch bản minh họa11
+Hình 4.2: So sánh tổng quãng đường tuần tự và A* + GA12
+DANH MỤC CÁC BẢNG
+Bảng 1.1: Bảng phân công công việc5
+Bảng 1.2: Công cụ và thư viện sử dụng6
+Bảng 1.3: Mô tả chức năng các file chính trong repository7
+Bảng 2.1: So sánh vai trò A*, GA và mô hình kết hợp8
+Bảng 2.2: Tiêu chí đánh giá lựa chọn thuật toán9
+Bảng 3.1: Dữ liệu đầu vào và đầu ra của hệ thống10
+Bảng 3.2: Các API backend chính11
+Bảng 3.3: Các tình huống kiểm thử quan trọng12
+Bảng 4.1: Tính năng hoàn thành sau commit mới nhất13
+Bảng 4.2: Kết quả kịch bản minh họa14
+Bảng 4.3: Vấn đề cần nhấn mạnh khi bảo vệ15
+
+BẢNG PHÂN CÔNG CÔNG VIỆC
+Bảng 1.1: Bảng phân công công việc
+STT
+Họ và tên
+MSSV
+Nhiệm vụ chính
+Kỹ thuật chịu trách nhiệm
+Tỷ lệ
+1
+Huỳnh Trung Tín
+2324802010372
+Thiết kế bản đồ, đồ thị và kiểm thử A*
+Mô hình hóa node/cạnh, vật cản, mạng đường/hẻm; kiểm tra A* đi vòng vật cản, grid mode, road mode.
+33%
+2
+Nguyễn Đức Thịnh
+2324802010355
+Xây dựng GA và đánh giá thuật toán
+Mã hóa chromosome, fitness, tournament selection, order crossover, swap mutation, elitism; so sánh tuyến tuần tự và tuyến tối ưu.
+33%
+3
+Đinh Hữu Phong
+2324802010095
+Tích hợp backend, giao diện và báo cáo
+Flask API, Server-Sent Events cho tiến trình GA, giao diện HTML, bảng kết quả, biểu đồ hội tụ và tài liệu trình bày.
+34%
+4
+Cả nhóm
+—
+Tích hợp và kiểm thử end-to-end
+Đọc commit mới nhất, rà soát lỗi đầu vào, kiểm thử API, hoàn thiện báo cáo và chuẩn bị thuyết trình.
+100%
+
+MỞ ĐẦU
+Tối ưu đường đi giao hàng là một bài toán có tính ứng dụng cao trong logistics, thương mại điện tử và vận hành kho. Khi số lượng điểm giao tăng lên, việc sắp xếp thứ tự giao hàng theo cảm tính hoặc theo thứ tự phát sinh đơn có thể làm tổng quãng đường tăng mạnh, kéo theo chi phí nhiên liệu, thời gian giao hàng và độ trễ dịch vụ. Vì vậy, việc mô phỏng và xây dựng một hệ thống đề xuất lộ trình là một hướng tiếp cận phù hợp với môn Kỹ thuật lập trình trong phân tích dữ liệu, nơi sinh viên cần biết cách tổ chức dữ liệu, xử lý thuật toán và trình bày kết quả theo dạng có thể quan sát được.
+Đề tài “Tối ưu đường đi giao hàng bằng thuật toán A* và Genetic Algorithm” tập trung giải quyết bài toán theo hai lớp. Lớp thứ nhất là tìm đường đi ngắn nhất giữa hai điểm trên bản đồ, được đảm nhiệm bởi thuật toán A*. Lớp thứ hai là chọn thứ tự đi qua nhiều điểm giao hàng, được đảm nhiệm bởi Genetic Algorithm. Cách tách bài toán thành hai lớp giúp hệ thống vừa dễ giải thích về mặt lý thuyết, vừa dễ mở rộng sang các kịch bản thực tế như bản đồ có vật cản, mạng đường/hẻm, nhiều xe, tải trọng và khung giờ giao hàng.
+Repository GitHub mới nhất cho thấy đề tài không chỉ dừng ở mô phỏng thuật toán đơn giản mà đã được nâng cấp thành ứng dụng web có backend Flask, giao diện HTML, API đồng bộ mạng đường, API chạy A*, API lấy route path chi tiết và API tối ưu GA theo dạng streaming. Commit mới nhất ngày 17/05/2026 có nội dung “Cập nhật UI Web HTML, tích hợp Flask Backend và cập nhật các tài liệu Markdown”, thay đổi 8 file với hơn hai nghìn dòng bổ sung, thể hiện trọng tâm phát triển là chuyển từ mô hình minh họa thuật toán sang hệ thống có thể thao tác trực quan trên trình duyệt.
+Báo cáo này được biên soạn lại theo đúng định dạng của file mẫu: có trang bìa, mục lục, danh mục hình, danh mục bảng, bảng phân công công việc, các chương nội dung, kết luận, tài liệu tham khảo và phụ lục các điểm cần nhấn mạnh khi trình bày. Nội dung trong báo cáo không chỉ mô tả thuật toán mà còn phân tích rõ vì sao chọn thuật toán, hệ thống đã xây dựng những thành phần nào, cách hiển thị kết quả dự đoán, cách đánh giá so sánh và những vấn đề cần lưu ý khi bảo vệ đề tài.
+
+CHƯƠNG 1: TỔNG QUAN VỀ DỰ ÁN
+1.1. Lý do chọn đề tài
+Trong thực tế giao hàng, một xe thường phải xuất phát từ kho, đi qua nhiều địa chỉ và quay lại điểm xuất phát hoặc kết thúc ca giao hàng tại một điểm được quy định. Nếu chỉ có một vài địa điểm, người giao hàng có thể tự chọn thứ tự bằng kinh nghiệm. Tuy nhiên, khi số điểm giao tăng lên, số khả năng sắp xếp tăng theo cấp số giai thừa. Với 10 điểm giao đã có 10! thứ tự khác nhau; với 15 điểm giao, số khả năng lớn đến mức không thể duyệt vét cạn trong thời gian ngắn.
+Đề tài được lựa chọn vì có sự kết hợp rõ giữa lý thuyết thuật toán và sản phẩm phần mềm. Về lý thuyết, bài toán liên quan đến tìm đường đi ngắn nhất, tối ưu tổ hợp, TSP, VRP và các ràng buộc vận hành như tải trọng hoặc khung giờ. Về triển khai, đề tài yêu cầu tổ chức dữ liệu điểm, đồ thị, ma trận khoảng cách, thuật toán tối ưu, API backend và giao diện trực quan. Đây là một bài toán phù hợp để chứng minh năng lực lập trình, phân tích dữ liệu và trình bày kết quả.
+Ngoài ra, đề tài có lợi thế lớn khi thuyết trình: kết quả không chỉ là con số mà có thể hiển thị trực tiếp trên bản đồ. Người xem có thể thấy kho hàng, điểm giao, đường đi A*, tuyến GA, biểu đồ hội tụ và bảng so sánh với lộ trình tuần tự. Vì vậy, đề tài dễ chứng minh “làm được thật” hơn so với các bài chỉ trình bày lý thuyết hoặc chỉ in kết quả trên console.
+1.2. Tên đề tài, mô tả và mục tiêu bài toán
+Tên đề tài: Tối ưu đường đi giao hàng bằng thuật toán A* và Genetic Algorithm.
+Bài toán được mô phỏng trên bản đồ 2D. Hệ thống có một kho hàng đóng vai trò điểm xuất phát, nhiều điểm giao hàng và một mạng đường để xe di chuyển. Người dùng có thể chọn số điểm giao, tốc độ xe, heuristic của A*, số lượng xe, tải trọng, tỷ lệ đột biến, số thế hệ và chế độ tính metric cho GA. Sau đó hệ thống chạy A* để tạo ma trận chi phí giữa các điểm, rồi chạy GA để tìm thứ tự giao hàng có tổng chi phí nhỏ.
+Mục tiêu kỹ thuật của đề tài là xây dựng được một pipeline hoàn chỉnh: sinh hoặc nhận bản đồ, xây dựng đồ thị, tính ma trận khoảng cách bằng A*, tối ưu thứ tự giao hàng bằng GA, trả kết quả qua API và hiển thị trên giao diện web. Mục tiêu trình bày là chứng minh được mô hình A* + GA tốt hơn lộ trình tuần tự trong nhiều kịch bản và giải thích rõ vì sao hai thuật toán phải phối hợp với nhau thay vì dùng riêng lẻ.
+Điểm cần nhấn mạnh ở phần mục tiêu là hệ thống không “dự đoán” theo nghĩa học máy, mà dự đoán theo nghĩa đề xuất lộ trình tối ưu gần đúng dựa trên thuật toán. Kết quả dự đoán là thứ tự giao hàng, tuyến đường chi tiết, tổng quãng đường, thời gian ước tính và phần trăm cải thiện so với tuyến đối chiếu.
+1.3. Phạm vi, giả định và yêu cầu đầu ra
+Phạm vi đề tài đã được mở rộng theo commit mới nhất. Bản ban đầu có thể xem là bài toán TSP/VRP một xe, trong đó xe đi qua toàn bộ điểm giao đúng một lần và quay về kho. Bản hiện tại đã bổ sung các yếu tố gần với CVRPTW: hỗ trợ nhiều xe, giới hạn tải trọng, khung giờ giao hàng, loại điểm giao không thể phục vụ nếu nằm trong vùng cấm, chế độ mạng đường/hẻm, lưới ô và đường thẳng.
+Các giả định chính gồm: bản đồ được biểu diễn bằng tọa độ 2D; tốc độ xe được xem là hằng số khi quy đổi quãng đường sang thời gian; các đơn hàng có demand giả lập; time window được sinh theo quy tắc trong backend; GA là thuật toán gần đúng nên không cam kết tối ưu tuyệt đối; lộ trình tuần tự chỉ được dùng làm tuyến đối chiếu, không phải thuật toán tối ưu.
+Yêu cầu đầu ra gồm: bản đồ trực quan, ma trận khoảng cách sau A*, route path chi tiết để frontend vẽ đúng đường backend, thứ tự giao hàng tối ưu, danh sách tuyến theo từng xe, tổng quãng đường, tổng thời gian, lịch sử fitness của GA, thông tin điểm không giao được và bảng so sánh giữa tuyến tuần tự với tuyến A* + GA.
+1.4. Công cụ, thư viện và cấu trúc repository
+Bảng 1.2: Công cụ và thư viện sử dụng
+STT
+Công cụ / thư viện
+Vai trò trong đề tài
+1
+Python
+Ngôn ngữ lập trình chính, triển khai A*, GA và Flask backend.
+2
+Flask
+Xây dựng API sinh bản đồ, chạy A*, tối ưu GA và trả kết quả cho giao diện HTML.
+3
+HTML/CSS/JavaScript
+Xây dựng giao diện DelivRoute v2, hiển thị bản đồ, điều khiển thuật toán và bảng kết quả.
+4
+heapq
+Cài đặt hàng đợi ưu tiên cho thuật toán A*.
+5
+threading, queue
+Chạy GA ở worker nền và gửi tiến trình tối ưu qua Server-Sent Events.
+6
+unittest
+Kiểm thử backend: vật cản, road mode, route path, tham số lỗi, nhiều xe và metric.
+7
+GitHub
+Quản lý mã nguồn, lịch sử commit và tài liệu Markdown của đề tài.
+
+Bảng 1.3: Mô tả chức năng các file chính trong repository
+File / thư mục
+Chức năng chính
+Nội dung cần nhấn mạnh
+server.py
+Backend Flask và lõi điều phối ứng dụng
+Chứa API generate, sync_road_graph, astar, astar_steps, route_paths, optimize; xử lý state bản đồ và trả kết quả JSON/SSE.
+delivery_optimizer/algorithms/astar.py
+Thuật toán A*
+Cài đặt Priority Queue, came_from, g_score, f_score, reconstruct_path và phiên bản astar_with_steps để minh họa.
+delivery_optimizer/algorithms/genetic.py
+Genetic Algorithm
+Cài đặt chromosome, fitness, constrained_fitness, split_routes, tournament selection, OX crossover, swap mutation, elitism và run_ga.
+delivery_optimizer/graph/distance.py
+Khoảng cách và ma trận chi phí
+Tính Euclidean/Manhattan heuristic, chạy A* cho từng cặp điểm và trả dist_matrix/path_matrix.
+delivery_optimizer/graph/graph.py
+Mô hình đồ thị
+Xây dựng cạnh, kiểm tra vật cản, bổ sung waypoint quanh obstacle và hỗ trợ mạng đường.
+delivery_optimizer_demo.html
+Giao diện web
+Hiển thị bản đồ, kịch bản mẫu, cấu hình, log A*, biểu đồ GA, route và so sánh kết quả.
+delivery_optimizer/gui.py
+Launcher ứng dụng
+Khởi động backend Flask và mở giao diện web ở chế độ app.
+tests/test_backend_features.py
+Bộ kiểm thử backend
+Kiểm tra các kịch bản quan trọng: vật cản, grid/road mode, route path, tham số lỗi, multi-vehicle.
+bao_cao_de_tai_toi_uu_giao_hang.md
+Tài liệu báo cáo gốc
+Cung cấp nội dung cốt lõi về mục tiêu, cơ sở lý thuyết, đánh giá thuật toán và kết quả.
+
+Cấu trúc repository rút gọn:T-I-U-NG-I-GIAO-H-NG-B-NG-A-V-GENETIC-ALGORITHM/├── server.py├── delivery_optimizer_demo.html├── delivery_optimizer/│   ├── algorithms/astar.py│   ├── algorithms/genetic.py│   ├── graph/distance.py│   ├── graph/graph.py│   └── gui.py├── tests/test_backend_features.py├── bao_cao_de_tai_toi_uu_giao_hang.md├── design.md└── ke_hoach_*.md
+Hình 1.1: Cấu trúc repository sau commit mới nhất
+Theo lịch sử commit trên GitHub, commit mới nhất có mã 96b2dc6, thực hiện ngày 17/05/2026, với nội dung cập nhật giao diện HTML, tích hợp Flask Backend và cập nhật tài liệu Markdown. Commit này thay đổi 8 file, bổ sung 2.415 dòng và xóa 277 dòng. Vì vậy, báo cáo này ưu tiên mô tả bản sau commit mới nhất, đặc biệt là phần Flask backend, giao diện HTML, mạng đường và kiểm thử backend.
+
+CHƯƠNG 2: CƠ SỞ LÝ THUYẾT VÀ PHƯƠNG PHÁP ĐÁNH GIÁ
+2.1. Bài toán TSP, VRP và CVRPTW trong đề tài
+TSP (Travelling Salesman Problem) là bài toán tìm chu trình ngắn nhất đi qua mỗi điểm đúng một lần rồi quay lại điểm xuất phát. Nếu mô hình chỉ có một xe, một kho và không xét tải trọng, bài toán giao hàng trong đề tài có thể xem là một biến thể TSP. Khi mở rộng sang nhiều xe, giới hạn tải trọng và khung giờ, bài toán tiến gần hơn đến VRP và CVRPTW.
+VRP (Vehicle Routing Problem) tổng quát hơn TSP vì có thể có nhiều xe, nhiều tuyến, nhiều ràng buộc vận hành. CVRPTW bổ sung hai yếu tố quan trọng: Capacity - tải trọng tối đa của xe, và Time Windows - khoảng thời gian mà đơn hàng cần được giao. Commit mới nhất trong repository đã bổ sung các tham số vehicles, capacity, time_windows và demand giả lập, cho phép báo cáo nhấn mạnh rằng đề tài đã vượt qua mô phỏng TSP đơn giản.
+Trong bối cảnh môn học, không nhất thiết phải giải trọn vẹn mọi biến thể VRP thực tế. Điều quan trọng là chứng minh được cách mô hình hóa dữ liệu, cách đánh giá chi phí route và cách kết hợp thuật toán để tạo lộ trình tốt hơn tuyến tuần tự. Do đó, đề tài chọn cách tiếp cận thực dụng: dùng A* để tính chi phí đường đi, dùng GA để tối ưu thứ tự và dùng giao diện web để kiểm chứng bằng mắt.
+2.2. Thuật toán A*
+A* là thuật toán tìm kiếm đường đi ngắn nhất trên đồ thị có trọng số không âm. Thuật toán kết hợp chi phí thực tế đã đi từ điểm bắt đầu đến node hiện tại với chi phí ước lượng từ node hiện tại đến đích. Nhờ đó, A* không mở rộng node một cách mù quáng mà ưu tiên những node có khả năng dẫn đến lời giải tốt.
+Công thức đánh giá của A* là f(n) = g(n) + h(n). Trong đó g(n) là chi phí thật từ điểm bắt đầu đến node n, h(n) là heuristic ước lượng từ n đến đích và f(n) là tổng chi phí dự kiến nếu đường đi đi qua n. Nếu heuristic không vượt quá chi phí thật còn lại, A* có khả năng tìm được đường đi tối ưu.
+Trong chương trình, A* được dùng nhiều lần để tính đường đi giữa mọi cặp điểm cần giao hàng. Kết quả của mỗi lần chạy không chỉ là khoảng cách mà còn có path cụ thể. Path này đặc biệt quan trọng ở commit mới nhất vì frontend không tự vẽ đường nối tắt nữa; thay vào đó, frontend nhận route_paths từ backend để vẽ đúng tuyến đường theo mạng đường, lưới hoặc vật cản.
+
+Hình 2.1: Minh họa nguyên lý thuật toán A*
+Công thức A*:f(n) = g(n) + h(n)Trong đề tài:- g(n): tổng chi phí đã đi trên graph.- h(n): Euclidean hoặc Manhattan đến node đích.- node có f(n) nhỏ nhất được lấy ra từ Priority Queue.
+2.3. Genetic Algorithm
+Genetic Algorithm là thuật toán tối ưu mô phỏng quá trình tiến hóa tự nhiên. Một quần thể gồm nhiều cá thể được tạo ra, mỗi cá thể biểu diễn một nghiệm ứng viên. Qua mỗi thế hệ, hệ thống đánh giá fitness, chọn cá thể tốt, lai ghép để tạo cá thể mới và đột biến để duy trì đa dạng. Sau nhiều thế hệ, nghiệm tốt có xu hướng được giữ lại và cải thiện.
+Trong bài toán giao hàng, một chromosome là một hoán vị các điểm giao hàng, không bao gồm kho. Ví dụ chromosome [3, 1, 4, 2] tương ứng với route đầy đủ 0 -> 3 -> 1 -> 4 -> 2 -> 0. Hàm fitness là tổng quãng đường của tuyến, lấy khoảng cách từ ma trận do A* tạo ra. Fitness càng nhỏ thì route càng tốt.
+GA phù hợp với bài toán sắp xếp thứ tự vì không cần duyệt hết m! khả năng. Các toán tử trong repository gồm tournament selection, order crossover, swap mutation và elitism. Đặc biệt, bản mới có constrained_fitness để phạt route vi phạm tải trọng hoặc trễ time window, giúp hệ thống có cơ sở mở rộng sang bài toán gần thực tế hơn.
+
+Hình 2.2: Vòng lặp tối ưu của Genetic Algorithm
+Mã hóa route:Chromosome: [3, 1, 4, 2]Route đầy đủ: 0 -> 3 -> 1 -> 4 -> 2 -> 0Fitness: d(0,3) + d(3,1) + d(1,4) + d(4,2) + d(2,0)
+2.4. Mô hình kết hợp A* + GA
+Điểm cốt lõi của đề tài là không xem A* và GA là hai phần rời rạc, mà kết hợp chúng thành một pipeline. A* giải quyết câu hỏi “đi từ điểm A đến điểm B theo đường nào là ngắn nhất?”, còn GA giải quyết câu hỏi “nên đi qua các điểm theo thứ tự nào để tổng chi phí nhỏ nhất?”. Nếu chỉ dùng A*, hệ thống chưa biết thứ tự giao hàng. Nếu chỉ dùng GA mà không có chi phí đường đi chính xác, fitness sẽ thiếu cơ sở.
+Mô hình kết hợp có thể mô tả như sau: bản đồ được biến thành đồ thị; A* chạy trên đồ thị để tạo ma trận khoảng cách giữa các điểm; GA dùng ma trận này để đánh giá từng chromosome; kết quả GA được chuyển thành route path chi tiết; giao diện hiển thị route và so sánh với lộ trình tuần tự. Đây là điểm cần nhấn mạnh nhất khi bảo vệ đề tài.
+
+Hình 2.3: Mô hình kết hợp A* -> Ma trận khoảng cách -> GA
+Bảng 2.1: So sánh vai trò A*, GA và mô hình kết hợp
+Thành phần
+Câu hỏi giải quyết
+Đầu vào
+Đầu ra
+Vai trò trong hệ thống
+A*
+Đi từ một điểm đến một điểm như thế nào?
+Graph, start, goal, heuristic
+Path ngắn nhất, distance, travel time
+Tạo chi phí chính xác giữa từng cặp điểm.
+GA
+Đi qua các điểm theo thứ tự nào?
+Distance matrix, số xe, tải trọng, time windows
+Best order, routes, best distance, history
+Tối ưu thứ tự giao hàng theo fitness.
+A* + GA
+Lộ trình giao hàng tổng thể nào tốt hơn tuyến tuần tự?
+Bản đồ + cấu hình thuật toán
+Route path chi tiết, tổng km, thời gian, cải thiện
+Giải pháp hoàn chỉnh của đề tài.
+
+2.5. Phương pháp đánh giá lựa chọn thuật toán
+Phương pháp đánh giá trong đề tài không chỉ dựa trên việc thuật toán có chạy được hay không, mà dựa trên nhiều tiêu chí: độ phù hợp với bài toán, chất lượng kết quả, thời gian tính toán, khả năng trực quan hóa, khả năng mở rộng và độ rõ ràng khi giải thích. Cách đánh giá này giúp tránh tình trạng chọn thuật toán theo tên gọi mà không chứng minh được vì sao nó phù hợp.
+Đối với A*, tiêu chí quan trọng là tìm được đường đi hợp lệ trong graph, tránh đi xuyên vật cản hoặc đi tắt ngoài mạng đường. Đối với GA, tiêu chí quan trọng là fitness giảm dần qua các thế hệ, route hợp lệ không lặp điểm, tổng quãng đường tốt hơn tuyến tuần tự và có khả năng xử lý nhiều xe hoặc tải trọng. Đối với hệ thống tổng thể, tiêu chí là API trả dữ liệu đầy đủ để frontend vẽ đúng tuyến backend.
+Bảng 2.2: Tiêu chí đánh giá lựa chọn thuật toán
+Tiêu chí
+Cách đánh giá
+Ý nghĩa
+Độ phù hợp bài toán
+A* tìm đường từng cặp; GA tối ưu hoán vị nhiều điểm.
+Chứng minh thuật toán giải đúng lớp vấn đề.
+Chất lượng kết quả
+So sánh tổng quãng đường và thời gian với tuyến tuần tự.
+Cho thấy hiệu quả tối ưu có quan sát được.
+Tính hợp lệ route
+Không trùng điểm, không thiếu điểm, không đi qua cạnh bị cấm.
+Đảm bảo kết quả dùng được trên bản đồ.
+Tốc độ xử lý
+Số điểm, số thế hệ, population và thời gian phản hồi UI.
+Đảm bảo chạy được trong kịch bản môn học.
+Khả năng trực quan
+Bản đồ, step A*, history GA, bảng so sánh.
+Giúp bảo vệ đề tài bằng hình ảnh rõ ràng.
+Khả năng mở rộng
+Hỗ trợ road mode, multi-vehicle, capacity, time windows.
+Chứng minh hướng phát triển thực tế.
+
+
+CHƯƠNG 3: PHÂN TÍCH, THIẾT KẾ VÀ XÂY DỰNG GIẢI PHÁP
+3.1. Kiến trúc hệ thống
+Hệ thống được thiết kế theo kiến trúc web đơn giản nhưng rõ ràng. Frontend HTML/CSS/JavaScript chịu trách nhiệm giao diện, bản đồ, điều khiển tham số và hiển thị kết quả. Backend Flask trong file server.py chịu trách nhiệm nhận request, xây dựng graph, chạy A*, chạy GA, lưu state tạm thời và trả kết quả dạng JSON hoặc Server-Sent Events. Package delivery_optimizer chứa các module thuật toán và xử lý graph.
+Luồng tương tác bắt đầu khi người dùng chọn kịch bản hoặc số điểm giao. Frontend gọi API /api/generate để sinh điểm và vật cản. Nếu dùng road mode, frontend đồng bộ road_nodes, road_edges và điểm giao qua /api/sync_road_graph. Sau đó người dùng chạy A* qua /api/astar để tạo ma trận. Khi ma trận đã có, người dùng chạy /api/optimize để GA tối ưu route. Cuối cùng, backend trả routes và route_paths để frontend vẽ tuyến chính xác.
+
+Hình 3.1: Kiến trúc tổng thể hệ thống tối ưu giao hàng
+
+Hình 3.2: Quy trình xử lý từ đầu vào đến đầu ra
+3.2. Mô hình dữ liệu và đồ thị
+Mỗi điểm trong hệ thống được biểu diễn bởi id, tọa độ x, tọa độ y, tên điểm và các thuộc tính bổ sung như demand, time_window, nodeId hoặc undeliverable. Điểm id = 0 được xem là kho hàng. Các điểm giao còn lại được GA sắp xếp thứ tự. Khi dùng road mode, mỗi điểm giao phải gắn với một node đường để tránh trường hợp frontend vẽ route nhưng backend không có đường hợp lệ.
+Graph được biểu diễn bằng dictionary kề, trong đó mỗi node trỏ đến các node lân cận kèm trọng số cạnh. Tùy chế độ, graph có thể là đường thẳng có kiểm tra vật cản, lưới ô hoặc mạng đường/hẻm do UI đồng bộ. Đối với obstacle, hệ thống phân biệt nhà/công trình của bản đồ với vật cản/đường cấm do người dùng cấu hình. Nhà/công trình không làm đứt road_edges đã được UI xác định là đường, nhưng vật cản/đường cấm có thể đóng cạnh đường.
+Dữ liệu đầu ra của graph không chỉ là danh sách cạnh mà còn là routing_points. routing_points có thể nhiều hơn points gốc vì backend thêm node lưới hoặc waypoint quanh vật cản. Thiết kế này giúp A* có thể tìm đường vòng thay vì chỉ nối đường thẳng giữa hai điểm.
+Bảng 3.1: Dữ liệu đầu vào và đầu ra của hệ thống
+Nhóm dữ liệu
+Trường / tham số
+Mục đích sử dụng
+Điểm giao
+id, x, y, name, demand, time_window, nodeId
+Biểu diễn kho và các điểm giao, phục vụ graph và GA.
+Cấu hình bản đồ
+graph_mode, obstacles, road_nodes, road_edges
+Xác định graph A* phải chạy trên đường thẳng, lưới hay mạng đường.
+Tham số A*
+heuristic, speed
+Chọn Euclidean/Manhattan và quy đổi distance sang travel time.
+Tham số GA
+pop_size, generations, mut_rate, vehicles, capacity, metric
+Điều khiển chất lượng tối ưu, số tuyến xe và ràng buộc vận hành.
+Đầu ra A*
+dist_matrix, path_matrix, unreachable_pairs
+Dữ liệu chi phí và path chi tiết giữa từng cặp điểm.
+Đầu ra GA
+best_order, routes, route_paths, best_dist, best_time, history
+Kết quả dự đoán lộ trình và dữ liệu hiển thị trên UI.
+
+
+Hình 3.3: Bản đồ mô phỏng điểm giao và tuyến tối ưu
+3.3. Xây dựng ma trận khoảng cách bằng A*
+Bước xây dựng ma trận khoảng cách là cầu nối giữa bài toán tìm đường và bài toán tối ưu thứ tự. Với n điểm cần giao, hệ thống cần tính chi phí từ i đến j cho mọi cặp điểm i, j. Nếu i = j, chi phí bằng 0. Nếu i khác j, backend gọi A* trên graph hiện tại để tìm path và distance. Kết quả được lưu vào dist_matrix và path_matrix.
+Dist_matrix dùng cho GA vì GA chỉ cần biết chi phí giữa hai điểm trong route. Path_matrix dùng cho giao diện vì frontend cần biết đường đi cụ thể qua các node trung gian. Sự tách biệt này là một điểm thiết kế tốt: thuật toán tối ưu làm việc trên ma trận gọn nhẹ, còn phần hiển thị vẫn có đủ dữ liệu để vẽ đường thật.
+Khi A* không tìm được đường đi cho một cặp điểm, backend trả lỗi rõ thay vì để UI vẽ hỏng. Đây là điểm cần nhấn mạnh vì nó thể hiện hệ thống có kiểm soát lỗi: nếu graph bị đứt do vật cản hoặc điểm giao nằm trong vùng cấm, hệ thống báo lỗi unreachable_pairs hoặc undeliverable_points.
+Pseudo-code xây dựng ma trận khoảng cách:for i in range(num_points):    for j in range(num_points):        if i == j:            matrix[(i, j)] = (0, 0)        else:            path, dist = astar(graph, i, j, graph_points, h_func)            if path:                matrix[(i, j)] = (dist, travel_time)                path_matrix[(i, j)] = path            else:                matrix[(i, j)] = (inf, inf)
+3.4. Tối ưu thứ tự giao hàng bằng GA
+Sau khi có ma trận khoảng cách, GA bắt đầu bằng việc khởi tạo quần thể các chromosome ngẫu nhiên. Mỗi chromosome là một hoán vị của các điểm giao, không bao gồm kho. Với mỗi chromosome, backend tính fitness bằng tổng quãng đường đi từ kho qua các điểm trong chromosome rồi quay về kho. Nếu bật nhiều xe, tải trọng hoặc time window, fitness sẽ có thêm penalty cho route vi phạm.
+Quá trình tiến hóa gồm bốn thao tác chính. Tournament selection chọn cá thể tốt từ một nhóm ngẫu nhiên. Order crossover tạo con bằng cách giữ một đoạn từ cha mẹ thứ nhất và điền phần còn lại theo thứ tự của cha mẹ thứ hai. Swap mutation hoán đổi hai vị trí để tạo biến thể. Elitism giữ lại một số cá thể tốt nhất để tránh mất nghiệm tốt qua thế hệ mới.
+Bản mới của repository có điểm mạnh là GA trả tiến trình qua callback. Backend đưa các bản tin tiến độ vào queue và API /api/optimize trả Server-Sent Events. Nhờ vậy, frontend có thể cập nhật best fitness và biểu đồ hội tụ trong lúc thuật toán đang chạy, giúp phần trình diễn sinh động hơn nhiều so với việc chỉ đợi kết quả cuối.
+Các bước GA trong đề tài:1. Khởi tạo population gồm nhiều chromosome ngẫu nhiên.2. Đánh giá fitness từng chromosome.3. Giữ elite_size cá thể tốt nhất.4. Chọn cha mẹ bằng tournament selection.5. Lai ghép bằng Order Crossover.6. Đột biến bằng Swap Mutation.7. Lặp lại đến hết số thế hệ và trả best route.
+3.5. Backend Flask API và giao diện HTML
+Backend Flask đóng vai trò trung tâm điều phối. File server.py vừa chứa các hàm xử lý bản đồ, vừa định nghĩa API. Thiết kế này phù hợp với quy mô môn học vì dễ chạy, dễ demo và không cần cơ sở dữ liệu. Tuy nhiên, state bản đồ hiện được lưu trong biến STATE toàn cục nên khi mở rộng thực tế cần tách thành session hoặc cơ sở dữ liệu để hỗ trợ nhiều người dùng đồng thời.
+Giao diện HTML DelivRoute v2 có các khu vực chính: chọn kịch bản, cấu hình bản đồ, chọn heuristic A*, chạy step-by-step, cấu hình GA, xem tổng km, thời gian, số điểm giao, phần trăm cải thiện, log thuật toán, biểu đồ hội tụ và cửa sổ so sánh chi tiết. Đây là phần quan trọng khi bảo vệ vì người xem có thể tương tác trực tiếp thay vì chỉ đọc báo cáo.
+Bảng 3.2: Các API backend chính
+API
+Phương thức
+Chức năng
+Kết quả trả về
+/api/generate
+POST
+Sinh bản đồ, điểm giao và vật cản theo cấu hình.
+points, obstacles, graph_mode.
+/api/sync_road_graph
+POST
+Đồng bộ mạng đường/hẻm từ frontend sang backend.
+Số node/cạnh, điểm giao được, điểm không giao được.
+/api/astar
+POST
+Chạy A* để tạo ma trận khoảng cách.
+dist_matrix, matrix_size, graph_mode.
+/api/astar_steps
+POST
+Trả các bước A* để minh họa trực quan.
+steps, path, distance.
+/api/route_paths
+POST
+Trả path chi tiết cho route để frontend vẽ đúng đường.
+route_paths.
+/api/optimize
+GET/SSE
+Chạy GA tối ưu route, gửi tiến trình theo SSE.
+best_order, routes, route_paths, best_dist, best_time, history.
+
+
+Hình 3.4: Bố cục giao diện trình diễn kết quả
+3.6. Kiểm thử và kiểm soát lỗi
+Bộ kiểm thử trong tests/test_backend_features.py cho thấy nhóm đã chú ý đến các lỗi thực tế của hệ thống bản đồ. Các test không chỉ kiểm tra thuật toán ở trường hợp đơn giản mà còn kiểm tra A* đi vòng vật cản, grid mode tạo đường gấp khúc, road mode đi theo road_edges, nhà/công trình không làm đứt đường, vật cản thật có thể đóng đường, điểm trong vùng cấm bị báo không giao được và route có id không tồn tại bị từ chối.
+Một điểm đáng khen là backend có validate tham số trước khi chạy thuật toán. Ví dụ, start/goal không hợp lệ trong A* Step trả lỗi rõ, mut_rate ngoài khoảng [0, 100] bị chặn, metric lạ trong GA bị từ chối, road_edge tham chiếu node không tồn tại trả 422. Các kiểm soát này giúp tránh lỗi âm thầm trên giao diện và giúp báo cáo có phần đánh giá code vững chắc hơn.
+Do môi trường soạn báo cáo không clone và chạy trực tiếp được repository, báo cáo này ghi nhận các tình huống kiểm thử dựa trên nội dung test file và commit GitHub. Khi nộp hoặc bảo vệ, nhóm nên chạy lại lệnh python -m unittest discover -s tests để có log “OK” chính thức đưa vào slide hoặc phụ lục.
+Bảng 3.3: Các tình huống kiểm thử quan trọng
+Nhóm kiểm thử
+Mục tiêu kiểm tra
+Kỳ vọng
+A* + vật cản
+Đường đi không xuyên qua vùng cấm.
+Path có node trung gian và distance hữu hạn.
+Grid mode
+Đường đi theo lưới, không phải đường thẳng Euclid.
+Distance lớn hơn đường thẳng và path nhiều hơn 2 node.
+Road mode
+Route đi theo road_edges do UI cung cấp.
+Distance phản ánh đúng đường gấp khúc theo mạng đường.
+Đồng bộ road graph
+Cạnh tham chiếu node không tồn tại bị chặn.
+HTTP 422 và danh sách invalid_edges.
+Điểm trong vùng cấm
+Điểm không thể giao bị loại khỏi GA.
+undeliverable_points được trả về và A* báo lỗi rõ.
+GA tham số lỗi
+mut_rate hoặc metric sai bị từ chối.
+HTTP 400 với message chỉ rõ tham số.
+Multi-vehicle
+GA trả tuyến cho nhiều xe và path tương ứng.
+len(routes) khớp len(route_paths).
+
+
+CHƯƠNG 4: KẾT QUẢ, HIỂN THỊ DỰ ĐOÁN VÀ ĐÁNH GIÁ SO SÁNH
+4.1. Chức năng hoàn thành sau commit mới nhất
+Commit mới nhất 96b2dc6 thể hiện sự nâng cấp đáng kể so với bản ban đầu. Trọng tâm không còn chỉ là viết thuật toán mà là tích hợp thuật toán vào ứng dụng web có backend thật. Giao diện HTML được cập nhật, Flask backend được kết nối, tài liệu Markdown được chỉnh sửa theo phạm vi mới và tests/test_backend_features.py được bổ sung để kiểm tra những đặc điểm quan trọng của hệ thống.
+Các chức năng hoàn thành có thể chia thành bốn nhóm: chức năng bản đồ, chức năng A*, chức năng GA và chức năng trình bày kết quả. Về bản đồ, hệ thống có thể sinh điểm, xử lý vật cản, đồng bộ mạng đường/hẻm và loại điểm không giao được. Về A*, hệ thống tạo ma trận khoảng cách và trả step-by-step. Về GA, hệ thống hỗ trợ nhiều xe, tải trọng, time window, metric A* hoặc Euclid. Về trình bày, hệ thống hiển thị route, tổng km, thời gian, history và so sánh.
+Bảng 4.1: Tính năng hoàn thành sau commit mới nhất
+Nhóm chức năng
+Nội dung đã có
+Ý nghĩa khi trình bày
+Bản đồ và đồ thị
+Sinh điểm, obstacle preset, road mode, grid mode, straight mode, road_nodes/road_edges.
+Chứng minh đề tài có mô hình dữ liệu bản đồ, không chỉ tính toán trên danh sách số.
+A*
+Priority Queue, g_score, f_score, came_from, astar_with_steps, build_distance_matrix.
+Có thể giải thích rõ công thức f(n)=g(n)+h(n) và hiển thị từng bước.
+GA
+Chromosome hoán vị, fitness, constrained_fitness, tournament, OX, swap mutation, elitism.
+Có cơ sở tối ưu tổ hợp, có biểu đồ hội tụ và route tốt hơn tuyến tuần tự.
+Ràng buộc thực tế
+Nhiều xe, demand, capacity, time_windows, undeliverable points.
+Cho thấy hệ thống đã mở rộng gần với CVRPTW.
+Backend API
+/api/generate, /api/sync_road_graph, /api/astar, /api/route_paths, /api/optimize.
+Dễ demo theo từng bước và kiểm tra dữ liệu trả về.
+Kiểm thử
+test_backend_features.py với nhiều tình huống lỗi và route.
+Tăng độ tin cậy khi bảo vệ code.
+
+4.2. Hiển thị kết quả dự đoán
+Khi người dùng chạy đầy đủ quy trình, hệ thống trả về kết quả dự đoán lộ trình giao hàng. Kết quả này gồm hai mức: mức thứ tự điểm và mức đường đi chi tiết. Mức thứ tự điểm cho biết xe nên giao theo thứ tự nào, ví dụ 0 -> 5 -> 2 -> 4 -> 1 -> 0. Mức đường đi chi tiết cho biết giữa 0 và 5 cần đi qua những node nào trong mạng đường, nhờ đó frontend vẽ đúng đường backend đã tính.
+Trên giao diện, kết quả được thể hiện bằng bản đồ, màu/đường tuyến, số liệu tổng quãng đường, thời gian, số điểm giao và phần trăm cải thiện. Ngoài ra, phần GA history cho thấy fitness giảm qua các thế hệ, giúp người xem hiểu GA không chọn route một lần ngẫu nhiên mà cải thiện dần bằng quá trình tiến hóa.
+Phần “So sánh tuần tự vs A* + GA” là điểm rất quan trọng. Tuyến tuần tự được định nghĩa là 0 -> 1 -> 2 -> ... -> n -> 0, phản ánh cách đi đơn giản theo thứ tự phát sinh điểm. Tuyến A* + GA là tuyến do GA chọn sau khi có ma trận A*. Nếu tổng quãng đường A* + GA thấp hơn tuyến tuần tự, hệ thống tính phần trăm cải thiện theo công thức: ((distance_baseline - distance_ga) / distance_baseline) * 100.
+
+Hình 4.1: Đường cong hội tụ GA trong kịch bản minh họa
+
+Hình 4.2: So sánh tổng quãng đường tuần tự và A* + GA
+4.3. Kịch bản đánh giá và bảng kết quả
+Để đánh giá hệ thống, báo cáo đề xuất sử dụng ít nhất ba kịch bản: nội thành nhiều điểm và nhiều đường rẽ, ngoại ô ít điểm và đường thưa, hỗn hợp có vật cản hoặc vùng cấm. Với mỗi kịch bản, nhóm cần ghi lại số điểm giao, chế độ graph, heuristic A*, population, generations, mutation rate, số xe, capacity, metric và kết quả tổng quãng đường.
+Bảng dưới đây là mẫu trình bày kết quả theo cách có thể đưa trực tiếp vào báo cáo hoặc slide. Các số liệu minh họa được dùng để thể hiện phương pháp đánh giá; khi chạy local trên máy nộp bài, nhóm nên thay bằng số liệu log thực tế từ giao diện hoặc console để đảm bảo khớp tuyệt đối với demo.
+Bảng 4.2: Kết quả kịch bản minh họa
+Kịch bản
+Cấu hình
+Tuyến tuần tự
+Tuyến A* + GA
+Cải thiện
+Nhận xét
+Nội thành
+18 điểm, road mode, 2 xe, capacity 24, GA 300 thế hệ
+742.3
+503.1
+32.21%
+GA giảm rõ tổng đường nhờ chia tuyến và tránh thứ tự phát sinh.
+Ngoại ô
+8 điểm, straight mode, 1 xe, GA 150 thế hệ
+318.5
+244.7
+23.17%
+Số điểm ít nên cải thiện vừa phải nhưng route vẫn ngắn hơn.
+Hỗn hợp
+14 điểm, grid mode, có vật cản, 2 xe
+612.4
+421.8
+31.12%
+A* thể hiện vai trò do đường không còn là nối thẳng.
+Trường hợp đặc biệt
+5 điểm gần như nằm theo thứ tự tuyến tính
+180.0
+176.2
+2.11%
+Khi tuyến tuần tự đã gần tốt, biên cải thiện thấp là hợp lý.
+
+4.4. So sánh, nhận xét ưu điểm và hạn chế
+So với tuyến tuần tự, mô hình A* + GA có ưu điểm là không bị phụ thuộc vào thứ tự sinh điểm. GA có thể thử nhiều hoán vị, giữ lại nghiệm tốt và cải thiện qua từng thế hệ. Khi graph có vật cản hoặc mạng đường, A* giúp chi phí route phản ánh đường đi thật hơn so với khoảng cách Euclid trực tiếp. Vì vậy, kết quả so sánh có ý nghĩa hơn: không chỉ sắp xếp điểm theo đường chim bay mà tính cả đường đi backend tìm được.
+Ưu điểm nổi bật của hệ thống là khả năng trình bày trực quan. A* có step-by-step, GA có history, backend trả route path chi tiết, giao diện có bảng so sánh. Các điểm này giúp người nghe hiểu rõ quy trình thay vì chỉ nghe tên thuật toán. Ngoài ra, commit mới nhất đã bổ sung kiểm thử backend, cho thấy nhóm có ý thức kiểm tra các trường hợp lỗi như điểm nằm trong vùng cấm, road edge sai, route id không tồn tại hoặc tham số GA không hợp lệ.
+Hạn chế chính là kết quả GA có tính ngẫu nhiên và phụ thuộc tham số. Nếu population quá nhỏ, số thế hệ ít hoặc mutation rate không phù hợp, GA có thể hội tụ chậm hoặc mắc kẹt ở nghiệm cục bộ. Hệ thống hiện vẫn mô phỏng trên tọa độ 2D và state backend là biến toàn cục, nên chưa phù hợp triển khai nhiều người dùng cùng lúc. Ngoài ra, chưa có dữ liệu bản đồ thực tế, chưa có traffic, thời gian phục vụ tại điểm giao chi tiết, chi phí nhiên liệu hay ưu tiên đơn hàng.
+Khi trình bày trước giảng viên, cần tránh nói rằng GA luôn tìm được đường ngắn nhất tuyệt đối. Cách diễn đạt đúng là: GA tìm nghiệm tốt hoặc gần tối ưu trong thời gian hợp lý; A* tìm đường ngắn nhất giữa hai điểm trong graph; mô hình kết hợp giúp tuyến tổng thể thường tốt hơn tuyến tuần tự. Cách nói này chính xác về mặt thuật toán và thể hiện hiểu đúng bản chất đề tài.
+Bảng 4.3: Vấn đề cần nhấn mạnh khi bảo vệ
+Vấn đề
+Cách trình bày nên dùng
+Lý do cần nhấn mạnh
+A* không tối ưu thứ tự giao hàng
+A* chỉ tìm đường ngắn nhất giữa hai điểm; GA mới chọn thứ tự các điểm.
+Tránh nhầm vai trò hai thuật toán.
+GA không đảm bảo tối ưu tuyệt đối
+GA là thuật toán gần đúng, dùng để tìm nghiệm tốt trong thời gian chấp nhận được.
+Thể hiện hiểu đúng đặc điểm metaheuristic.
+Route path phải lấy từ backend
+Frontend không tự nối tắt; backend trả path_matrix/route_paths để vẽ đúng graph.
+Chứng minh hệ thống đã xử lý lỗi bản đồ thực tế hơn.
+So sánh phải có baseline
+Dùng tuyến tuần tự 0->1->2->...->0 làm mốc đối chiếu.
+Có cơ sở đo phần trăm cải thiện.
+Commit mới nhất nâng cấp phạm vi
+Nêu rõ hỗ trợ road mode, multi-vehicle, capacity, time windows và tests.
+Cho thấy đề tài đã tiến xa hơn bản mô phỏng cơ bản.
+
+4.5. Đánh giá code sau khi đọc commit mới nhất
+Về mức độ đạt yêu cầu đề tài, repository hiện đã có đầy đủ các phần chính: mục tiêu bài toán, cơ sở lý thuyết A* và GA, phương pháp đánh giá, xây dựng giải pháp, hiển thị kết quả dự đoán và đánh giá so sánh. Code không chỉ có thuật toán mà còn có backend và giao diện để chứng minh kết quả. Vì vậy, có thể kết luận đề tài đạt để viết báo cáo chi tiết và chuẩn bị bảo vệ.
+Tuy nhiên, có ba điểm nên sửa hoặc nhấn mạnh trước khi nộp. Thứ nhất, một số tài liệu Markdown cũ còn lỗi hiển thị “A và Genetic Algorithm (GA).*” hoặc “A + GA*”; cần sửa thành “A* và Genetic Algorithm (GA)” cho đúng ký hiệu. Thứ hai, server.py khá dài và trộn nhiều trách nhiệm; nếu còn thời gian nên tách frontend template, API, graph builder và optimizer thành module riêng. Thứ ba, cần chạy lại tests trên máy local và chụp log pass để đưa vào phụ lục hoặc slide.
+Nhìn chung, điểm mạnh của code là có validate lỗi đầu vào, có test các tình huống backend, có route path chi tiết, có SSE cho GA, có khả năng mở rộng nhiều xe và ràng buộc. Đây là các điểm nên đưa lên slide vì thể hiện sản phẩm không phải chỉ là “vẽ đường cho đẹp” mà có xử lý thuật toán và kiểm soát tính hợp lệ.
+4.6. Hướng phát triển
+Trong tương lai, hệ thống có thể phát triển theo bốn hướng. Hướng thứ nhất là dùng dữ liệu bản đồ thực tế từ OpenStreetMap hoặc API bản đồ để thay tọa độ mô phỏng. Khi đó A* có thể chạy trên mạng đường thật, có phân loại đường, chiều đường và tốc độ trung bình. Hướng thứ hai là bổ sung traffic theo thời gian, cho phép chi phí cạnh thay đổi theo giờ cao điểm.
+Hướng thứ ba là cải tiến thuật toán tối ưu. GA có thể được so sánh thêm với Greedy, Simulated Annealing, Ant Colony Optimization hoặc Tabu Search. Có thể kết hợp GA với local search 2-opt để cải thiện nghiệm sau mỗi thế hệ. Hướng thứ tư là phát triển thành ứng dụng hoàn chỉnh: lưu lịch sử đơn hàng, nhập file CSV điểm giao, xuất báo cáo PDF/PNG, đăng nhập người dùng và triển khai cloud.
+
+KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN
+Đề tài “Tối ưu đường đi giao hàng bằng thuật toán A* và Genetic Algorithm” đã xây dựng được một hệ thống mô phỏng có tính hoàn chỉnh cao. Hệ thống bắt đầu từ bản đồ và điểm giao, xây dựng đồ thị, chạy A* để tạo ma trận khoảng cách, chạy GA để tối ưu thứ tự giao hàng, sau đó hiển thị route, tổng quãng đường, thời gian và phần trăm cải thiện so với tuyến tuần tự.
+Về mặt lý thuyết, đề tài thể hiện đúng vai trò của từng thuật toán. A* phù hợp với bài toán tìm đường đi ngắn nhất giữa hai điểm trên graph, đặc biệt khi có vật cản hoặc mạng đường. GA phù hợp với bài toán tối ưu tổ hợp dạng sắp xếp thứ tự điểm giao, nơi số khả năng tăng rất nhanh theo số điểm. Mô hình kết hợp A* + GA là lựa chọn hợp lý vì giải quyết đồng thời hai lớp quyết định: chọn đường đi từng chặng và chọn thứ tự các chặng.
+Về mặt sản phẩm, commit mới nhất đã nâng cấp đề tài thành ứng dụng có backend Flask và giao diện HTML. Hệ thống có API sinh bản đồ, đồng bộ road graph, chạy A*, lấy path chi tiết, tối ưu GA và trả tiến trình qua SSE. Bộ kiểm thử backend kiểm tra nhiều tình huống quan trọng, giúp tăng độ tin cậy của đề tài khi trình bày.
+Về hướng phát triển, đề tài có thể mở rộng sang dữ liệu bản đồ thực tế, nhiều xe với nhiều loại tải trọng, khung giờ giao hàng thật, traffic theo thời gian, thuật toán lai GA + 2-opt, lưu lịch sử chạy và xuất báo cáo tự động. Với cấu trúc hiện tại, đề tài đã đủ cơ sở để trình bày trong môn học và có tiềm năng phát triển thành ứng dụng logistics mini trong các học phần tiếp theo.
+
+TÀI LIỆU THAM KHẢO
+[1]. Roker-enther-while. “T-I-U-NG-I-GIAO-H-NG-B-NG-A-V-GENETIC-ALGORITHM.” GitHub repository, truy cập ngày 20/05/2026. Link: https://github.com/Roker-enther-while/T-I-U-NG-I-GIAO-H-NG-B-NG-A-V-GENETIC-ALGORITHM
+[2]. Roker-enther-while. Commit 96b2dc6: “Cập nhật UI Web HTML, tích hợp Flask Backend và cập nhật các tài liệu Markdown.” GitHub, 17/05/2026.
+[3]. Hart, P. E.; Nilsson, N. J.; Raphael, B. “A Formal Basis for the Heuristic Determination of Minimum Cost Paths.” IEEE Transactions on Systems Science and Cybernetics, 1968.
+[4]. Holland, J. H. “Adaptation in Natural and Artificial Systems.” University of Michigan Press, 1975.
+[5]. Goldberg, D. E. “Genetic Algorithms in Search, Optimization, and Machine Learning.” Addison-Wesley, 1989.
+[6]. Tài liệu tham khảo do nhóm tổng hợp: “Nghiên cứu bài toán tối ưu tuyến đường nhặt hàng trong hoạt động khai thác kho.” Tạp chí Khoa học Công nghệ Hàng hải, VIMARU, 2024.
+[7]. Tài liệu tham khảo do nhóm tổng hợp: “Thử nghiệm thuật toán tìm đường đi tối ưu cho hệ thống robot di động vận chuyển hàng trong kho tự động.” VJOL, 2025.
+[8]. Tài liệu tham khảo do nhóm tổng hợp: “Ứng dụng thuật toán di truyền Genetic Algorithm trong tối ưu tuyến giao hàng chặng cuối.” 2026.
+[9]. Tài liệu tham khảo do nhóm tổng hợp: “Ứng dụng giải thuật di truyền và Tabu Search trong giải bài toán Định tuyến xe.” Tạp chí Khoa học và Công nghệ UNETI, 2023.
+[10]. Python Software Foundation. “Python Documentation.” Link: https://docs.python.org/3/
+[11]. Pallets Projects. “Flask Documentation.” Link: https://flask.palletsprojects.com/
+[12]. GitHub Docs. “About repositories and commits.” Link: https://docs.github.com/
+
+PHỤ LỤC: VẤN ĐỀ CẦN NHẤN MẠNH KHI TRÌNH BÀY
+Phần này dùng như ghi chú thuyết trình. Khi trình bày, nhóm nên đi theo mạch: bài toán -> vì sao không duyệt vét cạn -> A* làm gì -> GA làm gì -> hai thuật toán kết hợp ra sao -> backend và UI chứng minh kết quả như thế nào -> so sánh với tuyến tuần tự -> hạn chế và hướng phát triển.
+Điểm nhấn thứ nhất: bài toán giao hàng gồm hai lớp, không thể chỉ dùng một thuật toán để giải thích toàn bộ. A* giỏi tìm đường giữa hai node nhưng không biết thứ tự nhiều điểm. GA giỏi chọn thứ tự nhưng cần ma trận chi phí. Vì vậy A* + GA là mô hình bổ sung vai trò cho nhau.
+Điểm nhấn thứ hai: commit mới nhất đã bổ sung tính thực tế. Hệ thống có road mode, route_paths từ backend, nhiều xe, tải trọng, khung giờ, điểm không giao được và kiểm thử backend. Đây là bằng chứng đề tài không còn là mô phỏng nối đường thẳng đơn giản.
+Điểm nhấn thứ ba: không nên khẳng định “GA tìm ra đường tối ưu nhất”. Câu đúng là “GA tìm nghiệm tốt/gần tối ưu trong thời gian hợp lý; kết quả được so sánh với tuyến tuần tự để đo cải thiện”. Cách nói này vừa chính xác vừa tránh bị hỏi khó về tối ưu tuyệt đối.
+Điểm nhấn thứ tư: khi demo, nên chạy theo thứ tự rõ ràng: chọn kịch bản -> tạo bản đồ -> chạy A* -> xem matrix/path hoặc A* step -> chạy GA -> xem history -> mở bảng so sánh -> xuất hoặc chụp kết quả. Mỗi bước cần nói rõ dữ liệu đầu vào và đầu ra.
+Checklist trước khi bảo vệ:[ ] Chạy python -m unittest discover -s tests và chụp log pass.[ ] Chạy server.py, mở giao diện và chuẩn bị một kịch bản demo ổn định.[ ] Chuẩn bị câu giải thích f(n)=g(n)+h(n) của A*.[ ] Chuẩn bị câu giải thích chromosome, fitness, crossover, mutation của GA.[ ] Có bảng so sánh tuần tự vs A* + GA với số liệu thực tế từ máy demo.[ ] Sửa ký hiệu “A*” trong các file Markdown nếu còn bị lỗi hiển thị.
