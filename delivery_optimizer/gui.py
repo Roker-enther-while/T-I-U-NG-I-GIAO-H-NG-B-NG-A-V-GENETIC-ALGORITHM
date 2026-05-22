@@ -44,14 +44,9 @@ def stop_existing_server():
 def launch_server():
     stop_existing_server()
     print("Khởi động Backend Server (Flask)...")
-    creationflags = 0
-    if os.name == 'nt':
-        creationflags = subprocess.CREATE_NO_WINDOW
-        
     process = subprocess.Popen(
         [sys.executable, str(SERVER_FILE)],
-        cwd=str(PROJECT_ROOT),
-        creationflags=creationflags
+        cwd=str(PROJECT_ROOT)
     )
     return process
 
