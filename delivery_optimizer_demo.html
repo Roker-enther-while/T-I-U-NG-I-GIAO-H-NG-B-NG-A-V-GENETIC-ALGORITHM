@@ -282,6 +282,13 @@ select:focus{border-color:var(--cyan);}
 
 /* Route list */
 .RL{max-height:320px;overflow-y:auto;}
+#dr-route .drbody{min-height:0;overflow-y:auto;}
+#dr-route .RL{
+  max-height:none;
+  height:auto;
+  overflow:visible;
+  padding-bottom:24px;
+}
 .RL::-webkit-scrollbar{width:2px;}
 .RL::-webkit-scrollbar-thumb{background:var(--border);}
 .RI{
@@ -632,8 +639,12 @@ select:focus{border-color:var(--cyan);}
       </div>
     </div>
     <div class="DG">
-      <div class="DGL">Đường hội tụ GA</div>
-      <canvas id="cc" style="width:100%;height:110px;display:block;background:rgba(0,212,255,.02);border:1px solid var(--border2);border-radius:8px;"></canvas>
+      <div class="DGL" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>Đường hội tụ GA</span>
+        <span id="cc-info" style="font-size:10px;color:var(--lime);font-family:var(--fm);text-transform:none;"></span>
+      </div>
+      <div style="font-size:11px;color:var(--t3);margin-bottom:10px;line-height:1.5;">Biểu đồ thể hiện quá trình tối ưu qua các thế hệ. Trục dọc (Y) là tổng chi phí (Fitness - km), trục ngang (X) là tiến trình thế hệ. Đồ thị hội tụ (đi ngang) chứng tỏ thuật toán đã đạt mức tối ưu.</div>
+      <canvas id="cc" style="width:100%;height:140px;display:block;background:rgba(0,212,255,.02);border:1px solid var(--border2);border-radius:8px;"></canvas>
     </div>
     <div class="DG" id="cmp-section" style="display:none">
       <div class="DGL">So sánh nhanh</div>
@@ -1111,8 +1122,8 @@ function renderStepState(){
   let msg='';
   if(isDone||isLast){
     msg=`✓ Đã tìm ra đường đến "${toPt.name}"! Chi phí: ${s.g.toFixed(0)}px`;
-    if(stepSegIdx<stepSegs.length-1)msg+=' → Nhấn ⏭ Kế để sang đoạn tiếp';
-    else msg+=' → Nhấn ✓ để kết thúc';
+    if(stepSegIdx<stepSegs.length-1)msg+=' → Nhấn ⏭ KẾ để sang đoạn tiếp';
+    else msg+=' → Nhấn ✓ XONG để kết thúc';
   } else {
     const nodesPending=s.openSet.length;
     if(nodesPending===0) msg='Open list rỗng — không tìm thấy đường đi!';
@@ -1972,18 +1983,18 @@ function drawConv(){
   if(CC.height!==H)CC.height=H;
   cctx.clearRect(0,0,W,H);cctx.fillStyle='#07111a';cctx.fillRect(0,0,W,H);
   if(conv.length<2){
-    cctx.fillStyle='rgba(139,148,158,.3)';cctx.font='8px Space Mono';
+    cctx.fillStyle='rgba(139,148,158,.5)';cctx.font='10px "Roboto Mono", monospace';
     cctx.textAlign='center';cctx.fillText('Chạy GA để xem',W/2,H/2);return;
   }
-  const pd={t:6,r:6,b:16,l:34};
+  const pd={t:10,r:10,b:20,l:40};
   const cW=W-pd.l-pd.r,cH=H-pd.t-pd.b;
   const mn=Math.min(...conv),mx=Math.max(...conv),rng=mx-mn||1;
   cctx.strokeStyle='rgba(42,63,84,.5)';cctx.lineWidth=.5;
   for(let i=0;i<=4;i++){
     const y=pd.t+cH*(i/4);
     cctx.beginPath();cctx.moveTo(pd.l,y);cctx.lineTo(pd.l+cW,y);cctx.stroke();
-    cctx.fillStyle='rgba(139,148,158,.4)';cctx.font='6px Space Mono';cctx.textAlign='right';
-    cctx.fillText((mx-(mx-mn)*(i/4)).toFixed(0),pd.l-2,y+2);
+    cctx.fillStyle='rgba(139,148,158,.7)';cctx.font='9px "Roboto Mono", monospace';cctx.textAlign='right';
+    cctx.fillText((mx-(mx-mn)*(i/4)).toFixed(0),pd.l-4,y+3);
   }
   const g2=cctx.createLinearGradient(0,pd.t,0,pd.t+cH);
   g2.addColorStop(0,'rgba(126,231,135,.22)');g2.addColorStop(1,'rgba(126,231,135,0)');
@@ -1995,8 +2006,10 @@ function drawConv(){
   cctx.stroke();cctx.shadowBlur=0;
   const lv=conv[conv.length-1],lx=pd.l+cW,ly=pd.t+cH-((lv-mn)/rng)*cH;
   cctx.beginPath();cctx.arc(lx,ly,3,0,Math.PI*2);cctx.fillStyle='#7ee787';cctx.fill();
-  cctx.fillStyle='rgba(139,148,158,.3)';cctx.font='6px Space Mono';cctx.textAlign='center';
-  cctx.fillText('Thế hệ →',pd.l+cW/2,H-2);
+  cctx.fillStyle='rgba(139,148,158,.6)';cctx.font='9px "Roboto Mono", monospace';cctx.textAlign='center';
+  cctx.fillText('THẾ HỆ TIẾN HÓA →',pd.l+cW/2,H-4);
+  const ccInfo = document.getElementById('cc-info');
+  if (ccInfo) ccInfo.innerText = `TỐI ƯU NHẤT: ${mn.toFixed(2)} KM`;
 }
 
 // ══════════════════════════════════════════════════════════
