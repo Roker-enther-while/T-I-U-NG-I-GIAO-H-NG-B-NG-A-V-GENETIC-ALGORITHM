@@ -18,8 +18,8 @@ Các hướng nâng cấp quan trọng đã được triển khai trong phiên b
 
 - Bản đồ giao hàng dùng mạng đường đô thị thay vì chỉ nối thẳng giữa các điểm.
 - Vật cản/khu vực cấm được dùng để chặn tuyến đi không hợp lệ.
-- UI tách rõ tuyến tuần tự ban đầu, A*, GA, A* + GA và chế độ so sánh.
-- GA và A* + GA nhận đúng tham số số xe từ giao diện và trả về nhiều route khi người dùng chọn nhiều xe.
+- UI tách rõ tuyến tuần tự ban đầu, A* tuần tự, GA tối ưu và chế độ so sánh A* vs GA.
+- GA nhận đúng tham số số xe từ giao diện và trả về nhiều route khi người dùng chọn nhiều xe.
 - Backend ghi log thuật toán dạng JSONL để phục vụ demo, kiểm tra và trình bày lại quá trình chạy.
 
 Các file log chính:
@@ -27,7 +27,6 @@ Các file log chính:
 ```text
 logs/algorithm_runs/latest_astar.jsonl
 logs/algorithm_runs/latest_ga.jsonl
-logs/algorithm_runs/latest_astar_ga.jsonl
 logs/algorithm_runs/history/
 ```
 
@@ -125,7 +124,7 @@ Nếu chỉ nhập danh sách tọa độ GPS thủ công thì khả thi ở m�
 2. Lấy 5-10 điểm tọa độ thật.
 3. Chuyển tọa độ GPS sang hệ tọa độ hiển thị trên giao diện.
 4. Tính khoảng cách giữa các điểm bằng dữ liệu đường hoặc khoảng cách địa lý.
-5. Chạy lại A* + GA và kiểm tra kết quả.
+5. Chạy lại A* tuần tự hoặc GA và kiểm tra kết quả.
 
 #### Điều kiện đạt
 

@@ -6,7 +6,7 @@ import queue
 import sys
 import os
 
-# ThĂªm thÆ° má»¥c delivery_optimizer vĂ o sys.path
+# Thêm thư mục delivery_optimizer vào sys.path
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 DELIVERY_DIR = os.path.join(ROOT_DIR, "delivery_optimizer")
 DEMO_FILE = os.path.join(ROOT_DIR, "delivery_optimizer_demo.html")
@@ -44,19 +44,19 @@ def generate_obstacles(count):
 
 
 def normalize_graph_mode(mode):
-    """Chuáº©n hĂ³a tĂªn cháº¿ Ä‘á»™ Ä‘á»“ thá»‹ nháº­n tá»« UI/API."""
+    """Chuẩn hóa tên chế độ đồ thị nhận từ UI/API."""
     value = str(mode).lower()
-    if value in {"straight", "line", "thang", "tháº³ng"}:
+    if value in {"straight", "line", "thang", "thẳng"}:
         return "straight"
-    if value in {"grid", "luoi", "lÆ°á»›i"}:
+    if value in {"grid", "luoi", "lưới"}:
         return "grid"
     return "road"
 
 
 def build_straight_routing_graph(points, obstacles):
     """
-    Dá»±ng Ä‘á»“ thá»‹ Ä‘Æ°á»ng tháº³ng: cĂ¡c Ä‘iá»ƒm cĂ³ thá»ƒ ná»‘i trá»±c tiáº¿p náº¿u cáº¡nh khĂ´ng cáº¯t váº­t cáº£n.
-    Khi cĂ³ váº­t cáº£n, thĂªm node phá»¥ quanh gĂ³c Ä‘á»ƒ A* cĂ³ thá»ƒ chá»n Ä‘Æ°á»ng vĂ²ng.
+    Dựng đồ thị đường thẳng: các điểm có thể nối trực tiếp nếu cạnh không cắt vật cản.
+    Khi có vật cản, thêm node phụ quanh góc để A* có thể chọn đường vòng.
     """
     routing_points = add_obstacle_waypoints(points, obstacles)
     return routing_points, build_graph(routing_points, mode="full", obstacles=obstacles)
@@ -64,10 +64,10 @@ def build_straight_routing_graph(points, obstacles):
 
 def build_grid_routing_graph(points, obstacles, spacing=10):
     """
-    Dá»±ng Ä‘á»“ thá»‹ lÆ°á»›i Ă´ cho A*.
-    - CĂ¡c Ä‘iá»ƒm giao tháº­t giá»¯ id 0..n-1 Ä‘á»ƒ ma tráº­n khoáº£ng cĂ¡ch váº«n khá»›p vá»›i GA.
-    - CĂ¡c node lÆ°á»›i Ä‘Æ°á»£c thĂªm sau Ä‘Ă³ vĂ  chá»‰ ná»‘i ngang/dá»c.
-    - Node/cáº¡nh náº±m trong hoáº·c cáº¯t váº­t cáº£n bá»‹ loáº¡i bá».
+    Dựng đồ thị lưới ô cho A*.
+    - Các điểm giao thật giữ id 0..n-1 để ma trận khoảng cách vẫn khớp với GA.
+    - Các node lưới được thêm sau đó và chỉ nối ngang/dọc.
+    - Node/cạnh nằm trong hoặc cắt vật cản bị loại bỏ.
     """
     routing_points = [point.copy() for point in points]
     graph = {index: {} for index in range(len(routing_points))}
@@ -122,7 +122,7 @@ def build_grid_routing_graph(points, obstacles, spacing=10):
 
 
 def build_routing_graph(points, obstacles, graph_mode):
-    """Táº¡o Ä‘á»“ thá»‹ theo lá»±a chá»n UI: Ä‘Æ°á»ng tháº³ng hoáº·c lÆ°á»›i Ă´."""
+    """Tạo đồ thị theo lựa chọn UI: đường thẳng hoặc lưới ô."""
     graph_mode = normalize_graph_mode(graph_mode)
     if graph_mode == "grid":
         return build_grid_routing_graph(points, obstacles)
@@ -131,9 +131,9 @@ def build_routing_graph(points, obstacles, graph_mode):
 
 def build_road_network_graph(points, road_nodes, road_edges, obstacles):
     """
-    Dá»±ng Ä‘á»“ thá»‹ tá»« chĂ­nh máº¡ng Ä‘Æ°á»ng/háº»m Ä‘ang Ä‘Æ°á»£c UI váº½.
-    CĂ¡c Ä‘iá»ƒm giao hĂ ng giá»¯ id 0..n-1 Ä‘á»ƒ GA dĂ¹ng á»•n Ä‘á»‹nh; node Ä‘Æ°á»ng tháº­t
-    Ä‘Æ°á»£c Ä‘áº·t sau Ä‘Ă³ theo offset. Má»—i Ä‘iá»ƒm giao ná»‘i vĂ o node Ä‘Æ°á»ng gáº§n nháº¥t.
+    Dựng đồ thị từ chính mạng đường/hẻm đang được UI vẽ.
+    Các điểm giao hàng giữ id 0..n-1 để GA dùng ổn định; node đường thật
+    được đặt sau đó theo offset. Mỗi điểm giao nối vào node đường gần nhất.
     """
     routing_points = [point.copy() for point in points]
     graph = {index: {} for index in range(len(points))}
@@ -152,9 +152,9 @@ def build_road_network_graph(points, road_nodes, road_edges, obstacles):
             "status": "road",
         })
 
-    # Vá»›i cháº¿ Ä‘á»™ máº¡ng Ä‘Æ°á»ng, road_edges lĂ  cĂ¡c Ä‘oáº¡n Ä‘Æ°á»ng/háº»m Ä‘Ă£ Ä‘Æ°á»£c UI váº½.
-    # NhĂ /cĂ´ng trĂ¬nh náº±m trong block nĂªn khĂ´ng dĂ¹ng Ä‘á»ƒ xĂ³a road_edges, trĂ¡nh lĂ m
-    # Ä‘á»©t máº¡ng Ä‘Æ°á»ng. Chá»‰ váº­t cáº£n/Ä‘Æ°á»ng cáº¥m do ngÆ°á»i dĂ¹ng cáº¥u hĂ¬nh má»›i Ä‘Ă³ng Ä‘Æ°á»ng.
+    # Với chế độ mạng đường, road_edges là các đoạn đường/hẻm đã được UI vẽ.
+    # Nhà/công trình nằm trong block nên không dùng để xóa road_edges, tránh làm
+    # đứt mạng đường. Chỉ vật cản/đường cấm do người dùng cấu hình mới đóng đường.
     road_closure_obstacles = [
         obstacle for obstacle in obstacles
         if not str(obstacle.get("id", "")).startswith(("building-", "water-"))
@@ -214,7 +214,7 @@ def unreachable_pairs_from_matrix(matrix, point_count):
 
 
 def build_euclidean_distance_matrix(points, speed_kmh):
-    """Tao ma tran khoang cach Euclid cho GA thuáº§n (khong dua tren A* matrix)."""
+    """Tạo ma trận khoảng cách Euclid cho GA thuần, không dựa trên ma trận A*."""
     matrix = {}
     for i, source in enumerate(points):
         for j, target in enumerate(points):
@@ -228,7 +228,7 @@ def build_euclidean_distance_matrix(points, speed_kmh):
 
 
 def path_to_coordinates(path, routing_points):
-    """Chuyá»ƒn path A* dáº¡ng node id sang danh sĂ¡ch tá»a Ä‘á»™ Ä‘á»ƒ UI váº½ Ä‘Ăºng Ä‘Æ°á»ng backend."""
+    """Chuyển path A* dạng node id sang danh sách tọa độ để UI vẽ đúng đường backend."""
     if not path:
         return []
     return [
@@ -242,7 +242,7 @@ def path_to_coordinates(path, routing_points):
 
 
 def build_route_path_payload(routes, path_matrix, routing_points):
-    """Táº¡o payload path chi tiáº¿t cho tá»«ng tuyáº¿n xe vĂ  tá»«ng cháº·ng giao hĂ ng."""
+    """Tạo payload path chi tiết cho từng tuyến xe và từng chặng giao hàng."""
     route_payload = []
     for route in routes:
         segments = []
@@ -260,7 +260,7 @@ def build_route_path_payload(routes, path_matrix, routing_points):
 
 
 def split_deliverable_points(points):
-    """TĂ¡ch Ä‘iá»ƒm giao Ä‘Æ°á»£c vĂ  khĂ´ng giao Ä‘Æ°á»£c do náº±m trong khu vá»±c cáº¥m."""
+    """Tách điểm giao được và không giao được do nằm trong khu vực cấm."""
     deliverable = []
     undeliverable = []
     id_map = {}
@@ -276,7 +276,7 @@ def split_deliverable_points(points):
 
 
 def parse_int_param(value, name):
-    """Parse sá»‘ nguyĂªn tá»« input API; nĂ©m ValueError vá»›i thĂ´ng bĂ¡o rĂµ rĂ ng náº¿u sai."""
+    """Parse số nguyên từ input API; ném ValueError với thông báo rõ ràng nếu sai."""
     try:
         return int(value)
     except (TypeError, ValueError):
@@ -291,7 +291,7 @@ def normalize_positive_param(value, name, minimum=1):
 
 
 def find_missing_route_segments(routes, path_matrix):
-    """TĂ¬m cĂ¡c cháº·ng khĂ´ng cĂ³ path backend Ä‘á»ƒ tráº£ lá»—i sá»›m thay vĂ¬ Ä‘á»ƒ UI váº½ há»ng."""
+    """Tìm các chặng không có path backend để trả lỗi sớm thay vì để UI vẽ hỏng."""
     missing = []
     for route_index, route in enumerate(routes):
         for index in range(len(route) - 1):
@@ -335,7 +335,7 @@ HTML_TEMPLATE = r"""
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>DelivRoute v2 â€” Tá»‘i Æ°u giao hĂ ng A* & GA (Python Backend)</title>
+<title>DelivRoute v2 — Tối ưu giao hàng A* & GA (Python Backend)</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
 :root {
@@ -475,30 +475,30 @@ canvas#cc{width:100%;height:130px;display:block;}
 <aside class="sidebar">
 
   <div class="sb-sec">
-    <div class="sec-lbl">đŸ“ Ká»‹ch báº£n máº«u</div>
+    <div class="sec-lbl">📍 Kịch bản mẫu</div>
     <div class="preset-grid">
-      <div class="pre-btn" onclick="loadPreset('urban')" id="pre-urban">đŸ™ï¸ Ná»™i thĂ nh<br><small>dĂ y Ä‘áº·c Â· 18 Ä‘iá»ƒm</small></div>
-      <div class="pre-btn" onclick="loadPreset('suburb')" id="pre-suburb">đŸŒ¿ Ngoáº¡i Ă´<br><small>thÆ°a thá»›t Â· 8 Ä‘iá»ƒm</small></div>
-      <div class="pre-btn" onclick="loadPreset('mixed')" id="pre-mixed">đŸ—ºï¸ Há»—n há»£p<br><small>thá»±c táº¿ Â· 14 Ä‘iá»ƒm</small></div>
-      <div class="pre-btn" onclick="loadPreset('custom')" id="pre-custom">â™ï¸ Tuá»³ chá»‰nh<br><small>slider bĂªn dÆ°á»›i</small></div>
+      <div class="pre-btn" onclick="loadPreset('urban')" id="pre-urban">🏙️ Nội thành<br><small>dày đặc · 18 điểm</small></div>
+      <div class="pre-btn" onclick="loadPreset('suburb')" id="pre-suburb">🌿 Ngoại ô<br><small>thưa thớt · 8 điểm</small></div>
+      <div class="pre-btn" onclick="loadPreset('mixed')" id="pre-mixed">🗺️ Hỗn hợp<br><small>thực tế · 14 điểm</small></div>
+      <div class="pre-btn" onclick="loadPreset('custom')" id="pre-custom">⚙️ Tuỳ chỉnh<br><small>slider bên dưới</small></div>
     </div>
   </div>
 
   <div class="sb-sec" id="custom-sec">
-    <div class="sec-lbl">Cáº¥u hĂ¬nh báº£n Ä‘á»“</div>
+    <div class="sec-lbl">Cấu hình bản đồ</div>
     <div class="ctrl">
-      <div class="ctrl-lbl">Sá»‘ Ä‘iá»ƒm giao hĂ ng <span id="nv">12</span></div>
+      <div class="ctrl-lbl">Số điểm giao hàng <span id="nv">12</span></div>
       <input type="range" id="np" min="4" max="30" value="12"/>
     </div>
     <div class="ctrl">
-      <div class="ctrl-lbl">Tá»‘c Ä‘á»™ xe (km/h) <span id="sv">40</span></div>
+      <div class="ctrl-lbl">Tốc độ xe (km/h) <span id="sv">40</span></div>
       <input type="range" id="spd" min="20" max="80" value="40" step="5"/>
     </div>
-    <button class="btn btn-cyan" id="btn-gen">âŸ³ Táº¡o báº£n Ä‘á»“ má»›i</button>
+    <button class="btn btn-cyan" id="btn-gen">⟳ Tạo bản đồ mới</button>
   </div>
 
   <div class="sb-sec">
-    <div class="sec-lbl">Thuáº­t toĂ¡n A*</div>
+    <div class="sec-lbl">Thuật toán A*</div>
     <div class="ctrl">
       <div class="ctrl-lbl">Heuristic</div>
       <select id="heur">
@@ -506,51 +506,51 @@ canvas#cc{width:100%;height:130px;display:block;}
         <option value="manhattan">Manhattan distance</option>
       </select>
     </div>
-    <button class="btn btn-orange" id="btn-astar" disabled>â–¶ Cháº¡y A* â€” xĂ¢y ma tráº­n</button>
-    <button class="btn btn-dim" id="btn-step" disabled>â­ Cháº¿ Ä‘á»™ Step-by-step</button>
+    <button class="btn btn-orange" id="btn-astar" disabled>▶ Chạy A* — xây ma trận</button>
+    <button class="btn btn-dim" id="btn-step" disabled>⏭ Chế độ Step-by-step</button>
   </div>
 
   <div class="step-panel" id="step-panel">
-    <div class="step-info" id="sinfo">â€”</div>
+    <div class="step-info" id="sinfo">—</div>
     <div class="step-row">
-      <button class="btn btn-dim" id="bprev">â—€ Prev</button>
-      <button class="btn btn-dim" id="bnext">Next â–¶</button>
-      <button class="btn btn-orange" id="bfin">âœ“ Finish</button>
+      <button class="btn btn-dim" id="bprev">◀ Prev</button>
+      <button class="btn btn-dim" id="bnext">Next ▶</button>
+      <button class="btn btn-orange" id="bfin">✓ Finish</button>
     </div>
   </div>
 
   <div class="sb-sec">
     <div class="sec-lbl">Genetic Algorithm</div>
     <div class="ctrl">
-      <div class="ctrl-lbl">Quáº§n thá»ƒ <span id="pv">80</span></div>
+      <div class="ctrl-lbl">Quần thể <span id="pv">80</span></div>
       <input type="range" id="ps" min="20" max="200" value="80" step="10"/>
     </div>
     <div class="ctrl">
-      <div class="ctrl-lbl">Tháº¿ há»‡ <span id="gv">300</span></div>
+      <div class="ctrl-lbl">Thế hệ <span id="gv">300</span></div>
       <input type="range" id="gens" min="50" max="800" value="300" step="50"/>
     </div>
     <div class="ctrl">
-      <div class="ctrl-lbl">Tá»· lá»‡ Ä‘á»™t biáº¿n <span id="mv">3%</span></div>
+      <div class="ctrl-lbl">Tỷ lệ đột biến <span id="mv">3%</span></div>
       <input type="range" id="mr" min="1" max="15" value="3"/>
     </div>
-    <button class="btn btn-lime" id="btn-ga" disabled>â¡ Cháº¡y GA tá»‘i Æ°u lá»™ trĂ¬nh</button>
+    <button class="btn btn-lime" id="btn-ga" disabled>⚡ Chạy GA tối ưu lộ trình</button>
   </div>
 
   <div class="sb-sec">
-    <div class="sec-lbl">Káº¿t quáº£</div>
+    <div class="sec-lbl">Kết quả</div>
     <div class="stat-grid">
-      <div class="stat-card"><div class="sv" id="sd">â€”</div><div class="sl">Tá»•ng km (GA)</div></div>
-      <div class="stat-card"><div class="sv o" id="st">â€”</div><div class="sl">Thá»i gian</div></div>
-      <div class="stat-card"><div class="sv g" id="ss">â€”</div><div class="sl">Äiá»ƒm giao</div></div>
-      <div class="stat-card"><div class="sv p" id="si">â€”</div><div class="sl">Cáº£i thiá»‡n %</div></div>
-      <div class="stat-card"><div class="sv" id="sbase">â€”</div><div class="sl">Tuyáº¿n ban Ä‘áº§u</div></div>
+      <div class="stat-card"><div class="sv" id="sd">—</div><div class="sl">Tổng km (GA)</div></div>
+      <div class="stat-card"><div class="sv o" id="st">—</div><div class="sl">Thời gian</div></div>
+      <div class="stat-card"><div class="sv g" id="ss">—</div><div class="sl">Điểm giao</div></div>
+      <div class="stat-card"><div class="sv p" id="si">—</div><div class="sl">Cải thiện %</div></div>
+      <div class="stat-card"><div class="sv" id="sbase">—</div><div class="sl">Tuyến ban đầu</div></div>
     </div>
-    <button class="btn btn-violet" id="btn-cmp" disabled style="margin-top:8px;">đŸ“ So sĂ¡nh tuáº§n tá»± vs A* + GA</button>
-    <button class="btn btn-violet" id="btn-exp" disabled>đŸ“· Xuáº¥t PNG bĂ¡o cĂ¡o</button>
+    <button class="btn btn-violet" id="btn-cmp" disabled style="margin-top:8px;">📊 So sánh: A* vs GA</button>
+    <button class="btn btn-violet" id="btn-exp" disabled>📷 Xuất PNG báo cáo</button>
   </div>
 
   <div class="route-list" id="rlist">
-    <div style="color:var(--muted);font-size:10px;text-align:center;padding:14px 0;">Chá»n ká»‹ch báº£n â†’ A* â†’ GA</div>
+    <div style="color:var(--muted);font-size:10px;text-align:center;padding:14px 0;">Chọn kịch bản → A* → GA</div>
   </div>
 </aside>
 
@@ -558,38 +558,38 @@ canvas#cc{width:100%;height:130px;display:block;}
   <div class="cwrap">
     <canvas id="mc"></canvas>
     <div class="legend">
-      <div class="li"><div class="dot" style="background:#ff6b35"></div>Kho hĂ ng</div>
-      <div class="li"><div class="dot" style="background:#00e5ff"></div>Äiá»ƒm giao</div>
-      <div class="li"><div class="lp" style="background:#a8ff3e"></div>Lá»™ trĂ¬nh GA</div>
-      <div class="li"><div class="dot" style="background:#a8ff3e;border-radius:2px;width:8px;height:8px"></div>ÄĂ£ giao</div>
+      <div class="li"><div class="dot" style="background:#ff6b35"></div>Kho hàng</div>
+      <div class="li"><div class="dot" style="background:#00e5ff"></div>Điểm giao</div>
+      <div class="li"><div class="lp" style="background:#a8ff3e"></div>Lộ trình GA</div>
+      <div class="li"><div class="dot" style="background:#a8ff3e;border-radius:2px;width:8px;height:8px"></div>Đã giao</div>
       <div class="li"><div class="dot" style="background:rgba(255,107,53,.5)"></div>Open list (A*)</div>
       <div class="li"><div class="dot" style="background:#64748b"></div>Closed list (A*)</div>
     </div>
     <div class="asov" id="asov">
-      <h4>â–¸ A* Step-by-step</h4>
-      <div class="ovr">BÆ°á»›c: <span id="ov-s">â€”</span></div>
-      <div class="ovr">Node hiá»‡n táº¡i: <span id="ov-c">â€”</span></div>
-      <div class="ovr">g(n): <span id="ov-g">â€”</span></div>
-      <div class="ovr">h(n): <span id="ov-h">â€”</span></div>
-      <div class="ovr">f(n) = g+h: <span id="ov-f">â€”</span></div>
-      <div class="ovr">Open list: <span id="ov-o">â€”</span></div>
-      <div class="ovr">Closed list: <span id="ov-cl">â€”</span></div>
+      <h4>▸ A* Step-by-step</h4>
+      <div class="ovr">Bước: <span id="ov-s">—</span></div>
+      <div class="ovr">Node hiện tại: <span id="ov-c">—</span></div>
+      <div class="ovr">g(n): <span id="ov-g">—</span></div>
+      <div class="ovr">h(n): <span id="ov-h">—</span></div>
+      <div class="ovr">f(n) = g+h: <span id="ov-f">—</span></div>
+      <div class="ovr">Open list: <span id="ov-o">—</span></div>
+      <div class="ovr">Closed list: <span id="ov-cl">—</span></div>
     </div>
     <div id="tip"></div>
   </div>
 
   <div class="bot">
     <div class="panel">
-      <div class="ptitle">â–¸ Log thuáº­t toĂ¡n</div>
+      <div class="ptitle">▸ Log thuật toán</div>
       <div id="log"></div>
     </div>
     <div class="panel">
-      <div class="ptitle">â–¸ GA â€” ÄÆ°á»ng cong há»™i tá»¥</div>
+      <div class="ptitle">▸ GA — Đường cong hội tụ</div>
       <canvas id="cc"></canvas>
     </div>
     <div class="panel">
-      <div class="ptitle">â–¸ So sĂ¡nh lá»™ trĂ¬nh</div>
-      <div id="cpanel"><div style="color:var(--muted);font-size:9px;font-family:var(--font-mono);padding-top:6px;">Cháº¡y GA Ä‘á»ƒ xem so sĂ¡nh</div></div>
+      <div class="ptitle">▸ So sánh lộ trình</div>
+      <div id="cpanel"><div style="color:var(--muted);font-size:9px;font-family:var(--font-mono);padding-top:6px;">Chạy GA để xem so sánh</div></div>
     </div>
   </div>
 </main>
@@ -597,31 +597,31 @@ canvas#cc{width:100%;height:130px;display:block;}
 
 <div class="moverlay" id="moverlay">
   <div class="modal">
-    <button class="mcls" onclick="closeModal()">âœ•</button>
-    <h3>đŸ“ So sĂ¡nh chi tiáº¿t: Tuáº§n tá»± vs A* + GA</h3>
+    <button class="mcls" onclick="closeModal()">✕</button>
+    <h3>📊 So sánh chi tiết: A* vs GA</h3>
     <table>
-      <thead><tr><th>CHá»ˆ Sá»</th><th>TUáº¦N Tá»°</th><th>A* + GA</th><th>CHĂNH Lá»†CH</th></tr></thead>
+      <thead><tr><th>CHỈ SỐ</th><th>A* TUẦN TỰ</th><th>GA ĐỘC LẬP</th><th>CHÊNH LỆCH</th></tr></thead>
       <tbody id="cbody"></tbody>
     </table>
     <div class="routes-compare">
       <div class="route-card" id="route-base-card">
-        <h4 id="route-base-title">Lá»™ trĂ¬nh tuáº§n tá»±</h4>
-        <div class="tag" id="route-base-tag">TUYáº¾N Äá»I CHIáº¾U</div>
-        <p id="route-base-text">â€”</p>
+        <h4 id="route-base-title">Lộ trình A*</h4>
+        <div class="tag" id="route-base-tag">TUYẾN ĐỐI CHIẾU</div>
+        <p id="route-base-text">—</p>
       </div>
       <div class="route-card" id="route-ga-card">
-        <h4 id="route-ga-title">Lá»™ trĂ¬nh A* + GA</h4>
-        <div class="tag" id="route-ga-tag">Tá»I Æ¯U HÆ N</div>
-        <p id="route-ga-text">â€”</p>
+        <h4 id="route-ga-title">Lộ trình GA</h4>
+        <div class="tag" id="route-ga-tag">TỐI ƯU HƠN</div>
+        <p id="route-ga-text">—</p>
       </div>
     </div>
     <div class="ibanner">
-      <div class="pct" id="cpct">â€”</div>
-      <p>A* + GA cáº£i thiá»‡n tá»•ng quĂ£ng Ä‘Æ°á»ng so vá»›i thá»© tá»± tuáº§n tá»±</p>
+      <div class="pct" id="cpct">—</div>
+      <p>GA sẽ cải thiện quãng đường đáng kể so với A*</p>
     </div>
     <div class="mbtns">
-      <button class="mbtn-close" onclick="closeModal()">ÄĂ“NG</button>
-      <button class="mbtn-dl" onclick="exportPNG()">đŸ“· XUáº¤T PNG</button>
+      <button class="mbtn-close" onclick="closeModal()">ĐÓNG</button>
+      <button class="mbtn-dl" onclick="exportPNG()">📷 XUẤT PNG</button>
     </div>
   </div>
 </div>
@@ -666,7 +666,7 @@ function loadPreset(k){
 
 async function gen(){
   const n=parseInt($('np').value);
-  log(`Táº¡o báº£n Ä‘á»“ má»›i vá»›i ${n} Ä‘iá»ƒm...`);
+  log(`Tạo bản đồ mới với ${n} điểm...`);
   try {
     const res = await fetch('/api/generate', {
       method: 'POST',
@@ -679,12 +679,12 @@ async function gen(){
     stepMode=false;$('asov').style.display='none';$('step-panel').style.display='none';
     $('btn-astar').disabled=false;$('btn-step').disabled=false;
     $('btn-ga').disabled=true;$('btn-cmp').disabled=true;$('btn-exp').disabled=true;
-    $('sd').textContent=$('st').textContent=$('ss').textContent=$('si').textContent='â€”';
+    $('sd').textContent=$('st').textContent=$('ss').textContent=$('si').textContent='—';
     $('mbadge').textContent='READY';
-    $('rlist').innerHTML='<div style="color:var(--muted);font-size:10px;text-align:center;padding:14px 0;">Nháº¥n A* Ä‘á»ƒ xĂ¢y ma tráº­n</div>';
-    $('cpanel').innerHTML='<div style="color:var(--muted);font-size:9px;font-family:var(--font-mono);padding-top:6px;">Cháº¡y GA Ä‘á»ƒ xem so sĂ¡nh</div>';
+    $('rlist').innerHTML='<div style="color:var(--muted);font-size:10px;text-align:center;padding:14px 0;">Nhấn A* để xây ma trận</div>';
+    $('cpanel').innerHTML='<div style="color:var(--muted);font-size:9px;font-family:var(--font-mono);padding-top:6px;">Chạy GA để xem so sánh</div>';
     draw();
-  } catch (e) { log('Lá»—i táº¡o báº£n Ä‘á»“: '+e.message,'w'); }
+  } catch (e) { log('Lỗi tạo bản đồ: '+e.message,'w'); }
 }
 
 function draw(asSt=null){
@@ -732,13 +732,13 @@ function draw(asSt=null){
     ctx.font=p.id===0?'bold 9px DM Sans':'8px DM Sans';ctx.fillStyle='#000';ctx.textAlign='center';
     ctx.fillText(p.id===0?'KHO':`P${i}`,p.x,p.y+3);
     ctx.font='8.5px DM Sans';ctx.fillStyle='rgba(200,220,240,.6)';
-    const sn=p.name.length>13?p.name.slice(0,13)+'â€¦':p.name;
+    const sn=p.name.length>13?p.name.slice(0,13)+'…':p.name;
     ctx.fillText(sn,p.x,p.y-r-5);
   });
 }
 
 async function runAStar(){
-  log('Báº¯t Ä‘áº§u A* â€” xĂ¢y ma tráº­n...');
+  log('Bắt đầu A* — xây ma trận...');
   $('btn-astar').disabled=true;$('btn-step').disabled=true;
   const h = $('heur').value;
   try {
@@ -749,9 +749,9 @@ async function runAStar(){
     });
     const data = await res.json();
     dm = data.dist_matrix;
-    log(`A* hoĂ n táº¥t: ma tráº­n ${data.matrix_size}`,'i');
+    log(`A* hoàn tất: ma trận ${data.matrix_size}`,'i');
     $('btn-ga').disabled=false;$('mbadge').textContent='A* DONE';
-  } catch(e) { log('Lá»—i A*: '+e.message,'w'); }
+  } catch(e) { log('Lỗi A*: '+e.message,'w'); }
   finally { $('btn-astar').disabled=false;$('btn-step').disabled=false; }
 }
 
@@ -769,15 +769,15 @@ async function enterStep(){
     steps = data.steps;
     stepIdx=0;stepMode=true;
     $('asov').style.display='block';$('step-panel').style.display='block';
-    $('btn-astar').disabled=true;$('btn-step').textContent='âœ• ThoĂ¡t Step mode';
+    $('btn-astar').disabled=true;$('btn-step').textContent='✕ Thoát Step mode';
     $('btn-step').onclick=exitStep;$('mbadge').textContent='A* STEP';
     renderStep();
-  } catch(e) { log('Lá»—i A* Step: '+e.message,'w'); }
+  } catch(e) { log('Lỗi A* Step: '+e.message,'w'); }
 }
 
 function exitStep(){
   stepMode=false;$('asov').style.display='none';$('step-panel').style.display='none';
-  $('btn-astar').disabled=false;$('btn-step').textContent='â­ Cháº¿ Ä‘á»™ Step-by-step';
+  $('btn-astar').disabled=false;$('btn-step').textContent='⏭ Chế độ Step-by-step';
   $('btn-step').onclick=enterStep;$('mbadge').textContent='READY';draw();
 }
 
@@ -791,7 +791,7 @@ function renderStep(){
   $('ov-f').textContent=s.f.toFixed(1)+' km';
   $('ov-o').textContent=s.open.length+' nodes';
   $('ov-cl').textContent=s.closed.length+' nodes';
-  $('sinfo').textContent=`BÆ°á»›c ${s.step}: XĂ©t "${pts[s.current].name}"\nf=${s.f.toFixed(0)} = g=${s.g.toFixed(0)} + h=${s.h.toFixed(0)}`;
+  $('sinfo').textContent=`Bước ${s.step}: Xét "${pts[s.current].name}"\nf=${s.f.toFixed(0)} = g=${s.g.toFixed(0)} + h=${s.h.toFixed(0)}`;
   $('bprev').disabled=stepIdx<=0;$('bnext').disabled=stepIdx>=steps.length-1;
 }
 $('bnext').onclick=()=>{if(stepIdx<steps.length-1){stepIdx++;renderStep();}};
@@ -800,7 +800,7 @@ $('bfin').onclick=()=>{exitStep();runAStar();};
 
 function runGA(){
   const ps=parseInt($('ps').value), g=parseInt($('gens').value), mr=parseInt($('mr').value), spd=parseInt($('spd').value);
-  log(`GA khá»Ÿi Ä‘á»™ng: pop=${ps}, gen=${g}, mut=${mr}%...`);
+  log(`GA khởi động: pop=${ps}, gen=${g}, mut=${mr}%...`);
   $('btn-ga').disabled=true;$('btn-astar').disabled=true;$('btn-gen').disabled=true;
   best=[];conv=[];delivered.clear();animSt=0;
   
@@ -815,8 +815,8 @@ function runGA(){
       conv=data.history;best=data.best_order.slice(1,-1);
       $('sd').textContent=data.best_dist+' km';
       $('st').textContent=data.best_time;
-      $('ss').textContent=(pts.length-1)+' Ä‘iá»ƒm';
-      log(`GA hoĂ n táº¥t: ${data.best_dist} km`,'i');
+      $('ss').textContent=(pts.length-1)+' điểm';
+      log(`GA hoàn tất: ${data.best_dist} km`,'i');
       source.close();
       $('btn-ga').disabled=false;$('btn-astar').disabled=false;$('btn-gen').disabled=false;
       $('btn-cmp').disabled=false;$('btn-exp').disabled=false;
@@ -838,7 +838,7 @@ function drawConvergence(){
   cctx.clearRect(0,0,W,H);cctx.fillStyle='#0b0f1a';cctx.fillRect(0,0,W,H);
   if(conv.length<2){
     cctx.fillStyle='rgba(100,116,139,.4)';cctx.font='9px Space Mono';cctx.textAlign='center';
-    cctx.fillText('Cháº¡y GA Ä‘á»ƒ xem Ä‘Æ°á»ng há»™i tá»¥',W/2,H/2);return;
+    cctx.fillText('Chạy GA để xem đường hội tụ',W/2,H/2);return;
   }
   const pd={t:7,r:7,b:18,l:36};
   const cW=W-pd.l-pd.r,cH=H-pd.t-pd.b;
@@ -898,25 +898,25 @@ function fillComparisonTable() {
   
   const cbody = $('cbody');
   cbody.innerHTML = `
-    <tr><td>Tá»•ng quĂ£ng Ä‘Æ°á»ng</td><td class="r">${distBase.toFixed(1)} km</td><td class="g">${distGA.toFixed(1)} km</td><td class="g">-${(distBase-distGA).toFixed(1)} km</td></tr>
-    <tr><td>Thá»i gian Æ°á»›c tĂ­nh</td><td>${timeBase}</td><td>${timeGA}</td><td class="g">Nhanh hÆ¡n</td></tr>
-    <tr><td>Äá»™ phá»©c táº¡p</td><td>O(n)</td><td>O(gen * pop)</td><td>N/A</td></tr>
+    <tr><td>Tổng quãng đường</td><td class="r">${distBase.toFixed(1)} km</td><td class="g">${distGA.toFixed(1)} km</td><td class="g">-${(distBase-distGA).toFixed(1)} km</td></tr>
+    <tr><td>Thời gian ước tính</td><td>${timeBase}</td><td>${timeGA}</td><td class="g">Nhanh hơn</td></tr>
+    <tr><td>Độ phức tạp</td><td>O(n)</td><td>O(gen * pop)</td><td>N/A</td></tr>
   `;
   
   const imp = distBase > 0 ? ((distBase - distGA) / distBase * 100).toFixed(1) : '0.0';
   $('cpct').textContent = imp + '%';
   $('si').textContent = imp + '%';
 
-  $('route-base-title').textContent = `Lá»™ trĂ¬nh tuáº§n tá»± Â· ${distBase.toFixed(1)} km`;
-  $('route-ga-title').textContent = `Lá»™ trĂ¬nh A* + GA Â· ${distGA.toFixed(1)} km`;
+  $('route-base-title').textContent = `Lộ trình A* · ${distBase.toFixed(1)} km`;
+  $('route-ga-title').textContent = `Lộ trình GA · ${distGA.toFixed(1)} km`;
   $('route-base-text').textContent = routeNames(baseOrder);
   $('route-ga-text').textContent = routeNames(gaOrder);
 
   const gaBest = distGA <= distBase;
   $('route-base-card').classList.toggle('best', !gaBest);
   $('route-ga-card').classList.toggle('best', gaBest);
-  $('route-base-tag').textContent = gaBest ? 'TUYáº¾N Äá»I CHIáº¾U' : 'Tá»I Æ¯U HÆ N';
-  $('route-ga-tag').textContent = gaBest ? 'Tá»I Æ¯U HÆ N' : 'TUYáº¾N Äá»I CHIáº¾U';
+  $('route-base-tag').textContent = gaBest ? 'TUYẾN ĐỐI CHIẾU' : 'TỐI ƯU HƠN';
+  $('route-ga-tag').textContent = gaBest ? 'TỐI ƯU HƠN' : 'TUYẾN ĐỐI CHIẾU';
 }
 
 function showModal(){ 
@@ -924,7 +924,7 @@ function showModal(){
   $('moverlay').classList.add('show'); 
 }
 function closeModal(){ $('moverlay').classList.remove('show'); }
-function exportPNG(){ log('TĂ­nh nÄƒng Xuáº¥t PNG Ä‘ang Ä‘Æ°á»£c cáº­p nháº­t...'); closeModal(); }
+function exportPNG(){ log('Tính năng Xuất PNG đang được cập nhật...'); closeModal(); }
 
 $('np').oninput=e=>$('nv').textContent=e.target.value;
 $('spd').oninput=e=>$('sv').textContent=e.target.value;
@@ -939,7 +939,7 @@ $('btn-cmp').onclick=showModal;
 $('btn-exp').onclick=exportPNG;
 
 window.addEventListener('load',()=>{
-  resizeCanvas(); log('DelivRoute v2.0 sáºµn sĂ ng','i');
+  resizeCanvas(); log('DelivRoute v2.0 sẵn sàng','i');
   setTimeout(()=>loadPreset('mixed'),200);
 });
 </script>
@@ -1048,7 +1048,7 @@ PYTHON_BACKEND_OVERRIDE = r"""
     if(mapLabel) mapLabel.textContent = '1. Thi\u1ebft l\u1eadp b\u1ea3n \u0111\u1ed3';
 
     const createMapButton = mapGroup.querySelector('button.Btn.Bc') ||
-      Array.from(mapGroup.querySelectorAll('button')).find(button => /tao|táº¡o|gen|map/i.test(button.textContent || ''));
+      Array.from(mapGroup.querySelectorAll('button')).find(button => /tao|tạo|gen|map/i.test(button.textContent || ''));
     const speedControl = $('spd')?.closest('.DC');
     const simSpeedControl = $('aspd')?.closest('.DC');
     const heuristicControl = $('heur')?.closest('.DC');
@@ -1159,7 +1159,7 @@ PYTHON_BACKEND_OVERRIDE = r"""
   }
 
   function syncVehicleControlsForMode(mode){
-    const algorithmUsesVehicles = Number(mode) === 0 || Number(mode) === 2 || Number(mode) === 3;
+    const algorithmUsesVehicles = Number(mode) === 1 || Number(mode) === 2;
     ['vehicles','capacity','timeWindowsToggle'].forEach(id => {
       const element = $(id);
       if(!element) return;
@@ -1167,7 +1167,7 @@ PYTHON_BACKEND_OVERRIDE = r"""
       const group = element.closest('.DC') || element;
       group.style.opacity = algorithmUsesVehicles ? '1' : '.45';
       group.title = algorithmUsesVehicles
-        ? 'Dung cho GA hoac A*+GA khi chia nhieu xe'
+        ? 'Dung cho GA khi chia nhieu xe'
         : 'A* tuan tu va tuyen ban dau chi la mot thu tu tham chieu, khong chia xe';
     });
   }
@@ -1212,7 +1212,7 @@ PYTHON_BACKEND_OVERRIDE = r"""
       y_min:building.y,
       x_max:building.x + building.w,
       y_max:building.y + building.h,
-      name:'NhĂ  / cĂ´ng trĂ¬nh'
+      name:'Nhà / công trình'
     }));
     const waterObstacles = waterBodies.map((water, index) => ({
       id:`water-${index}`,
@@ -1220,7 +1220,7 @@ PYTHON_BACKEND_OVERRIDE = r"""
       y_min:water.y,
       x_max:water.x + water.w,
       y_max:water.y + water.h,
-      name:'VĂ¹ng nÆ°á»›c'
+      name:'Vùng nước'
     }));
     buildingObstacles.forEach(obstacle => { obstacle.name = 'Nha / cong trinh'; });
     waterObstacles.forEach(obstacle => { obstacle.name = 'Vung nuoc'; });
@@ -1305,7 +1305,7 @@ PYTHON_BACKEND_OVERRIDE = r"""
       body:JSON.stringify(payload)
     });
     const data = await response.json();
-    if(data.status !== 'success') throw new Error(normalizeBrokenText(data.message || 'KhĂ´ng Ä‘á»“ng bá»™ Ä‘Æ°á»£c Ä‘á»“ thá»‹ máº¡ng Ä‘Æ°á»ng'));
+    if(data.status !== 'success') throw new Error(normalizeBrokenText(data.message || 'Không đồng bộ được đồ thị mạng đường'));
     backendGraphMode = data.graph_mode || 'road';
   }
 
@@ -1533,15 +1533,76 @@ PYTHON_BACKEND_OVERRIDE = r"""
     const mins = Math.max(0, Math.round(Number(totalMinutes) || 0));
     const h = Math.floor(mins / 60);
     const m = mins % 60;
-    return `${h}h${m}m`;
+    return `${h}g ${m}p`;
+  }
+
+  function escapeHtml(value){
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+      '&':'&amp;',
+      '<':'&lt;',
+      '>':'&gt;',
+      '"':'&quot;',
+      "'":'&#39;'
+    }[char]));
+  }
+
+  function algorithmMeta(key, fallbackLabel, fallbackColor){
+    const meta = {
+      baseline:{title:'Tuyến tuần tự ban đầu', short:'TUẦN TỰ', desc:'Thứ tự giao theo danh sách ban đầu, dùng làm mốc so sánh.', color:'#facc15'},
+      astar_base:{title:'A* tuần tự', short:'A*', desc:'A* tìm đường hợp lệ giữa các điểm, thứ tự giao vẫn tuần tự.', color:'#ff7b35'},
+      ga_only:{title:'GA tối ưu', short:'GA', desc:'Genetic Algorithm tối ưu thứ tự giao và chia tuyến theo số xe.', color:'#a78bfa'},
+      single:{title:fallbackLabel || 'Lộ trình đang chạy', short:fallbackLabel || 'RUN', desc:'Kết quả của chế độ thuật toán hiện tại.', color:fallbackColor || '#7ee787'}
+    };
+    return meta[key] || meta.single;
+  }
+
+  function routeNamesHtml(order){
+    return (order || []).map(point => escapeHtml(pts[point]?.name || `P${point}`)).join('<span style="color:var(--t3,#64748b)"> → </span>');
+  }
+
+  function vehicleProgress(vehicle){
+    const assigned = vehicle.assignedStops || [];
+    const done = assigned.filter(point => vehicle.deliveredPts && vehicle.deliveredPts.has(point)).length;
+    const total = assigned.length;
+    const pct = total ? Math.round(done / total * 100) : 100;
+    return {done, total, pct};
+  }
+
+  function vehicleStatusText(vehicle){
+    const nextStop = vehicle.order[vehicle.nextPtIdx];
+    const fromStop = vehicle.order[Math.max(0, vehicle.nextPtIdx - 1)];
+    if(vehicle.on && nextStop != null){
+      return `Đang đi: ${pts[fromStop]?.name || 'Kho'} → ${pts[nextStop]?.name || 'Kho'}`;
+    }
+    return 'Đã hoàn thành tuyến';
+  }
+
+  function renderResultDetails(activeIndex){
+    const summary = $('ga-summary');
+    if(!summary) return;
+    const result = results[activeIndex] || results[1] || results[0] || null;
+    const spd = +($('spd')?.value || 40);
+    const km = costToKm(result?.dist || 0);
+    const mins = Number(result?.time || Math.round((km / spd) * 60));
+    const best = conv && conv.length ? Math.min(...conv) : null;
+    const first = conv && conv.length ? conv[0] : null;
+    const gain = best != null && first != null ? Math.max(0, first - best) : null;
+    const algorithm = result?.label || (activeIndex === 0 ? 'A* tuần tự' : 'GA tối ưu');
+    summary.innerHTML = `
+      <div class="analysis-card"><b>Thuật toán đang xem</b><span>${escapeHtml(algorithm)}</span></div>
+      <div class="analysis-card"><b>Tổng lộ trình</b><span>${km.toFixed(1)} km · ${formatDurationMinutes(mins)}</span></div>
+      <div class="analysis-card"><b>Số xe / điểm giao</b><span>${Math.max(1, vehs.length || +($('vehicles')?.value || 1))} xe · ${Math.max(0, pts.length - 1)} điểm</span></div>
+      <div class="analysis-card"><b>GA hội tụ</b><span>${best == null ? 'Chưa có dữ liệu GA' : `best=${best.toFixed(2)}, giảm=${gain.toFixed(2)}`}</span></div>
+      <div class="analysis-card"><b>Tham số GA</b><span>pop=${$('ps')?.value||80}, gen=${$('gens')?.value||300}, mut=${$('mr')?.value||3}%</span></div>
+      <div class="analysis-card"><b>Ràng buộc</b><span>xe=${$('vehicles')?.value||1}, tải=${$('capacity')?.value||24}, tốc độ=${spd} km/h</span></div>
+    `;
   }
 
   function getCompareSeries(){
     return [
-      {id:'baseline', index:3, title:'Tuyen ban dau', color:'#facc15'},
-      {id:'astar', index:1, title:'A*', color:'#ff7b35'},
-      {id:'ga_only', index:2, title:'GA', color:'#a78bfa'},
-      {id:'ga_opt', index:0, title:'A* + GA', color:'#7ee787'}
+      {id:'baseline', index:3, title:'Tuần tự', color:'#facc15'},
+      {id:'astar', index:0, title:'A*', color:'#ff7b35'},
+      {id:'ga_only', index:1, title:'GA', color:'#a78bfa'}
     ];
   }
 
@@ -1567,24 +1628,29 @@ PYTHON_BACKEND_OVERRIDE = r"""
       const km = costToKm(item.result.dist || 0);
       const mins = Number(item.result.time || Math.round((km / spd) * 60));
       const stopCount = Math.max(0, (item.result.order?.length || 2) - 2);
-      const improve = baseline && baseline !== item && baseline.result?.dist > 0
+const improve = baseline && baseline !== item && baseline.result?.dist > 0
         ? ((baseline.result.dist - item.result.dist) / baseline.result.dist * 100)
         : null;
-      const improveLabel = improve != null ? `${improve >= 0 ? 'â†“' : 'â†‘'} ${Math.abs(improve).toFixed(1)}%` : 'â€”';
+      const improveLabel = improve != null ? `${improve >= 0 ? '↓' : '↑'} ${Math.abs(improve).toFixed(1)}%` : '—';
+      const execLabel = item.result.execMs ? `${Number(item.result.execMs).toFixed(0)} ms` : '—';
+      const vehicleCount = item.id === 'ga_only' ? (+($('vehicles')?.value || 1)) : 1;
       const badges = [
-        bestKm && bestKm.id === item.id ? '<span style="color:#7ee787">tá»‘t nháº¥t km</span>' : '',
-        bestTime && bestTime.id === item.id ? '<span style="color:#00d4ff">nhanh nháº¥t</span>' : ''
-      ].filter(Boolean).join(' Â· ');
+        bestKm && bestKm.id === item.id ? '<span style="color:#7ee787">tốt nhất km</span>' : '',
+        bestTime && bestTime.id === item.id ? '<span style="color:#00d4ff">nhanh nhất</span>' : ''
+      ].filter(Boolean).join(' · ');
       return `
-        <div style="border:1px solid rgba(100,116,139,.35);border-left:3px solid ${item.color};border-radius:8px;padding:8px 10px;background:rgba(15,23,42,.35);">
+        <div style="border:1px solid rgba(100,116,139,.35);border-left:3px solid ${item.color};border-radius:8px;padding:10px 11px;background:rgba(15,23,42,.35);">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;">
-            <b style="color:${item.color};font-size:11px;font-family:var(--fm,Consolas,monospace)">${item.title}</b>
-            <span style="font-size:10px;color:var(--t2,#94a3b8)">${km.toFixed(1)} km</span>
+            <b style="color:${item.color};font-size:12px;font-family:var(--fm,Consolas,monospace)">${item.title}</b>
+            <span style="font-size:11px;color:var(--t1,#dff0e8);font-family:var(--fm,Consolas,monospace)">${km.toFixed(1)} km</span>
           </div>
-          <div style="display:flex;justify-content:space-between;gap:8px;font-size:10px;color:var(--t1,#dff0e8);line-height:1.6;">
-            <span>${formatDurationMinutes(mins)}</span>
-            <span>${stopCount} Ä‘iá»ƒm</span>
-            <span>${improveLabel}</span>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 10px;font-size:10px;color:var(--t1,#dff0e8);line-height:1.55;">
+            <span>Thời gian: <b>${formatDurationMinutes(mins)}</b></span>
+            <span>Điểm: <b>${stopCount}</b></span>
+            <span>Xe: <b>${vehicleCount}</b></span>
+            <span>Cải thiện: <b>${improveLabel}</b></span>
+            <span>Runtime: <b>${execLabel}</b></span>
+            <span>Vai trò: <b>${item.id === 'ga_only' ? 'tối ưu' : 'đối chiếu'}</b></span>
           </div>
           ${badges ? `<div style="margin-top:5px;font-size:9px;color:var(--t2,#94a3b8)">${badges}</div>` : ''}
         </div>
@@ -1593,60 +1659,29 @@ PYTHON_BACKEND_OVERRIDE = r"""
 
     if(quick){
       quick.innerHTML = complete.length
-        ? `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px">${rowHtml}</div>`
-        : '<div style="color:var(--t2);font-size:10px;">ChÆ°a cĂ³ dá»¯ liá»‡u so sĂ¡nh 3 mĂ´ hĂ¬nh.</div>';
+        ? `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px">${rowHtml}</div>`
+        : '<div style="color:var(--t2);font-size:10px;">Chưa có dữ liệu so sánh.</div>';
     }
     if(section) section.style.display = complete.length ? 'block' : 'none';
 
     if(panel){
       panel.innerHTML = complete.length
-        ? `<div style="display:grid;grid-template-columns:1fr;gap:8px">${rowHtml}</div>`
-        : '<div style="color:var(--t2);font-size:10px;font-family:var(--fm);padding-top:6px;">Cháº¡y cháº¿ Ä‘á»™ so sĂ¡nh Ä‘á»ƒ xem chá»‰ sá»‘ lá»™ trĂ¬nh.</div>';
+        ? `<div style="display:grid;grid-template-columns:1fr;gap:10px">${rowHtml}</div>`
+        : '<div style="color:var(--t2);font-size:10px;font-family:var(--fm);padding-top:6px;">Chạy chế độ so sánh để xem chỉ số lộ trình.</div>';
     }
+    renderResultDetails(complete.find(item => item.id === 'ga_only') ? 1 : MODE);
   }
 
   function refreshCompareUiShell(){
-    const sequentialButton = $('mb1');
-    if(sequentialButton) sequentialButton.innerHTML = '<span class="mic">â˜…</span>TUYEN TUAN TU BAN DAU';
-    const modeButton = $('mb3');
-    if(modeButton) modeButton.innerHTML = '<span class="mic">â¡</span>SO SĂNH A*, GA, A*+GA';
     const compareButton = $('fp-cmp');
-    if(compareButton) compareButton.textContent = 'â¡ SO SĂNH 3 MĂ” HĂŒNH';
-    const modalTitle = document.querySelector('#modal-overlay .modal h3');
-    if(modalTitle) modalTitle.textContent = 'â¡ So sĂ¡nh chi tiáº¿t: A*, GA, A*+GA';
-    const tableHead = document.querySelector('#modal-overlay .modal table thead');
-    if(tableHead){
-      tableHead.innerHTML = '<tr><th>Chá»‰ sá»‘</th><th>A*</th><th>GA</th><th>A*+GA</th><th>Káº¿t luáº­n</th></tr>';
-    }
-  }
-  refreshCompareUiShell = function(){
-    const sequentialButton = $('mb1');
-    const modeButton = $('mb3');
-    const compareButton = $('fp-cmp');
-    if(sequentialButton) sequentialButton.innerHTML = '<span class="mic">*</span>A*';
-    if(modeButton) modeButton.innerHTML = '<span class="mic">!</span>SO S\u00c1NH BAN \u0110\u1ea6U, A*, GA, A*+GA';
-    if(compareButton) compareButton.textContent = 'SO S\u00c1NH 4 M\u00d4 H\u00ccNH';
-    const modesContainer = document.getElementById('modes');
-    if(modesContainer && !document.getElementById('mb4')){
-      const baselineButton = document.createElement('div');
-      baselineButton.className = 'modeBtn panel';
-      baselineButton.id = 'mb4';
-      baselineButton.innerHTML = '<span class="mic">⊕</span>TUYEN TUAN TU BAN DAU';
-      baselineButton.onclick = function(){ setMode(4); };
-      const compareModeButton = document.getElementById('mb3');
-      if(compareModeButton && compareModeButton.parentNode === modesContainer){
-        compareModeButton.insertAdjacentElement('afterend', baselineButton);
-      }else{
-        modesContainer.appendChild(baselineButton);
-      }
-    }
+    if(compareButton) compareButton.textContent = '⚡ SO SÁNH A* VS GA';
     const activeModalTitle = document.querySelector('#moverlay .modal h3, #modal-overlay .modal h3');
-    if(activeModalTitle) activeModalTitle.textContent = 'So s\u00e1nh chi ti\u1ebft: Tuy\u1ebfn ban \u0111\u1ea7u, A*, GA, A*+GA';
+    if(activeModalTitle) activeModalTitle.textContent = 'So sánh chi tiết: A* vs GA';
     const activeTableHead = document.querySelector('#moverlay .modal table thead, #modal-overlay .modal table thead');
     if(activeTableHead){
-      activeTableHead.innerHTML = '<tr><th>Ch\u1ec9 s\u1ed1</th><th>Ban \u0111\u1ea7u</th><th>A*</th><th>GA</th><th>A*+GA</th><th>K\u1ebft lu\u1eadn</th></tr>';
+      activeTableHead.innerHTML = '<tr><th>Chỉ số</th><th>A*</th><th>GA</th><th>Kết luận</th></tr>';
     }
-  };
+  }
 
   let baseVhudBottomPx = null;
   function adjustVehicleHudPosition(forceCompareMode){
@@ -1658,7 +1693,7 @@ PYTHON_BACKEND_OVERRIDE = r"""
     }
     const inCompare = forceCompareMode != null
       ? !!forceCompareMode
-      : (typeof MODE === 'number' && MODE === 3);
+      : (typeof MODE === 'number' && MODE === 2);
     const targetBottom = inCompare ? (baseVhudBottomPx * 1.5) : baseVhudBottomPx;
     hud.style.bottom = `${Math.round(targetBottom)}px`;
   }
@@ -1679,7 +1714,7 @@ PYTHON_BACKEND_OVERRIDE = r"""
         const status = (document.getElementById('topstatus')?.textContent || '').trim();
         const msg = status && /loi|error|blocked|khong/i.test(status)
           ? status
-          : 'Chua co du lieu lo trinh. Hay chay thuat toan truoc.';
+          : 'Chưa có dữ liệu lộ trình. Hãy chạy thuật toán trước.';
         el.innerHTML = `<div style="color:var(--t2);font-size:12px;text-align:center;padding:18px 8px;line-height:1.6;">${msg}</div>`;
       }
       return;
@@ -1693,16 +1728,15 @@ PYTHON_BACKEND_OVERRIDE = r"""
       grouped.get(key).push(vehicle);
     });
 
-    const groupDefs = MODE === 3
+    const groupDefs = MODE === 2
       ? [
-          {key:'baseline', title:'Tuyen tuan tu ban dau'},
-          {key:'astar_base', title:'Lo trinh A* tuan tu'},
-          {key:'ga_only', title:'Lo trinh GA'},
-          {key:'ga_opt', title:'Lo trinh A* + GA'}
+          {key:'baseline', title:'Tuyến tuần tự ban đầu'},
+          {key:'astar_base', title:'A* tuần tự'},
+          {key:'ga_only', title:'GA tối ưu'}
         ]
       : [
-          {key:'baseline', title:'Tuyen tuan tu ban dau'},
-          {key:'single', title:'Lo trinh toi uu'}
+          {key:'baseline', title:'Tuyến tuần tự ban đầu'},
+          {key:'single', title:'Lộ trình hiện tại'}
         ];
 
     let renderedGroups = 0;
@@ -1714,40 +1748,62 @@ PYTHON_BACKEND_OVERRIDE = r"""
       card.style.opacity = '1';
       card.style.animation = 'none';
       card.style.borderLeft = `3px solid ${list[0].col}`;
-      card.style.padding = '8px 10px 8px 10px';
-      card.style.marginBottom = '10px';
-      card.style.background = 'rgba(15,23,42,.42)';
+      card.style.padding = '12px 12px';
+      card.style.marginBottom = '12px';
+      card.style.background = 'linear-gradient(180deg,rgba(15,23,42,.58),rgba(15,23,42,.34))';
       card.style.color = 'var(--t1, #dff0e8)';
+      card.style.borderRadius = '10px';
 
       const totalKm = list.reduce((sum, vehicle) => sum + (vehicle.totalKm || 0), 0);
       const totalStops = list.reduce((sum, vehicle) => sum + (vehicle.assignedStops?.length || 0), 0);
       const delivered = list.reduce((sum, vehicle) => sum + vehicle.assignedStops.filter(point => vehicle.deliveredPts.has(point)).length, 0);
+      const speed = +($('spd')?.value || 40);
+      const totalMinutes = totalKm > 0 ? Math.round(totalKm / speed * 60) : 0;
+      const meta = algorithmMeta(list[0].algorithmKey, title, list[0].col);
 
       const head = document.createElement('div');
-      head.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:7px;';
+      head.style.cssText = 'display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;';
       head.innerHTML = `
-        <b style="color:${list[0].col};font-family:var(--fm, Consolas, monospace);font-size:11px">${title}</b>
-        <span style="color:var(--t2, #94a3b8);font-size:10px">${list.length} xe · ${delivered}/${totalStops} diem · ${totalKm.toFixed(1)} km</span>
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <b style="color:${list[0].col};font-family:var(--fm, Consolas, monospace);font-size:13px">${escapeHtml(meta.title)}</b>
+            <span style="border:1px solid ${list[0].col};color:${list[0].col};border-radius:999px;padding:2px 7px;font-size:9px;font-family:var(--fm, Consolas, monospace);">${escapeHtml(meta.short)}</span>
+          </div>
+          <div style="color:var(--t2,#94a3b8);font-size:10px;line-height:1.5;margin-top:4px;">${escapeHtml(meta.desc)}</div>
+        </div>
+        <div style="text-align:right;color:var(--t1,#dff0e8);font-size:10px;line-height:1.65;min-width:128px;">
+          <b style="color:${list[0].col};font-size:13px;font-family:var(--fm, Consolas, monospace);">${totalKm.toFixed(1)} km</b><br>
+          ${formatDurationMinutes(totalMinutes)} · ${list.length} xe<br>
+          ${delivered}/${totalStops} điểm đã giao
+        </div>
       `;
       card.appendChild(head);
 
       list.forEach(vehicle => {
-        const nextStop = vehicle.order[vehicle.nextPtIdx];
-        const fromStop = vehicle.order[Math.max(0, vehicle.nextPtIdx - 1)];
-        const status = vehicle.on && nextStop != null
-          ? `Dang di: ${pts[fromStop]?.name || 'Kho'} -> ${pts[nextStop]?.name || 'Kho'}`
-          : 'Da hoan thanh tuyen';
+        const progress = vehicleProgress(vehicle);
+        const vehicleKm = Number(vehicle.totalKm || 0);
+        const vehicleMinutes = vehicleKm > 0 ? Math.round(vehicleKm / speed * 60) : 0;
+        const displayName = `${meta.short} - ${vehicle.shortLabel || vehicle.label}`;
         const row = document.createElement('div');
-        row.style.cssText = 'padding:5px 0;border-top:1px dashed rgba(100,116,139,.35);';
+        row.style.cssText = 'padding:10px 0;border-top:1px dashed rgba(100,116,139,.35);';
         row.innerHTML = `
-          <div style="display:flex;justify-content:space-between;gap:6px;align-items:center;margin-bottom:4px;">
-            <span style="display:flex;align-items:center;gap:6px;color:var(--t1, #dff0e8);font-size:10px;">
-              <i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${vehicle.col}"></i>
-              <b style="color:${vehicle.col};font-family:var(--fm, Consolas, monospace);font-size:10px">${vehicle.shortLabel || vehicle.label}</b>
-            </span>
-            <span style="font-size:10px;color:var(--t2, #94a3b8);">${status}</span>
+          <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:7px;">
+            <div style="display:flex;align-items:center;gap:7px;color:var(--t1, #dff0e8);font-size:10px;">
+              <i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${vehicle.col};box-shadow:0 0 10px ${vehicle.col}"></i>
+              <b style="color:${vehicle.col};font-family:var(--fm, Consolas, monospace);font-size:11px">${escapeHtml(displayName)}</b>
+            </div>
+            <div style="text-align:right;font-size:10px;color:var(--t2, #94a3b8);line-height:1.5;">
+              ${vehicleKm.toFixed(1)} km · ${formatDurationMinutes(vehicleMinutes)}<br>
+              ${progress.done}/${progress.total} điểm · ${progress.pct}%
+            </div>
           </div>
-          <div style="font-size:10px;line-height:1.65;color:var(--t1, #dff0e8);">${vehicle.order.map(point => pts[point]?.name || `P${point}`).join(' -> ')}</div>
+          <div style="font-size:10px;color:var(--t2,#94a3b8);margin-bottom:6px;">${escapeHtml(vehicleStatusText(vehicle))}</div>
+          <div style="height:5px;background:rgba(100,116,139,.28);border-radius:999px;overflow:hidden;margin-bottom:7px;">
+            <div style="height:100%;width:${progress.pct}%;background:${vehicle.col};box-shadow:0 0 10px ${vehicle.col};"></div>
+          </div>
+          <div style="font-size:10px;line-height:1.65;color:var(--t1, #dff0e8);word-break:break-word;">
+            <span style="color:var(--t3,#64748b)">Tuyến:</span> ${routeNamesHtml(vehicle.order)}
+          </div>
         `;
         card.appendChild(row);
       });
@@ -1760,7 +1816,7 @@ PYTHON_BACKEND_OVERRIDE = r"""
       if(appendGroupCard(def.title, list)) renderedGroups += 1;
     });
     if(!renderedGroups && vehs.length){
-      appendGroupCard('Lo trinh hien tai', vehs);
+      appendGroupCard('Lộ trình hiện tại', vehs);
     }
 
     const failedStops = pts.filter(point => point.undeliverable);
@@ -1774,9 +1830,9 @@ PYTHON_BACKEND_OVERRIDE = r"""
       failed.style.paddingLeft = '10px';
       failed.style.marginTop = '12px';
       failed.innerHTML = `
-        <b style="color:#ff7b35;font-family:var(--fm);font-size:11px">Giao khong thanh cong</b>
+        <b style="color:#ff7b35;font-family:var(--fm);font-size:11px">Giao không thành công</b>
         <div style="font-size:10px;color:var(--t2);margin-top:6px;line-height:1.6">
-          ${failedStops.map(point => `${point.name}: nam trong khu vuc cam, tra hang ve kho`).join('<br>')}
+          ${failedStops.map(point => `${escapeHtml(point.name)}: nằm trong khu vực cấm, trả hàng về kho`).join('<br>')}
         </div>
       `;
       el.appendChild(failed);
@@ -1788,8 +1844,10 @@ PYTHON_BACKEND_OVERRIDE = r"""
     const cost = kmToCost(km);
     const spd = +($('spd')?.value || 40);
     const mins = Math.round(km / spd * 60);
-    results[modeIdx] = {dist:cost, time:mins, order, roadPaths:paths};
+    const defaultLabel = modeIdx === 0 ? 'A* tuần tự' : modeIdx === 1 ? 'GA tối ưu' : modeIdx === 3 ? 'Tuyến tuần tự' : 'Lộ trình';
+    results[modeIdx] = {dist:cost, time:mins, order, roadPaths:paths, label:defaultLabel};
     setResult(modeIdx, cost);
+    renderResultDetails(modeIdx);
     return paths;
   }
 
@@ -1982,11 +2040,10 @@ PYTHON_BACKEND_OVERRIDE = r"""
   };
 
   const RUN_MODE = {
-    HYBRID: 0,
-    ASTAR: 1,
-    GA_ONLY: 2,
-    COMPARE: 3,
-    BASELINE: 4
+    ASTAR: 0,
+    GA_ONLY: 1,
+    COMPARE: 2,
+    BASELINE: 3
   };
 
   function sequentialOrder(){
@@ -2005,7 +2062,6 @@ PYTHON_BACKEND_OVERRIDE = r"""
       col: '#facc15'
     };
     results[3] = {...result};
-    results[4] = {...result};
     setText('sbase', `${km.toFixed(1)} km`);
     return result;
   }
@@ -2019,7 +2075,6 @@ PYTHON_BACKEND_OVERRIDE = r"""
     results[3].label = 'Tuyen ban dau';
     results[3].col = '#facc15';
     results[3].execMs = 0;
-    results[4] = {...results[3]};
     const routePaths = await fetchBackendRoutePaths([order]);
     vehs = makeBackendVehicles([order], order, 'Tuyen ban dau', routePaths, {
       algorithmKey: 'baseline',
@@ -2034,7 +2089,7 @@ PYTHON_BACKEND_OVERRIDE = r"""
     await buildBackendMatrix();
     const order = sequentialOrder();
     const km = routeKm(order);
-    setBackendResult(1, order, km);
+    setBackendResult(0, order, km);
     const routePaths = await fetchBackendRoutePaths([order]);
     vehs = makeBackendVehicles([order], order, 'A* Tuan tu', routePaths, {
       algorithmKey:'single',
@@ -2054,7 +2109,7 @@ PYTHON_BACKEND_OVERRIDE = r"""
     const speed = +($('spd')?.value || 40);
     const aStarExecMs = Math.max(1, performance.now() - aStarExecStart);
 
-    results[1] = {
+    results[0] = {
       dist:kmToCost(kmA),
       time:Math.round(kmA/speed*60),
       execMs:aStarExecMs,
@@ -2064,7 +2119,7 @@ PYTHON_BACKEND_OVERRIDE = r"""
       col:'#ff7b35'
     };
 
-    setStatus('Python backend: chay GA thuong (metric Euclid)...');
+    setStatus('Python backend: chay GA (metric Euclid)...');
     const gaOnlyStart = performance.now();
     const gaOnly = await runBackendGA({
       metric:'euclidean',
@@ -2072,34 +2127,15 @@ PYTHON_BACKEND_OVERRIDE = r"""
     });
     const gaOnlyExecMs = Math.max(1, performance.now() - gaOnlyStart);
     const gaOnlyKm = routeKm(gaOnly.order);
-    setBackendResult(2, gaOnly.order, gaOnlyKm);
-    results[2].label = 'GA';
-    results[2].col = '#a78bfa';
-    results[2].execMs = gaOnlyExecMs;
+    setBackendResult(1, gaOnly.order, gaOnlyKm);
+    results[1].label = 'GA';
+    results[1].col = '#a78bfa';
+    results[1].execMs = gaOnlyExecMs;
 
-    setStatus('Python backend: chay A* + GA tren ma tran A*...');
-    const gaHybridStart = performance.now();
-    const gaHybrid = await runBackendGA({
-      metric:'astar'
-    });
-    const gaHybridExecMs = Math.max(1, performance.now() - gaHybridStart);
-    const gaHybridKm = routeKm(gaHybrid.order);
-    setBackendResult(0, gaHybrid.order, gaHybridKm);
-    results[0].label = 'A* + GA';
-    results[0].col = '#7ee787';
-    results[0].execMs = gaHybridExecMs;
-
-    const baselineOrder = sequentialOrder();
-    const baselineKm = routeKm(baselineOrder);
-    setBaselineResult(baselineOrder, baselineKm);
-    const baselineRoutePaths = await fetchBackendRoutePaths([baselineOrder]);
+    results[1].col = '#a78bfa';
+    results[1].execMs = gaOnlyExecMs;
 
     vehs = [
-      ...makeBackendVehicles([baselineOrder], baselineOrder, 'Tuyen ban dau', baselineRoutePaths, {
-        algorithmKey:'baseline',
-        algorithmLabel:'Tuyen ban dau',
-        palette:['#facc15']
-      }),
       ...makeBackendVehicles([orderA], orderA, 'A* Tuan tu', routePathsA, {
         algorithmKey:'astar_base',
         algorithmLabel:'A* tuan tu',
@@ -2109,35 +2145,27 @@ PYTHON_BACKEND_OVERRIDE = r"""
         algorithmKey:'ga_only',
         algorithmLabel:'GA',
         palette:['#a78bfa', '#c084fc', '#818cf8', '#38bdf8']
-      }),
-      ...makeBackendVehicles(gaHybrid.routes, gaHybrid.order, 'GA Toi uu', gaHybrid.routePaths, {
-        algorithmKey:'ga_opt',
-        algorithmLabel:'A* + GA',
-        palette:['#7ee787', '#34d399', '#00d4ff', '#5eead4']
       })
     ];
     renderVehicleRoutes();
     renderCompareIndicators();
-    const impHybrid = kmA > 0 ? ((kmA - gaHybridKm) / kmA * 100).toFixed(1) : '0.0';
     const impGa = kmA > 0 ? ((kmA - gaOnlyKm) / kmA * 100).toFixed(1) : '0.0';
-    setText('rs-imp','↓' + Math.max(Number(impHybrid), Number(impGa)).toFixed(1) + '%');
-    setStatus(`Python backend: so sanh xong (A*: ${kmA.toFixed(1)} km | GA: ${gaOnlyKm.toFixed(1)} km | A*+GA: ${gaHybridKm.toFixed(1)} km)`);
+    setText('rs-imp','↓' + Number(impGa).toFixed(1) + '%');
+    setStatus(`Python backend: so sanh xong (A*: ${kmA.toFixed(1)} km | GA: ${gaOnlyKm.toFixed(1)} km)`);
     setTimeout(showCompareModal, 800);
   }
 
   async function runOptimizationMode(mode){
     await buildBackendMatrix();
-    const isGaOnly = mode === RUN_MODE.GA_ONLY;
     const ga = await runBackendGA({
-      metric: isGaOnly ? 'euclidean' : 'astar'
+      metric: 'euclidean'
     });
     const displayKm = Number(ga.actualKm || ga.km);
-    setBackendResult(isGaOnly ? 2 : 0, ga.order, displayKm);
-    const algoLabel = isGaOnly ? 'GA di truyen' : 'A* + GA';
-    vehs = makeBackendVehicles(ga.routes, ga.order, isGaOnly ? 'GA Di truyen' : 'A*+GA', ga.routePaths, {
+    setBackendResult(1, ga.order, displayKm);
+    vehs = makeBackendVehicles(ga.routes, ga.order, 'GA Di truyen', ga.routePaths, {
       algorithmKey:'single',
-      algorithmLabel:algoLabel,
-      palette:['#7ee787', '#00d4ff', '#ffd166', '#a78bfa', '#ff7b72', '#5eead4']
+      algorithmLabel:'GA di truyen',
+      palette:['#a78bfa', '#c084fc', '#818cf8', '#38bdf8']
     });
     renderVehicleRoutes();
     renderCompareIndicators();
@@ -2173,7 +2201,7 @@ PYTHON_BACKEND_OVERRIDE = r"""
     setStyle('fp-run','pointerEvents','none');
     setText('fp-run','Dang chay...');
     setText('hbadge','PYTHON');
-    if(MODE !== 3){
+    if(MODE !== RUN_MODE.COMPARE){
       if($('cmp-quick')) $('cmp-quick').innerHTML = '';
       if($('cmp-section')) $('cmp-section').style.display = 'none';
     }
@@ -2241,15 +2269,14 @@ PYTHON_BACKEND_OVERRIDE = r"""
     const initial = series.find(item => item.id === 'baseline');
     const astar = series.find(item => item.id === 'astar');
     const gaOnly = series.find(item => item.id === 'ga_only');
-    const hybrid = series.find(item => item.id === 'ga_opt');
     const available = series.filter(item => item.result && item.result.order && item.result.order.length > 0);
 
     if(!tbody || available.length < 2){
       if(tbody){
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--sub);padding:20px;">Chạy chế độ so sĂ¡nh Ä‘á»ƒ xem Ä‘á»§ dá»¯ liá»‡u tuyáº¿n ban Ä‘áº§u, A*, GA, A*+GA.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--sub);padding:20px;">Ch\u1ea1y ch\u1ebf \u0111\u1ed9 so s\u00e1nh \u0111\u1ec3 xem d\u1eef li\u1ec7u A* v\u00e0 GA.</td></tr>';
       }
-      setText('cmp-pct','â€”');
-      setText('cmp-sub','ChÆ°a Ä‘á»§ dá»¯ liá»‡u so sĂ¡nh 4 mĂ´ hĂ¬nh');
+      setText('cmp-pct','\u2014');
+      setText('cmp-sub','Ch\u01b0a \u0111\u1ee7 d\u1eef li\u1ec7u so s\u00e1nh 2 m\u00f4 h\u00ecnh');
       if(overlay) overlay.classList.add(overlay.id === 'moverlay' ? 'show' : 'on');
       return;
     }
@@ -2258,134 +2285,68 @@ PYTHON_BACKEND_OVERRIDE = r"""
     const minsOf = item => Number(item?.result?.time || Math.round((kmOf(item) / spd) * 60));
     const execOf = item => Number(item?.result?.execMs || 0);
     const stopOf = item => Math.max(0, (item?.result?.order?.length || 2) - 2);
-    const better = (value, best) => value === best ? '<span style="color:#7ee787;font-weight:700">âœ“ tá»‘t nháº¥t</span>' : '';
+    const better = (value, best) => value === best ? '<span style="color:#7ee787;font-weight:700">\u2713 t\u1ed1t nh\u1ea5t</span>' : '';
     const bestKm = Math.min(...available.map(kmOf));
     const bestMins = Math.min(...available.map(minsOf));
-    const baselineDist = kmOf(initial);
-    const gaImprove = baselineDist > 0 ? ((baselineDist - kmOf(gaOnly)) / baselineDist * 100) : 0;
-    const astarImprove = baselineDist > 0 ? ((baselineDist - kmOf(astar)) / baselineDist * 100) : 0;
-    const hybridImprove = baselineDist > 0 ? ((baselineDist - kmOf(hybrid)) / baselineDist * 100) : 0;
+    const astarDist = kmOf(astar);
+    const gaImprove = astarDist > 0 ? ((astarDist - kmOf(gaOnly)) / astarDist * 100) : 0;
 
-    const row = (label, valB, valA, valG, valH, conclusion, note='') => `
+    const row = (label, valA, valG, conclusion, note='') => `
       <tr>
         <td style="color:var(--sub);font-size:12px;line-height:1.55">${label}${note ? `<br><small style="font-size:10px;opacity:.68">${note}</small>` : ''}</td>
-        <td style="color:#facc15;font-weight:800">${valB}</td>
         <td style="color:#ff7b35;font-weight:700">${valA}</td>
         <td style="color:#a78bfa;font-weight:700">${valG}</td>
-        <td style="color:#7ee787;font-weight:700">${valH}</td>
         <td>${conclusion}</td>
       </tr>
     `;
 
     tbody.innerHTML =
       row(
-        'Tá»•ng quĂ£ng Ä‘Æ°á»ng',
-        `${kmOf(astar).toFixed(2)} km`,
-        `${kmOf(gaOnly).toFixed(2)} km`,
-        `${kmOf(hybrid).toFixed(2)} km`,
-        better(kmOf(astar), bestKm) || better(kmOf(gaOnly), bestKm) || better(kmOf(hybrid), bestKm),
-        'ÄĂ¡nh giĂ¡ theo lá»™ trĂ¬nh Ä‘Æ°á»ng/háº»m thá»±c táº¿'
-      ) +
-      row(
-        'Thá»i gian di chuyá»ƒn',
-        formatDurationMinutes(minsOf(astar)),
-        formatDurationMinutes(minsOf(gaOnly)),
-        formatDurationMinutes(minsOf(hybrid)),
-        better(minsOf(astar), bestMins) || better(minsOf(gaOnly), bestMins) || better(minsOf(hybrid), bestMins),
-        `Æ¯á»›c tĂ­nh theo ${spd} km/h`
-      ) +
-      row(
-        'Cáº£i thiá»‡n so vá»›i A*',
-        'Baseline',
-        `${gaImprove >= 0 ? 'â†“' : 'â†‘'} ${Math.abs(gaImprove).toFixed(1)}%`,
-        `${hybridImprove >= 0 ? 'â†“' : 'â†‘'} ${Math.abs(hybridImprove).toFixed(1)}%`,
-        hybridImprove >= gaImprove
-          ? '<span style="color:#7ee787;font-weight:700">A*+GA tá»‘t hÆ¡n</span>'
-          : '<span style="color:#a78bfa;font-weight:700">GA tá»‘t hÆ¡n</span>',
-        'Giáº£m quĂ£ng Ä‘Æ°á»ng cĂ ng cao cĂ ng tá»‘t'
-      ) +
-      row(
-        'Thá»i gian tĂ­nh toĂ¡n',
-        execOf(astar) ? `${execOf(astar).toFixed(0)} ms` : 'â€”',
-        execOf(gaOnly) ? `${execOf(gaOnly).toFixed(0)} ms` : 'â€”',
-        execOf(hybrid) ? `${execOf(hybrid).toFixed(0)} ms` : 'â€”',
-        '<span style="color:var(--sub)">Tham kháº£o</span>',
-        'Äo trá»±c tiáº¿p trĂªn trĂ¬nh duyá»‡t'
-      ) +
-      row(
-        'Sá»‘ Ä‘iá»ƒm giao',
-        `${stopOf(astar)} Ä‘iá»ƒm`,
-        `${stopOf(gaOnly)} Ä‘iá»ƒm`,
-        `${stopOf(hybrid)} Ä‘iá»ƒm`,
-        '<span style="color:var(--sub)">NhÆ° nhau</span>'
-      ) +
-      row(
-        'MĂ´ táº£ thuáº­t toĂ¡n',
-        'A* tuáº§n tá»±',
-        'GA (metric Euclid)',
-        'GA + ma tráº­n A*',
-        '<span style="color:var(--sub)">3 cĂ¡ch khĂ¡c nhau</span>'
-      );
-
-    tbody.innerHTML =
-      row(
         'T\u1ed5ng qu\u00e3ng \u0111\u01b0\u1eddng',
-        `${kmOf(initial).toFixed(2)} km`,
         `${kmOf(astar).toFixed(2)} km`,
         `${kmOf(gaOnly).toFixed(2)} km`,
-        `${kmOf(hybrid).toFixed(2)} km`,
-        better(kmOf(initial), bestKm) || better(kmOf(astar), bestKm) || better(kmOf(gaOnly), bestKm) || better(kmOf(hybrid), bestKm),
+        better(kmOf(astar), bestKm) || better(kmOf(gaOnly), bestKm),
         '\u0110\u00e1nh gi\u00e1 theo l\u1ed9 tr\u00ecnh \u0111\u01b0\u1eddng/h\u1ebbm th\u1ef1c t\u1ebf'
       ) +
       row(
         'Th\u1eddi gian di chuy\u1ec3n',
-        formatDurationMinutes(minsOf(initial)),
         formatDurationMinutes(minsOf(astar)),
         formatDurationMinutes(minsOf(gaOnly)),
-        formatDurationMinutes(minsOf(hybrid)),
-        better(minsOf(initial), bestMins) || better(minsOf(astar), bestMins) || better(minsOf(gaOnly), bestMins) || better(minsOf(hybrid), bestMins),
+        better(minsOf(astar), bestMins) || better(minsOf(gaOnly), bestMins),
         `\u01af\u1edbc t\u00ednh theo ${spd} km/h`
       ) +
       row(
-        'C\u1ea3i thi\u1ec7n so v\u1edbi tuy\u1ebfn ban \u0111\u1ea7u',
+        'C\u1ea3i thi\u1ec7n \u0111\u01b0\u1eddng \u0111i',
         'Baseline',
-        `${astarImprove >= 0 ? 'down' : 'up'} ${Math.abs(astarImprove).toFixed(1)}%`,
-        `${gaImprove >= 0 ? 'down' : 'up'} ${Math.abs(gaImprove).toFixed(1)}%`,
-        `${hybridImprove >= 0 ? 'down' : 'up'} ${Math.abs(hybridImprove).toFixed(1)}%`,
-        hybridImprove >= gaImprove && hybridImprove >= astarImprove
-          ? '<span style="color:#7ee787;font-weight:700">A*+GA t\u1ed1t h\u01a1n</span>'
-          : '<span style="color:var(--sub)">Xem c\u1ed9t t\u1ed1t nh\u1ea5t</span>',
-        'Gi\u1ea3m qu\u00e3ng \u0111\u01b0\u1eddng c\u00e0ng cao c\u00e0ng t\u1ed1t'
+        `${gaImprove >= 0 ? '\u25bc' : '\u25b2'} ${Math.abs(gaImprove).toFixed(1)}%`,
+        gaImprove >= 0
+          ? '<span style="color:#a78bfa;font-weight:700">GA t\u1ed1t h\u01a1n</span>'
+          : '<span style="color:#ff7b35;font-weight:700">A* t\u1ed1t h\u01a1n</span>',
+        'So v\u1edbi A* tu\u1ea7n t\u1ef1'
       ) +
       row(
         'Th\u1eddi gian t\u00ednh to\u00e1n',
-        execOf(initial) ? `${execOf(initial).toFixed(0)} ms` : '0 ms',
         execOf(astar) ? `${execOf(astar).toFixed(0)} ms` : '-',
         execOf(gaOnly) ? `${execOf(gaOnly).toFixed(0)} ms` : '-',
-        execOf(hybrid) ? `${execOf(hybrid).toFixed(0)} ms` : '-',
         '<span style="color:var(--sub)">Tham kh\u1ea3o</span>',
         '\u0110o tr\u1ef1c ti\u1ebfp tr\u00ean tr\u00ecnh duy\u1ec7t'
       ) +
       row(
         'S\u1ed1 \u0111i\u1ec3m giao',
-        `${stopOf(initial)} \u0111i\u1ec3m`,
         `${stopOf(astar)} \u0111i\u1ec3m`,
         `${stopOf(gaOnly)} \u0111i\u1ec3m`,
-        `${stopOf(hybrid)} \u0111i\u1ec3m`,
         '<span style="color:var(--sub)">Nh\u01b0 nhau</span>'
       ) +
       row(
         'M\u00f4 t\u1ea3 thu\u1eadt to\u00e1n',
-        'Tuy\u1ebfn tu\u1ea7n t\u1ef1 ch\u01b0a t\u1ed1i \u01b0u',
         'A* t\u00ecm \u0111\u01b0\u1eddng tr\u00ean \u0111\u1ed3 th\u1ecb',
         'GA metric Euclid',
-        'GA + ma tran A*',
-        '<span style="color:var(--sub)">4 c\u00e1ch kh\u00e1c nhau</span>'
+        '<span style="color:var(--sub)">2 c\u00e1ch kh\u00e1c nhau</span>'
       );
 
-    const bestGain = Math.max(astarImprove, gaImprove, hybridImprove);
-    setText('cmp-pct', `â†“ ${Math.max(0, bestGain).toFixed(1)}%`);
-    setText('cmp-sub', `Ban dau: ${kmOf(initial).toFixed(1)} km | A*: ${kmOf(astar).toFixed(1)} km | GA: ${kmOf(gaOnly).toFixed(1)} km | A*+GA: ${kmOf(hybrid).toFixed(1)} km`);
+    const bestGain = gaImprove;
+    setText('cmp-pct', `\u2193 ${Math.max(0, bestGain).toFixed(1)}%`);
+    setText('cmp-sub', `A*: ${kmOf(astar).toFixed(1)} km | GA: ${kmOf(gaOnly).toFixed(1)} km`);
     renderCompareIndicators();
     if(overlay) overlay.classList.add(overlay.id === 'moverlay' ? 'show' : 'on');
   };
@@ -2395,22 +2356,23 @@ PYTHON_BACKEND_OVERRIDE = r"""
     window.__compareModePatched = true;
     window.setMode = function(mode){
       const result = originalSetMode(mode);
+      if(Number(mode) === 0){
+        setText('sh-mode','A* Tu\u1ea7n t\u1ef1');
+        setStatus('Ch\u1ebf \u0111\u1ed9: A* tu\u1ea7n t\u1ef1 \u2014 Nh\u1ea5n \u25b6 Ch\u1ea1y');
+      }
       if(Number(mode) === 1){
-        setText('sh-mode','A*');
-        setStatus('Che do: Tuyen tuan tu ban dau truoc toi uu â€” nhan Chay');
+        setText('sh-mode','GA Di truy\u1ec1n');
+        setStatus('Ch\u1ebf \u0111\u1ed9: GA di truy\u1ec1n \u2014 Nh\u1ea5n \u25b6 Ch\u1ea1y');
+      }
+      if(Number(mode) === 2){
+        setText('sh-mode','SO S\u00c1NH A* VS GA');
+        setStatus('Ch\u1ebf \u0111\u1ed9: So s\u00e1nh A* v\u00e0 GA \u2014 Nh\u1ea5n \u25b6 Ch\u1ea1y');
       }
       if(Number(mode) === 3){
-        setText('sh-mode','SO SANH 4');
-        setStatus('Che do: So sanh A*, GA, A*+GA â€” nhan Chay');
+        setText('sh-mode','TUY\u1ebeN TU\u1ea2N T\u1ef0 BAN \u0110\u1ea6U');
+        setStatus('Ch\u1ebf \u0111\u1ed9: Tuy\u1ebfn tu\u1ea7n t\u1ef1 ban \u0111\u1ea7u \u2014 Nh\u1ea5n \u25b6 Ch\u1ea1y');
       }
-      if(Number(mode) === 4){
-        setText('sh-mode','TUYEN TUAN TU BAN DAU');
-        setStatus('Che do: Tuyen tuan tu ban dau â€” nhan Chay');
-      }
-      if(Number(mode) === 1) setStatus('Che do: A* tuan tu - nhan Chay');
-      if(Number(mode) === 3) setStatus('Che do: So sanh tuyen ban dau, A*, GA, A*+GA - nhan Chay');
-      if(Number(mode) === 4) setStatus('Che do: Tuyen tuan tu ban dau â€” nhan Chay');
-      adjustVehicleHudPosition(Number(mode) === 3);
+      adjustVehicleHudPosition(Number(mode) === 2);
       syncVehicleControlsForMode(mode);
       return result;
     };
@@ -2505,7 +2467,7 @@ def after_request(response):
     response.headers.add('Pragma', 'no-cache')
     return response
 
-# â”€â”€â”€ Global state â”€â”€â”€
+# ─── Global state ───
 STATE = {
     "points": [],
     "all_points": [],
@@ -2835,9 +2797,9 @@ def api_optimize():
     if mut_rate_percent < 0 or mut_rate_percent > 100:
         return jsonify({"status": "error", "message": "Gia tri mut_rate phai nam trong [0, 100]"}), 400
     mut_rate = mut_rate_percent / 100.0
-    ga_metric = str(request.args.get('metric', 'astar')).strip().lower()
-    if ga_metric not in {"astar", "euclidean"}:
-        return jsonify({"status": "error", "message": "metric chi ho tro: astar hoac euclidean"}), 400
+    ga_metric = str(request.args.get('metric', 'euclidean')).strip().lower()
+    if ga_metric not in {"euclidean"}:
+        return jsonify({"status": "error", "message": "metric chi ho tro: euclidean"}), 400
     use_time_windows = request.args.get('time_windows', '1') != '0'
     demands = {point["id"]: point.get("demand", 0) for point in points}
     time_windows = {
@@ -2845,10 +2807,10 @@ def api_optimize():
         for point in points
         if point.get("time_window") and use_time_windows
     }
-    metric_matrix = dist_matrix if ga_metric == "astar" else build_euclidean_distance_matrix(points, speed_kmh)
+    metric_matrix = build_euclidean_distance_matrix(points, speed_kmh)
     if not metric_matrix:
         return jsonify({"status": "error", "message": "Khong tao duoc ma tran metric GA"}), 400
-    algorithm_name = "astar_ga" if ga_metric == "astar" else "ga"
+    algorithm_name = "ga"
     logger = AlgorithmRunLogger(algorithm_name, {
         "metric": ga_metric,
         "point_count": len(points),
@@ -2965,6 +2927,3 @@ def api_optimize():
 
 if __name__ == '__main__':
     app.run(debug=False, port=5000, threaded=True, use_reloader=False)
-
-
-

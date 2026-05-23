@@ -1,9 +1,22 @@
 import random
 
+"""
+Nguồn tham khảo cho thuật toán:
+- Genetic Algorithm: Holland (1975), "Adaptation in Natural and Artificial Systems".
+- Order Crossover (OX): Davis (1985), kỹ thuật lai ghép phổ biến cho bài toán hoán vị/TSP.
+- Tournament selection và elitism là các toán tử chuẩn trong nhóm Genetic Algorithm.
+
+Phần tự triển khai trong đề tài:
+- Mã hóa chromosome là thứ tự các điểm giao hàng, bỏ depot 0 để tránh tạo nghiệm sai.
+- Fitness dùng ma trận chi phí do A* tạo ra, nhờ đó GA tối ưu thứ tự giao trên đường đi hợp lệ.
+- Bổ sung nhiều xe, tải trọng và time window bằng cách tách route và cộng penalty khi vi phạm.
+"""
+
 def random_chromosome(num_points):
     """
     Tạo 1 cá thể (chromosome) ngẫu nhiên.
-    Giải thuật: Điểm 0 là Kho hàng (Depot), nên ta chỉ xáo trộn các điểm còn lại.
+    Tham khảo: cách mã hóa hoán vị trong GA cho bài toán định tuyến/TSP.
+    Phần tự triển khai: điểm 0 là kho hàng (Depot), nên chỉ xáo trộn các điểm còn lại.
     Chromosome là một hoán vị (permutation) của các chỉ số điểm giao hàng.
     """
     indices = list(range(1, num_points))
@@ -19,8 +32,9 @@ def init_population(size, num_points):
 def fitness(chromosome, distance_matrix):
     """
     Tính hàm thích nghi (Fitness) của một cá thể.
-    Giải thuật: Tổng quãng đường của lộ trình: Depot -> P1 -> P2 -> ... -> Pn -> Depot.
-    Mục tiêu: Càng ngắn càng tốt. Ta trả về giá trị quãng đường (minimize).
+    Tham khảo: GA thường chuyển chất lượng nghiệm thành một điểm fitness.
+    Phần tự triển khai: bài toán đang cần minimize, nên fitness chính là tổng quãng đường
+    Depot -> P1 -> P2 -> ... -> Pn -> Depot, lấy từ `distance_matrix`.
     """
     if not chromosome:
         return 0
@@ -40,6 +54,13 @@ def fitness(chromosome, distance_matrix):
     return total_dist
 
 def split_routes(chromosome, vehicles=1, demands=None, capacity=None):
+    """
+    Tách một chromosome thành nhiều tuyến xe.
+    Phần tự triển khai:
+    1. Nếu chỉ có 1 xe thì giữ nguyên toàn bộ thứ tự giao.
+    2. Nếu có tải trọng, ưu tiên không vượt capacity và vẫn chia tương đối đều cho các xe.
+    3. Nếu không có tải trọng, chia vòng tròn theo chỉ số để các xe đều có điểm giao.
+    """
     vehicles = max(1, int(vehicles or 1))
     if vehicles == 1:
         return [chromosome[:]]
@@ -71,6 +92,10 @@ def split_routes(chromosome, vehicles=1, demands=None, capacity=None):
     return routes
 
 def route_distance(route, distance_matrix):
+    """
+    Tính quãng đường một tuyến xe đơn lẻ.
+    Phần tự triển khai: tự thêm depot 0 ở đầu/cuối để route con vẫn là một chuyến hoàn chỉnh.
+    """
     if not route:
         return 0
     total = distance_matrix[(0, route[0])][0]
@@ -91,6 +116,13 @@ def constrained_fitness(
     overload_penalty=10000,
     late_penalty=100,
 ):
+    """
+    Fitness có ràng buộc cho nhiều xe, tải trọng và khung giờ.
+    Phần tự triển khai:
+    1. Tách chromosome thành các route theo số xe.
+    2. Cộng quãng đường thực tế của từng route.
+    3. Nếu vượt tải hoặc giao trễ, cộng penalty để GA tự loại nghiệm kém.
+    """
     routes = split_routes(chromosome, vehicles, demands, capacity)
     total = 0
     penalty = 0
@@ -135,8 +167,9 @@ def evaluate_population(population, distance_matrix, fitness_func=None):
 def tournament_selection(evaluated_pop, k=3):
     """
     Chọn lọc tự nhiên bằng phương pháp Tournament.
-    Giải thuật: Chọn ngẫu nhiên k cá thể, trả về cá thể có fitness tốt nhất trong k đó.
-    Giúp duy trì áp lực chọn lọc nhưng vẫn đảm bảo tính đa dạng.
+    Tham khảo: tournament selection trong GA.
+    Ý tưởng lập trình: chọn ngẫu nhiên k cá thể, rồi lấy cá thể có fitness thấp nhất.
+    Cách này tạo áp lực chọn lọc nhưng vẫn giữ được tính đa dạng.
     """
     selection = random.sample(evaluated_pop, min(k, len(evaluated_pop)))
     selection.sort(key=lambda x: x[0])
@@ -145,7 +178,8 @@ def tournament_selection(evaluated_pop, k=3):
 def order_crossover(parent1, parent2):
     """
     Lai ghép thứ tự (OX Crossover).
-    Giải thuật:
+    Tham khảo: Order Crossover (OX) của Davis cho chromosome dạng hoán vị.
+    Các bước triển khai trong code:
     1. Chọn một đoạn con ngẫu nhiên từ Parent 1 và giữ nguyên vị trí trong Child.
     2. Điền các gen còn lại từ Parent 2 vào Child theo đúng thứ tự xuất hiện của chúng trong P2,
        nhằm giữ lại cấu trúc thứ tự tương đối.
@@ -173,8 +207,9 @@ def order_crossover(parent1, parent2):
 def swap_mutation(chromosome, rate=0.05):
     """
     Đột biến hoán đổi (Swap Mutation).
-    Giải thuật: Với xác suất 'rate', chọn 2 vị trí ngẫu nhiên và hoán đổi giá trị của chúng.
-    Giúp thuật toán thoát khỏi tối ưu cục bộ.
+    Tham khảo: mutation là toán tử chuẩn trong GA.
+    Phần tự triển khai: với xác suất `rate`, chọn 2 vị trí ngẫu nhiên và hoán đổi giá trị
+    để tạo biến thể mới, giúp thuật toán giảm nguy cơ kẹt ở tối ưu cục bộ.
     """
     if len(chromosome) >= 2 and random.random() < rate:
         idx1, idx2 = random.sample(range(len(chromosome)), 2)
@@ -199,6 +234,12 @@ def run_ga(
 ):
     """
     Vòng lặp chính của Giải thuật Di truyền (Genetic Algorithm).
+    Các bước song song với code:
+    1. Khởi tạo quần thể ban đầu.
+    2. Đánh giá fitness và lưu lịch sử nghiệm tốt nhất.
+    3. Giữ lại elite để không mất nghiệm tốt.
+    4. Chọn cha mẹ bằng tournament, lai ghép OX, sau đó đột biến swap.
+    5. Lặp qua nhiều thế hệ rồi trả về thứ tự giao hàng tốt nhất.
     """
     if num_points < 1:
         return [], 0, 0, [], []

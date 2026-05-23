@@ -1,10 +1,23 @@
 import heapq
 
+"""
+Nguồn tham khảo cho thuật toán:
+- A*: Hart, Nilsson, Raphael (1968), "A Formal Basis for the Heuristic Determination
+  of Minimum Cost Paths".
+- Hàng đợi ưu tiên: tài liệu Python `heapq`, dùng min-heap để lấy phần tử có ưu tiên nhỏ nhất.
+
+Phần tự triển khai trong đề tài:
+- Điều chỉnh A* cho cấu trúc graph của bài toán giao hàng: graph[u][v] là chi phí đi từ u đến v.
+- Tách `astar_with_steps` để ghi lại từng bước mở rộng node, phục vụ phần minh họa trên giao diện.
+- Bổ sung hàm tính thời gian di chuyển để dùng chung với báo cáo và demo.
+"""
+
 class SimplePriorityQueue:
     """
     Hàng đợi ưu tiên (Priority Queue) thủ công.
-    Giải thuật: Sử dụng module heapq của Python để duy trì cấu trúc Min-Heap.
-    Giúp lấy ra node có f_score thấp nhất với độ phức tạp O(log n).
+    Tham khảo: Python `heapq` triển khai Min-Heap.
+    Ý tưởng lập trình: lưu tuple (priority, item), trong đó priority chính là f_score.
+    Nhờ vậy A* luôn lấy được node hứa hẹn nhất với độ phức tạp O(log n).
     """
     def __init__(self):
         self.elements = []
@@ -26,7 +39,8 @@ class SimplePriorityQueue:
 def reconstruct_path(came_from, start, goal):
     """
     Truy vết ngược đường đi từ đích về điểm đầu.
-    Giải thuật: Đi ngược từ goal qua các node cha lưu trong came_from cho đến khi chạm start.
+    Phần tự triển khai: `came_from` chỉ lưu cha tốt nhất của mỗi node, nên cần đi ngược
+    từ goal về start rồi đảo danh sách để có đúng thứ tự start -> goal.
     """
     current = goal
     path = []
@@ -40,6 +54,12 @@ def reconstruct_path(came_from, start, goal):
 def astar(graph, start, goal, points, h_func):
     """
     Thuật toán A* tìm đường đi ngắn nhất giữa 2 điểm trên đồ thị.
+    Tham khảo công thức g(n), h(n), f(n)=g(n)+h(n) từ thuật toán A* gốc.
+    Phần tự triển khai theo bài toán:
+    1. Khởi tạo mọi chi phí là vô cực để chỉ cập nhật khi tìm được đường tốt hơn.
+    2. Mỗi lần lấy node có f_score nhỏ nhất ra khỏi priority queue.
+    3. Nếu gặp goal thì truy vết đường đi bằng `came_from`.
+    4. Nếu một neighbor có chi phí mới thấp hơn, cập nhật cha và đưa lại vào hàng đợi.
     """
     open_set = SimplePriorityQueue()
     open_set.put(start, 0)
@@ -73,6 +93,8 @@ def astar(graph, start, goal, points, h_func):
 def astar_with_steps(graph, start, goal, points, h_func):
     """
     Phiên bản A* trả về danh sách các bước để phục vụ việc minh họa (visualization).
+    Phần này là tự triển khai cho demo: ngoài kết quả cuối, code còn lưu current/open/closed/path
+    ở từng bước để giao diện giải thích được vì sao A* chọn node tiếp theo.
     """
     steps = []
     open_set_data = [{ 'node': start, 'f': h_func(start, goal, points), 'g': 0 }]
@@ -149,7 +171,8 @@ def astar_with_steps(graph, start, goal, points, h_func):
 def calc_travel_time(distance, speed_kmh=40):
     """
     Tính thời gian di chuyển (phút).
-    Công thức: (Khoảng cách / Tốc độ) * 60
+    Phần tự triển khai: đổi đơn vị từ giờ sang phút theo công thức
+    (khoảng cách / tốc độ) * 60.
     """
     if speed_kmh <= 0:
         raise ValueError("speed_kmh must be greater than 0")

@@ -5,7 +5,7 @@ Hệ thống được thiết kế để giải quyết bài toán giao hàng c�
 - **A-Star (A*)**: Tìm đường đi thực tế ngắn nhất giữa hai điểm bất kỳ trên bản đồ đường phố mô phỏng.
 - **Genetic Algorithm (GA)**: Tối ưu hóa thứ tự các điểm giao hàng và phân bổ cho nhiều xe (Multiple Vehicles) tuân thủ giới hạn tải trọng (Capacity) và khung giờ giao hàng (Time Windows) để đạt được tổng chi phí (quãng đường và thời gian) nhỏ nhất.
 
-Phiên bản hiện tại tách rõ các mode xử lý: tuyến tuần tự ban đầu, A* tuần tự, GA thuần và A* + GA. Điều này giúp mỗi thay đổi về thuật toán chỉ ảnh hưởng đúng phần cần chạy, tránh việc GA hoặc A* vô tình dùng lại tuyến baseline.
+Phiên bản hiện tại tách rõ các mode xử lý: tuyến tuần tự ban đầu, A* tuần tự, GA tối ưu và chế độ so sánh A* vs GA. Cơ chế A* + GA không còn là một mode chạy riêng. A* được dùng để tìm đường hợp lệ trên mạng đường và tạo dữ liệu path phục vụ hiển thị/đối chiếu; GA tối ưu thứ tự giao hàng theo metric Euclid, sau đó backend tính lại quãng đường thực tế và path chi tiết để vẽ lên giao diện.
 
 ## 2. Kiến Trúc Cụ Thể (Architecture Design)
 Hệ thống chia làm 4 module chính (Phases):
@@ -23,9 +23,9 @@ Hệ thống chia làm 4 module chính (Phases):
 - **Distance Matrix**: Từ danh sách điểm giao hàng, chạy A* cho mọi cặp điểm để xây dựng ma trận khoảng cách NxN (D). Chi phí này là chi phí thực tế (đã tránh vật cản) chứ không phải khoảng cách đường chim bay.
 
 ### 2.3. Module Tối Ưu Lộ Trình (Optimization - Genetic Algorithm)
-- **genetic.py**: Nhận đầu vào là ma trận khoảng cách D từ module A*.
+- **genetic.py**: Nhận đầu vào là ma trận metric dùng cho GA. Bản hiện tại dùng metric Euclid khi tối ưu GA, sau đó tính lại `actual_dist` và `route_paths` theo backend để hiển thị tuyến thực tế.
   - **Mã hóa (Encoding)**: Permutation (Hoán vị). Mỗi NST (Chromosome) là một dãy thứ tự các điểm giao hàng. Ví dụ: `[3, 1, 4, 2]`.
-  - **Hàm thích nghi (Fitness Function)**: Tổng chi phí đường đi dựa trên ma trận khoảng cách. Fitness càng nhỏ càng tốt.
+  - **Hàm thích nghi (Fitness Function)**: Tổng chi phí đường đi dựa trên ma trận metric được chọn. Fitness càng nhỏ càng tốt.
   - **Toán tử chọn lọc (Selection)**: Tournament Selection (chọn nhóm ngẫu nhiên và lấy phần tử tốt nhất).
   - **Toán tử lai ghép (Crossover)**: Order Crossover (OX) - Lai ghép bảo toàn thứ tự để tránh trùng lặp điểm giao.
   - **Toán tử đột biến (Mutation)**: Swap Mutation - Hoán đổi ngẫu nhiên vị trí của 2 điểm.
@@ -37,11 +37,11 @@ Hệ thống chia làm 4 module chính (Phases):
   - Giao tiếp trực tiếp với lõi Python (Backend) qua REST API (Flask) và Server-Sent Events (SSE) để truyền tham số và nhận kết quả realtime.
   - Hiển thị animation hành trình xe chạy song song (nhiều xe cùng lúc).
   - Cung cấp các công cụ so sánh trực quan và biểu đồ hội tụ (Convergence Graph) của GA.
-  - Chỉ giữ một control **Số xe giao hàng**. Control này được bật cho GA, A* + GA và chế độ so sánh; bị vô hiệu hóa với tuyến tuần tự ban đầu và A* tuần tự.
+  - Chỉ giữ một control **Số xe giao hàng**. Control này áp dụng cho GA và chế độ so sánh; tuyến tuần tự ban đầu và A* tuần tự chỉ dùng một tuyến đối chiếu.
 
 ### 2.5. Module Nhật Ký Chạy Thuật Toán (Algorithm Run Logs)
 - **logging_utils.py**: Ghi log có cấu trúc dạng JSONL cho từng lần chạy thuật toán.
-- Các file mới nhất được đặt tại `logs/algorithm_runs/latest_astar.jsonl`, `latest_ga.jsonl`, `latest_astar_ga.jsonl`.
+- Các file mới nhất được đặt tại `logs/algorithm_runs/latest_astar.jsonl` và `latest_ga.jsonl` khi bật ghi log thuật toán.
 - Thư mục `logs/algorithm_runs/history/` lưu bản lịch sử theo `run_id`, giúp demo lại quá trình chạy và đối chiếu kết quả.
 - Các event chính gồm `start`, `matrix_done`, `metric_matrix_ready`, `baseline_ready`, `generation_progress`, `done`, `error`.
 
@@ -51,9 +51,9 @@ Hệ thống chia làm 4 module chính (Phases):
 3. Duyệt mọi cặp điểm giao hàng (i, j), chạy A* để tìm chi phí đường đi thực tế. Lưu vào ma trận chi phí D.
 4. Ghi log A* để lưu cấu hình, kích thước ma trận và số cặp path đã tạo.
 5. Khởi tạo quần thể GA (danh sách các hoán vị điểm giao hàng).
-6. Vòng lặp GA (Evaluations -> Selection -> Crossover -> Mutation) sử dụng metric được chọn để tính fitness.
+6. Vòng lặp GA (Evaluations -> Selection -> Crossover -> Mutation) dùng metric Euclid để tính fitness và tìm thứ tự giao hàng tốt.
 7. Chia nghiệm tốt nhất thành nhiều tuyến theo số xe đã cấu hình.
-8. Ghi log GA/A* + GA gồm tiến trình thế hệ, route cuối, `best_dist`, `actual_dist` và `route_count`.
+8. Ghi log GA gồm tiến trình thế hệ, route cuối, `best_dist`, `actual_dist` và `route_count`.
 9. Truy xuất lại đường đi chi tiết (từ A*) dựa vào thứ tự tối ưu để vẽ lên giao diện.
 
 ## 4. Các Ràng Buộc & Giả Định (Constraints & Assumptions)
@@ -62,4 +62,4 @@ Hệ thống chia làm 4 module chính (Phases):
 - Các xe có giới hạn về tải trọng (Capacity).
 - Xe giao hàng bắt đầu từ một kho hàng cố định.
 - Vận tốc di chuyển của xe là hằng số được tùy chỉnh trên giao diện.
-- Trọng tâm nằm ở việc kết hợp A* để tìm đường đi chính xác trên đường phố và GA để phân bổ, sắp xếp lịch trình tối ưu cho toàn bộ hạm đội xe.
+- Trọng tâm hiện tại là trình bày rõ hai vai trò: A* tìm đường hợp lệ trên đường phố cho tuyến tuần tự/hiển thị path, còn GA phân bổ và sắp xếp thứ tự giao hàng tối ưu gần đúng cho toàn bộ hạm đội xe.

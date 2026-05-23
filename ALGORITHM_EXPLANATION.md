@@ -32,7 +32,7 @@ Tài liệu này giải thích cách hoạt động của hai thuật toán cố
 ### Cấu trúc Dữ liệu:
 
 *   **`chromosome` (Cá thể/Nhiễm sắc thể)**: Là một mảng (list) chứa thứ tự các điểm giao. Ví dụ: `[3, 1, 4, 2]`. Giá trị này đại diện cho 1 lộ trình cụ thể: *Từ Kho -> điểm 3 -> điểm 1 -> điểm 4 -> điểm 2 -> về Kho*. Điểm `0` (Kho) được ngầm hiểu ở hai đầu.
-*   **`distance_matrix`**: Ma trận tra cứu nhanh chi phí từ `u` đến `v`. *Lưu ý:* GA hoàn toàn "mù" về bản đồ, nó chỉ biết khoảng cách thông qua ma trận này. Nếu ma trận bị cung cấp sai (khoảng cách đường chim bay), GA sẽ vô tình chỉ đạo xe đâm xuyên vật cản.
+*   **`distance_matrix`**: Ma trận tra cứu nhanh chi phí từ `u` đến `v`. Trong UI hiện tại, GA dùng metric Euclid để tối ưu nhanh thứ tự giao hàng; sau đó backend tính lại `actual_dist` và `route_paths` theo mạng đường để vẽ tuyến hợp lệ. Vì vậy cần phân biệt rõ **metric dùng để tối ưu** và **path thực tế dùng để hiển thị**.
 
 ### Các tham số tinh chỉnh chiến lược trong `run_ga(...)`:
 

@@ -271,6 +271,11 @@ select:focus{border-color:var(--cyan);}
 .SV.g{color:var(--lime);text-shadow:var(--gl);}
 .SV.v{color:var(--vio);}
 .SL{font-family:var(--fm);font-size:9px;color:var(--t3);letter-spacing:1px;text-transform:uppercase;}
+.analysis-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px;margin-top:10px;}
+.analysis-card{border:1px solid rgba(100,116,139,.32);border-radius:8px;padding:9px 10px;background:rgba(15,23,42,.34);}
+.analysis-card b{display:block;font-family:var(--fm);font-size:10px;color:var(--t3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:5px;}
+.analysis-card span{display:block;font-family:var(--fm);font-size:12px;color:var(--t1);line-height:1.45;}
+.analysis-note{font-size:11px;color:var(--t3);margin-bottom:10px;line-height:1.55;}
 
 /* Compare table */
 .ctbl{width:100%;border-collapse:collapse;}
@@ -462,15 +467,12 @@ select:focus{border-color:var(--cyan);}
   <!-- LEFT: MODES -->
   <div id="modes">
     <div class="modeBtn panel active" id="mb0" onclick="setMode(0)">
-      <span class="mic">⊕</span>A* + GA (KẾT HỢP)
-    </div>
-    <div class="modeBtn panel" id="mb1" onclick="setMode(1)">
       <span class="mic">★</span>CHỈ A* (TUẦN TỰ)
     </div>
-    <div class="modeBtn panel" id="mb2" onclick="setMode(2)">
+    <div class="modeBtn panel" id="mb1" onclick="setMode(1)">
       <span class="mic">◈</span>CHỈ GA (DI TRUYỀN)
     </div>
-    <div class="modeBtn panel" id="mb3" onclick="setMode(3)">
+    <div class="modeBtn panel" id="mb2" onclick="setMode(2)">
       <span class="mic">⚡</span>SO SÁNH A* VS GA
     </div>
   </div>
@@ -528,7 +530,7 @@ select:focus{border-color:var(--cyan);}
     <div class="sh"><div class="shv" id="sh-dist">—</div><div class="shl">KM ĐÃ ĐI</div></div>
     <div class="sh"><div class="shv o" id="sh-time">—</div><div class="shl">THỜI GIAN</div></div>
     <div class="sh"><div class="shv g" id="sh-stops">—</div><div class="shl">ĐIỂM ĐÃ GIAO</div></div>
-    <div class="sh"><div class="shv" id="sh-mode">A*+GA</div><div class="shl">CHẾ ĐỘ</div></div>
+    <div class="sh"><div class="shv" id="sh-mode">GA</div><div class="shl">CHẾ ĐỘ</div></div>
   </div>
 
   <!-- ZOOM -->
@@ -643,8 +645,14 @@ select:focus{border-color:var(--cyan);}
         <span>Đường hội tụ GA</span>
         <span id="cc-info" style="font-size:10px;color:var(--lime);font-family:var(--fm);text-transform:none;"></span>
       </div>
-      <div style="font-size:11px;color:var(--t3);margin-bottom:10px;line-height:1.5;">Biểu đồ thể hiện quá trình tối ưu qua các thế hệ. Trục dọc (Y) là tổng chi phí (Fitness - km), trục ngang (X) là tiến trình thế hệ. Đồ thị hội tụ (đi ngang) chứng tỏ thuật toán đã đạt mức tối ưu.</div>
-      <canvas id="cc" style="width:100%;height:140px;display:block;background:rgba(0,212,255,.02);border:1px solid var(--border2);border-radius:8px;"></canvas>
+      <div class="analysis-note">Biểu đồ thể hiện quá trình GA giảm chi phí qua từng thế hệ. Trục dọc là fitness, trục ngang là thế hệ; đường càng đi xuống và ổn định thì nghiệm càng hội tụ.</div>
+      <canvas id="cc" style="width:100%;height:240px;display:block;background:rgba(0,212,255,.02);border:1px solid var(--border2);border-radius:8px;"></canvas>
+      <div class="analysis-grid" id="ga-summary">
+        <div class="analysis-card"><b>Trạng thái GA</b><span>Chưa chạy</span></div>
+        <div class="analysis-card"><b>Fitness tốt nhất</b><span>—</span></div>
+        <div class="analysis-card"><b>Thế hệ</b><span>—</span></div>
+        <div class="analysis-card"><b>Tham số</b><span>—</span></div>
+      </div>
     </div>
     <div class="DG" id="cmp-section" style="display:none">
       <div class="DGL">So sánh nhanh</div>
@@ -672,7 +680,7 @@ select:focus{border-color:var(--cyan);}
     <button class="mcl" onclick="closeMdl()">✕</button>
     <h3>⚡ SO SÁNH CHI TIẾT: A* vs GA</h3>
     <table>
-      <thead><tr><th>CHỈ SỐ</th><th>A* TUẦN TỰ</th><th>A*+GA TỐI ƯU</th><th>KẾT LUẬN</th></tr></thead>
+      <thead><tr><th>CHỈ SỐ</th><th>A* TUẦN TỰ</th><th>GA TỐI ƯU</th><th>KẾT LUẬN</th></tr></thead>
       <tbody id="cmp-body"></tbody>
     </table>
     <div class="banner">
@@ -729,15 +737,14 @@ const NAMES=['Chợ Bến Thành','Bình Thạnh','Gò Vấp','Tân Phú','Quậ
 
 // Results per mode
 let results={
-  0:{dist:0,time:0,order:[],roadPaths:[]},  // A*+GA
-  1:{dist:0,time:0,order:[],roadPaths:[]},  // A* only
-  2:{dist:0,time:0,order:[],roadPaths:[]},  // GA only
+  1:{dist:0,time:0,order:[],roadPaths:[]},  // GA only
+  2:{dist:0,time:0,order:[],roadPaths:[]},  // Compare
 };
 let dm=[];  // distance matrix (road A*)
 let conv=[];// GA convergence
 
 // Current mode
-let MODE=0;
+let MODE=1;
 
 // Vehicle animation
 let VEH_SPEED=0.005;
@@ -1194,9 +1201,9 @@ function rndChrom(n){
   return a;
 }
 function fitGA(c){
-  let t=dm[0][c[0]];
-  for(let i=0;i<c.length-1;i++)t+=dm[c[i]][c[i+1]];
-  return t+dm[c[c.length-1]][0];
+  let t=dst(pts[0],pts[c[0]]);
+  for(let i=0;i<c.length-1;i++)t+=dst(pts[c[i]],pts[c[i+1]]);
+  return t+dst(pts[c[c.length-1]],pts[0]);
 }
 function tourSel(pop,k=5){
   let b=null,bf=Infinity;
@@ -1248,7 +1255,7 @@ function doGen(){
   buildCity();
   pts=[];dm=[];conv=[];doneSet.clear();
   vehs=[];animDist=0;animSeg=0;
-  results={0:{dist:0,time:0,order:[],roadPaths:[]},1:{dist:0,time:0,order:[],roadPaths:[]},2:{dist:0,time:0,order:[],roadPaths:[]}};
+  results={1:{dist:0,time:0,order:[],roadPaths:[]},2:{dist:0,time:0,order:[],roadPaths:[]}};
   if(animRAF){cancelAnimationFrame(animRAF);animRAF=null;}
 
   // Depot at center-ish intersection
@@ -1290,7 +1297,7 @@ function doGen(){
 function setMode(m){
   MODE=m;
   document.querySelectorAll('.modeBtn').forEach((b,i)=>b.classList.toggle('active',i===m));
-  const labels=['A*+GA','A* Tuần tự','GA Di truyền','So sánh A* vs GA'];
+  const labels=['A* Tuần tự','GA Di truyền','So sánh A* vs GA'];
   setText('sh-mode',labels[m]);
   setStatus(`Chế độ: ${labels[m]} — Nhấn ▶ Chạy`);
 }
@@ -1314,13 +1321,13 @@ async function doRun(){
 
   if(MODE===0) await runMode0();
   else if(MODE===1) await runMode1();
-  else if(MODE===2) await runMode2();
-  else await runMode3();
+  else await runMode2();
 
   setStyle('fp-run','pointerEvents','');
   setText('fp-run','▶ Chạy');
   setStyle('fp-result','display','flex');
-  setStyle('fp-cmp','display',MODE===3?'flex':'none');
+  setStyle('fp-cmp','display',MODE===2?'flex':'none');
+  setStyle('fp-step','display',MODE===0?'flex':'none');
   setStyle('fp-export','display','flex');
   setStyle('fp-replay','display','flex');
   setStyle('fp-route','display','flex');
@@ -1328,26 +1335,10 @@ async function doRun(){
   startAnim();
 }
 
-// ─── Mode 0: A* + GA ───────────────────────────
-async function runMode0(){
-  setStatus('Chạy GA tối ưu thứ tự...');
-  const {order,cost}=await runGA();
-  // Build road paths for full route
-  const paths=[];
-  let totalCost=0;
-  for(let i=0;i<order.length-1;i++){
-    const p=getRoadPath(order[i],order[i+1]);
-    paths.push(p);
-    totalCost+=dm[order[i]][order[i+1]];
-  }
-  results[0]={dist:totalCost,time:0,order,roadPaths:paths};
-  setResult(0,totalCost);
-  // One motorbike, cyan color
-  vehs=[makeVeh(order,paths,'#00d4ff','A*+GA')];
-}
 
-// ─── Mode 1: A* only, sequential ───────────────
-async function runMode1(){
+
+// ─── Mode 0: A* only, sequential ───────────────
+async function runMode0(){
   setStatus('A* tìm đường tuần tự...');
   const order=[0,...Array.from({length:pts.length-1},(_,i)=>i+1),0];
   const paths=[],totalArr=[];
@@ -1356,13 +1347,13 @@ async function runMode1(){
     totalArr.push(dm[order[i]][order[i+1]]);
   }
   const totalCost=totalArr.reduce((a,b)=>a+b,0);
-  results[1]={dist:totalCost,time:0,order,roadPaths:paths};
-  setResult(1,totalCost);
+  results[0]={dist:totalCost,time:0,order,roadPaths:paths};
+  setResult(0,totalCost);
   vehs=[makeVeh(order,paths,'#ff7b35','A* Tuần tự')];
 }
 
-// ─── Mode 2: GA only (using straight-line dm approx) ─
-async function runMode2(){
+// ─── Mode 1: GA only (using straight-line dm approx) ─
+async function runMode1(){
   setStatus('GA tìm thứ tự tối ưu (không có A* road path)...');
   const {order,cost}=await runGA();
   // Road paths still needed for animation
@@ -1372,13 +1363,13 @@ async function runMode2(){
     paths.push(getRoadPath(order[i],order[i+1]));
     totalCost+=dm[order[i]][order[i+1]];
   }
-  results[2]={dist:totalCost,time:0,order,roadPaths:paths};
-  setResult(2,totalCost);
+  results[1]={dist:totalCost,time:0,order,roadPaths:paths};
+  setResult(1,totalCost);
   vehs=[makeVeh(order,paths,'#a78bfa','GA Di truyền')];
 }
 
-// ─── Mode 3: Compare A* vs GA side by side ─────
-async function runMode3(){
+// ─── Mode 2: Compare A* vs GA side by side ─────
+async function runMode2(){
   const spd=+($('spd')?.value||40);
 
   // ── Step 1: A* sequential ──
@@ -1393,14 +1384,14 @@ async function runMode3(){
   }
   const timeA=performance.now()-t0A;
   const minsA=Math.round(costA*0.04/spd*60);
-  results[1]={
+  results[0]={
     dist:costA, time:minsA, execMs:timeA,
     order:ordA, roadPaths:pathsA,
     nodes: ordA.length-2, // delivery stops
     label:'A* Tuần tự', col:'#ff7b35'
   };
 
-  // ── Step 2: GA + A* ──
+  // ── Step 2: GA ──
   setStatus('Chạy GA tối ưu thứ tự...');
   const t0G=performance.now();
   const {order:ordG, cost:gaFitness}=await runGA();
@@ -1411,11 +1402,11 @@ async function runMode3(){
   }
   const timeG=performance.now()-t0G;
   const minsG=Math.round(costG*0.04/spd*60);
-  results[0]={
+  results[1]={
     dist:costG, time:minsG, execMs:timeG,
     order:ordG, roadPaths:pathsG,
     nodes: ordG.length-2,
-    label:'A*+GA', col:'#7ee787'
+    label:'GA Di truyền', col:'#a78bfa'
   };
 
   // ── Step 3: Update HUD stats (show GA result as primary) ──
@@ -1436,7 +1427,7 @@ async function runMode3(){
   // ── Step 4: Two bikes ──
   vehs=[
     makeVeh(ordA,pathsA,'#ff7b35','A* Tuần tự'),
-    makeVeh(ordG,pathsG,'#7ee787','GA Tối ưu')
+    makeVeh(ordG,pathsG,'#a78bfa','GA Di truyền')
   ];
 
   // Auto open compare modal after animation starts
@@ -1978,38 +1969,55 @@ function drawMinimap(){
 // CONVERGENCE CHART
 // ══════════════════════════════════════════════════════════
 function drawConv(){
-  const W=CC.offsetWidth||240, H=CC.offsetHeight||100;
+  const W=CC.offsetWidth||320, H=CC.offsetHeight||240;
   if(CC.width!==W)CC.width=W;
   if(CC.height!==H)CC.height=H;
   cctx.clearRect(0,0,W,H);cctx.fillStyle='#07111a';cctx.fillRect(0,0,W,H);
   if(conv.length<2){
-    cctx.fillStyle='rgba(139,148,158,.5)';cctx.font='10px "Roboto Mono", monospace';
-    cctx.textAlign='center';cctx.fillText('Chạy GA để xem',W/2,H/2);return;
+    cctx.fillStyle='rgba(139,148,158,.55)';cctx.font='12px "Roboto Mono", monospace';
+    cctx.textAlign='center';cctx.fillText('Chạy GA để xem đường hội tụ',W/2,H/2);return;
   }
-  const pd={t:10,r:10,b:20,l:40};
+  const pd={t:16,r:18,b:30,l:58};
   const cW=W-pd.l-pd.r,cH=H-pd.t-pd.b;
   const mn=Math.min(...conv),mx=Math.max(...conv),rng=mx-mn||1;
   cctx.strokeStyle='rgba(42,63,84,.5)';cctx.lineWidth=.5;
-  for(let i=0;i<=4;i++){
-    const y=pd.t+cH*(i/4);
+  for(let i=0;i<=5;i++){
+    const y=pd.t+cH*(i/5);
     cctx.beginPath();cctx.moveTo(pd.l,y);cctx.lineTo(pd.l+cW,y);cctx.stroke();
     cctx.fillStyle='rgba(139,148,158,.7)';cctx.font='9px "Roboto Mono", monospace';cctx.textAlign='right';
-    cctx.fillText((mx-(mx-mn)*(i/4)).toFixed(0),pd.l-4,y+3);
+    cctx.fillText((mx-(mx-mn)*(i/5)).toFixed(0),pd.l-6,y+3);
+  }
+  for(let i=0;i<=4;i++){
+    const x=pd.l+cW*(i/4);
+    cctx.beginPath();cctx.moveTo(x,pd.t);cctx.lineTo(x,pd.t+cH);cctx.stroke();
+    cctx.fillStyle='rgba(139,148,158,.55)';cctx.font='9px "Roboto Mono", monospace';cctx.textAlign='center';
+    cctx.fillText(Math.round((conv.length-1)*(i/4)),x,H-12);
   }
   const g2=cctx.createLinearGradient(0,pd.t,0,pd.t+cH);
   g2.addColorStop(0,'rgba(126,231,135,.22)');g2.addColorStop(1,'rgba(126,231,135,0)');
   cctx.beginPath();
   conv.forEach((v,i)=>{const x=pd.l+(i/(conv.length-1))*cW,y=pd.t+cH-((v-mn)/rng)*cH;i===0?cctx.moveTo(x,y):cctx.lineTo(x,y);});
   cctx.lineTo(pd.l+cW,pd.t+cH);cctx.lineTo(pd.l,pd.t+cH);cctx.closePath();cctx.fillStyle=g2;cctx.fill();
-  cctx.beginPath();cctx.strokeStyle='#7ee787';cctx.lineWidth=1.5;cctx.shadowColor='#7ee787';cctx.shadowBlur=4;
+  cctx.beginPath();cctx.strokeStyle='#7ee787';cctx.lineWidth=2.5;cctx.shadowColor='#7ee787';cctx.shadowBlur=7;
   conv.forEach((v,i)=>{const x=pd.l+(i/(conv.length-1))*cW,y=pd.t+cH-((v-mn)/rng)*cH;i===0?cctx.moveTo(x,y):cctx.lineTo(x,y);});
   cctx.stroke();cctx.shadowBlur=0;
   const lv=conv[conv.length-1],lx=pd.l+cW,ly=pd.t+cH-((lv-mn)/rng)*cH;
-  cctx.beginPath();cctx.arc(lx,ly,3,0,Math.PI*2);cctx.fillStyle='#7ee787';cctx.fill();
-  cctx.fillStyle='rgba(139,148,158,.6)';cctx.font='9px "Roboto Mono", monospace';cctx.textAlign='center';
-  cctx.fillText('THẾ HỆ TIẾN HÓA →',pd.l+cW/2,H-4);
+  cctx.beginPath();cctx.arc(lx,ly,4,0,Math.PI*2);cctx.fillStyle='#7ee787';cctx.fill();
+  cctx.fillStyle='rgba(139,148,158,.75)';cctx.font='10px "Roboto Mono", monospace';cctx.textAlign='center';
+  cctx.fillText('THẾ HỆ',pd.l+cW/2,H-2);
+  cctx.save();cctx.translate(12,pd.t+cH/2);cctx.rotate(-Math.PI/2);
+  cctx.fillText('FITNESS',0,0);cctx.restore();
   const ccInfo = document.getElementById('cc-info');
-  if (ccInfo) ccInfo.innerText = `TỐI ƯU NHẤT: ${mn.toFixed(2)} KM`;
+  if (ccInfo) ccInfo.innerText = `TỐT NHẤT: ${mn.toFixed(2)} · GIẢM ${(mx-mn).toFixed(2)}`;
+  const summary = document.getElementById('ga-summary');
+  if(summary){
+    summary.innerHTML = `
+      <div class="analysis-card"><b>Trạng thái GA</b><span>Đã chạy ${conv.length} thế hệ</span></div>
+      <div class="analysis-card"><b>Fitness tốt nhất</b><span>${mn.toFixed(2)}</span></div>
+      <div class="analysis-card"><b>Giảm chi phí</b><span>${(mx-mn).toFixed(2)} (${mx ? ((mx-mn)/mx*100).toFixed(1) : '0.0'}%)</span></div>
+      <div class="analysis-card"><b>Tham số</b><span>pop=${$('ps')?.value||80}, gen=${$('gens')?.value||300}, mut=${$('mr')?.value||3}%</span></div>
+    `;
+  }
 }
 
 // ══════════════════════════════════════════════════════════
@@ -2057,33 +2065,33 @@ function showCompareModal(){
   const min0=Math.round(r0.dist*SC_/spd*60),min1=Math.round(r1.dist*SC_/spd*60);
   const h0=Math.floor(min0/60),m0=min0%60,h1=Math.floor(min1/60),m1=min1%60;
   const hasBoth=r0.dist>0&&r1.dist>0;
-  const imp=hasBoth?((r1.dist-r0.dist)/r1.dist*100).toFixed(1):'—';
-  const tImp=hasBoth&&min1>0?((min1-min0)/min1*100).toFixed(1):'—';
+  const imp=hasBoth?((r0.dist-r1.dist)/r0.dist*100).toFixed(1):'—';
+  const tImp=hasBoth&&min0>0?((min0-min1)/min0*100).toFixed(1):'—';
   const execMs0=r0.execMs?r0.execMs.toFixed(0)+'ms':'—';
   const execMs1=r1.execMs?r1.execMs.toFixed(0)+'ms':'—';
   const nPts=pts.length-1;
-  const W=(v0,v1,l0,l1)=>hasBoth
-    ?(v0<v1?`<span style="color:#7ee787;font-weight:700">✓ ${l0}</span>`:`<span style="color:#ff7b35;font-weight:700">✓ ${l1}</span>`)
+  const W=(vA,vG,lA,lG)=>hasBoth
+    ?(vG<vA?`<span style="color:#a78bfa;font-weight:700">✓ ${lG}</span>`:`<span style="color:#ff7b35;font-weight:700">✓ ${lA}</span>`)
     :'—';
-  const row=(lbl,v1,v0,winner,note='')=>`<tr>
+  const row=(lbl,v0,v1,winner,note='')=>`<tr>
     <td style="color:var(--sub);font-size:11px;line-height:1.5">${lbl}${note?`<br><small style="font-size:9px;opacity:.55">${note}</small>`:''}</td>
-    <td style="color:#ff7b35;font-weight:700">${v1}</td>
-    <td style="color:#7ee787;font-weight:700">${v0}</td>
+    <td style="color:#ff7b35;font-weight:700">${v0}</td>
+    <td style="color:#a78bfa;font-weight:700">${v1}</td>
     <td>${winner}</td>
   </tr>`;
   const tbody=$('cmp-body');
   if(tbody)tbody.innerHTML=
-    row('Tổng quãng đường',km1+' km',km0+' km',W(r0.dist,r1.dist,'A*+GA','A* TT'),'Đường thực trên road network')+
-    row('Thời gian di chuyển',`${h1}h${m1}m`,`${h0}h${m0}m`,W(min0,min1,'A*+GA','A* TT'),`Ước tính tốc độ ${spd} km/h`)+
-    row('Cải thiện quãng đường','Baseline',imp!=='—'?'▼ '+imp+'%':'—',imp!=='—'?`<span style="color:#7ee787;font-weight:700">GA tốt hơn ${imp}%</span>`:'—','So với A* tuần tự')+
-    row('Cải thiện thời gian','Baseline',tImp!=='—'?'▼ '+tImp+'%':'—',tImp!=='—'?`<span style="color:#7ee787;font-weight:700">Tiết kiệm ${tImp}%</span>`:'—','')+
-    row('Thời gian tính toán',execMs1,execMs0,W(+(r0.execMs||999),+(r1.execMs||999),'A*+GA','A* TT'),'Thời gian chạy thuật toán')+
+    row('Tổng quãng đường',km0+' km',km1+' km',W(r0.dist,r1.dist,'A* TT','GA'),'Đường thực trên road network')+
+    row('Thời gian di chuyển',`${h0}h${m0}m`,`${h1}h${m1}m`,W(min0,min1,'A* TT','GA'),`Ước tính tốc độ ${spd} km/h`)+
+    row('Cải thiện quãng đường','Baseline',imp!=='—'?'▼ '+imp+'%':'—',imp!=='—'?`<span style="color:#a78bfa;font-weight:700">GA tốt hơn ${imp}%</span>`:'—','So với A* tuần tự')+
+    row('Cải thiện thời gian','Baseline',tImp!=='—'?'▼ '+tImp+'%':'—',tImp!=='—'?`<span style="color:#a78bfa;font-weight:700">Tiết kiệm ${tImp}%</span>`:'—','')+
+    row('Thời gian tính toán',execMs0,execMs1,W(+(r0.execMs||999),+(r1.execMs||999),'A* TT','GA'),'Thời gian chạy thuật toán')+
     row('Số điểm giao',''+nPts+' điểm',''+nPts+' điểm','<span style="color:var(--sub)">Như nhau</span>','')+
-    row('Thứ tự giao','1→2→…→'+nPts,'GA tối ưu',W(1,0,'A*+GA','A* TT'),'A* tuần tự, GA sắp xếp tối ưu')+
+    row('Thứ tự giao','1→2→…→'+nPts,'GA tối ưu',W(1,0,'A* TT','GA'),'A* tuần tự, GA sắp xếp tối ưu')+
     row('Heuristic',$('heur')?.value||'euclidean',$('heur')?.value||'euclidean','<span style="color:var(--sub)">Như nhau</span>','Dùng cho A* tìm đường')+
     row('Tham số GA','—','pop='+($('ps')?.value||80)+' gen='+($('gens')?.value||300)+' mut='+($('mr')?.value||3)+'%','<span style="color:var(--sub)">—</span>','Chỉ GA mới có')+
     row('Số lần gọi A*',''+nPts*(nPts+1)+' lần',''+nPts*(nPts+1)+' lần + GA','<span style="color:var(--sub)">A* như nhau</span>','Để xây ma trận khoảng cách')+
-    row('Độ phức tạp','O(n²·A*)','O(n²·A*)+O(pop·gen·n)',W(1,0,'A* TT','A*+GA'),'A* nhanh hơn, GA kết quả tốt hơn')+
+    row('Độ phức tạp','O(n²·A*)','O(n²·A*)+O(pop·gen·n)',W(1,0,'A* TT','GA'),'A* nhanh hơn, GA kết quả tốt hơn')+
     row('Phù hợp khi','n nhỏ, đơn giản','n lớn, cần tối ưu','<span style="color:var(--sub)">Tuỳ bài toán</span>','');
   setText('cmp-pct',hasBoth&&imp!=='—'?`▼ ${imp}%`:'—');
   setText('cmp-sub',hasBoth
@@ -2148,7 +2156,7 @@ function doExport(){
   oc.font='bold 11px Space Mono';oc.fillStyle='#7ee787';oc.textAlign='left';
   oc.fillText(`${labels[Math.min(MODE,2)]}: ${km}km | ${h}h${m}m | ${pts.length-1} điểm`,14,cv.height+24);
   oc.font='8px Space Mono';oc.fillStyle='#8b949e';
-  oc.fillText('DelivRoute v5 — Tối ưu giao hàng bằng A* + GA',14,cv.height+46);
+  oc.fillText('DelivRoute v5 — So sánh A* và GA',14,cv.height+46);
   const a=document.createElement('a');a.download=`delivroute_${Date.now()}.png`;
   a.href=OFF.toDataURL('image/png');a.click();
   closeMdl();

@@ -30,7 +30,7 @@ Về bản chất, bài toán có liên quan đến bài toán người giao hà
 - Xây dựng ma trận khoảng cách giữa các điểm để làm đầu vào cho bước tối ưu.
 - Áp dụng Genetic Algorithm để tìm thứ tự giao hàng tối ưu hơn so với lộ trình tuần tự.
 - Hiển thị kết quả dự đoán lộ trình trên giao diện.
-- So sánh kết quả giữa lộ trình tuần tự và lộ trình A* + GA.
+- So sánh kết quả giữa tuyến tuần tự ban đầu, tuyến A* tuần tự và tuyến GA tối ưu.
 - Đánh giá lý do lựa chọn thuật toán dựa trên độ phù hợp, hiệu quả và khả năng minh họa.
 
 ### 1.4. Phạm vi và giả định
@@ -47,16 +47,16 @@ Về bản chất, bài toán có liên quan đến bài toán người giao hà
 
 ### 1.5. Cập nhật triển khai hiện tại
 
-Phiên bản mới nhất tách rõ bốn chế độ chạy để tránh nhầm lẫn giữa các kết quả:
+Phiên bản mới nhất tách rõ các chế độ chạy để tránh nhầm lẫn giữa các kết quả:
 
 - **Tuyến tuần tự ban đầu**: tạo lộ trình tham chiếu theo thứ tự điểm giao ban đầu, không gọi A* và không gọi GA.
 - **A\***: chạy tìm đường trên đồ thị đường phố và ma trận chi phí A*, nhưng vẫn đi theo thứ tự tuần tự.
-- **GA**: tối ưu thứ tự giao hàng theo metric Euclid, sau đó quy đổi và hiển thị quãng đường thực tế trả về từ backend.
-- **A\* + GA**: dùng ma trận chi phí A* làm fitness cho GA, vì vậy tuyến tối ưu bám theo mạng đường và tránh vật cản.
+- **GA**: tối ưu thứ tự giao hàng theo metric Euclid, hỗ trợ nhiều xe, tải trọng và khung giờ; sau đó backend tính lại quãng đường/path thực tế để hiển thị trên bản đồ.
+- **So sánh A\* vs GA**: đặt tuyến A* tuần tự và tuyến GA cạnh nhau để so sánh tổng km, thời gian, runtime, số xe và phần trăm cải thiện.
 
-Tham số **số xe giao hàng** chỉ còn một nguồn cấu hình trên giao diện. Tham số này chỉ áp dụng cho GA, A* + GA và chế độ so sánh; A* tuần tự và tuyến ban đầu không chia nhiều xe. Backend đã cập nhật hàm `split_routes()` để khi người dùng chọn nhiều xe, GA trả về nhiều tuyến thật thay vì dồn toàn bộ điểm giao vào xe đầu tiên.
+Tham số **số xe giao hàng** chỉ còn một nguồn cấu hình trên giao diện. Tham số này áp dụng cho GA và chế độ so sánh; A* tuần tự và tuyến ban đầu không chia nhiều xe. Backend đã cập nhật hàm `split_routes()` để khi người dùng chọn nhiều xe, GA trả về nhiều tuyến thật thay vì dồn toàn bộ điểm giao vào xe đầu tiên.
 
-Hệ thống cũng bổ sung log thuật toán dạng JSONL trong thư mục `logs/algorithm_runs/`. Mỗi lần chạy tạo các file `latest_astar.jsonl`, `latest_ga.jsonl`, `latest_astar_ga.jsonl` và bản lịch sử theo `run_id`, giúp trình bày lại quá trình chạy khi demo.
+Hệ thống cũng bổ sung log thuật toán dạng JSONL trong thư mục `logs/algorithm_runs/`. Các log A* và GA giúp trình bày lại quá trình chạy khi demo.
 
 ## 2. Cơ sở lý thuyết về các giải thuật áp dụng
 
@@ -66,7 +66,7 @@ Hệ thống cũng bổ sung log thuật toán dạng JSONL trong thư mục `lo
 
 A* là thuật toán tìm kiếm đường đi ngắn nhất trên đồ thị có trọng số không âm. Thuật toán kết hợp giữa chi phí thực tế đã đi và chi phí ước lượng còn lại để ưu tiên mở rộng các đỉnh có khả năng nằm trên đường đi tốt nhất.
 
-Trong đề tài, A* được dùng để tìm khoảng cách ngắn nhất giữa hai điểm bất kỳ trên bản đồ. Sau khi chạy A* cho mọi cặp điểm, hệ thống tạo ra ma trận khoảng cách. Ma trận này là dữ liệu đầu vào cho Genetic Algorithm.
+Trong đề tài, A* được dùng để tìm khoảng cách ngắn nhất giữa hai điểm bất kỳ trên bản đồ, phục vụ tuyến A* tuần tự, chế độ step-by-step, ma trận/path backend và việc vẽ tuyến hợp lệ trên giao diện.
 
 #### Công thức đánh giá
 
@@ -179,7 +179,7 @@ Trong đó:
 
 #### Vai trò trong đề tài
 
-GA là phần tối ưu hóa chính. Sau khi A* cung cấp ma trận chi phí giữa các điểm, GA thử nhiều thứ tự giao hàng khác nhau và cải thiện dần qua các thế hệ. Kết quả cuối cùng là một lộ trình có tổng quãng đường nhỏ hơn lộ trình tuần tự trong đa số trường hợp.
+GA là phần tối ưu hóa chính. Bản hiện tại cho GA dùng metric Euclid để thử nhiều thứ tự giao hàng khác nhau và cải thiện dần qua các thế hệ. Sau khi GA chọn được thứ tự tốt, backend tính lại quãng đường và path thực tế để hiển thị tuyến trên bản đồ. Kết quả cuối cùng thường có tổng quãng đường nhỏ hơn lộ trình tuần tự trong đa số trường hợp.
 
 #### Ưu điểm
 
@@ -196,37 +196,40 @@ GA là phần tối ưu hóa chính. Sau khi A* cung cấp ma trận chi phí gi
 - Có yếu tố ngẫu nhiên nên mỗi lần chạy có thể cho kết quả hơi khác nhau.
 - Nếu tham số không phù hợp, thuật toán có thể hội tụ chậm hoặc mắc kẹt ở nghiệm cục bộ.
 
-### 2.3. TT3 - Mô hình kết hợp A* + GA
+### 2.3. TT3 - Quy trình phối hợp A* và GA trong bản hiện tại
 
 #### Khái niệm
 
-Trong đề tài này, chỉ có hai thuật toán chính được sử dụng độc lập là **A*** và **Genetic Algorithm**. Tuy nhiên, giải pháp hoàn chỉnh không dùng riêng từng thuật toán, mà kết hợp cả hai theo mô hình:
+Trong đề tài này, hai thuật toán chính là **A*** và **Genetic Algorithm**. Bản hiện tại không còn trình bày **A* + GA** như một mode lai riêng. Thay vào đó, hệ thống tách vai trò để người xem dễ phân biệt:
 
 ```text
-A* -> Ma trận khoảng cách -> GA -> Lộ trình giao hàng tối ưu
+Tuyến tuần tự ban đầu -> mốc đối chiếu
+A* tuần tự -> tìm đường hợp lệ theo thứ tự ban đầu
+GA -> tối ưu thứ tự/chia xe, sau đó backend tính lại path thực tế để hiển thị
+So sánh A* vs GA -> đặt hai kết quả cạnh nhau
 ```
 
-A* chịu trách nhiệm tính chi phí đường đi ngắn nhất giữa từng cặp điểm. GA sử dụng các chi phí đó để đánh giá và tối ưu thứ tự giao hàng. Vì vậy, TT3 trong báo cáo được hiểu là **phương án kết hợp hai thuật toán**, không phải một thuật toán thứ ba độc lập.
+A* chịu trách nhiệm chứng minh khả năng tìm đường hợp lệ giữa các điểm trên mạng đường. GA chịu trách nhiệm tối ưu tổ hợp thứ tự giao hàng và chia tuyến cho nhiều xe. Sau khi GA trả ra thứ tự, backend dùng dữ liệu đường đi chi tiết để vẽ đúng tuyến trên bản đồ.
 
 #### Vai trò trong đề tài
 
-Mô hình kết hợp A* + GA giải quyết bài toán theo hai tầng:
+Quy trình hiện tại giải quyết bài toán theo hai tầng:
 
 - Tầng 1: A* tìm khoảng cách ngắn nhất giữa các điểm.
 - Tầng 2: GA chọn thứ tự đi qua các điểm sao cho tổng quãng đường nhỏ.
 
-Nếu chỉ dùng A*, hệ thống chỉ biết cách đi ngắn nhất từ một điểm đến một điểm khác, nhưng chưa biết nên giao hàng theo thứ tự nào. Nếu chỉ dùng GA mà không có ma trận khoảng cách, việc đánh giá từng lộ trình sẽ thiếu dữ liệu chi phí giữa các điểm. Vì vậy, mô hình kết hợp giúp hai thuật toán bổ sung cho nhau.
+Nếu chỉ dùng A*, hệ thống chỉ biết cách đi ngắn nhất từ một điểm đến một điểm khác, nhưng chưa biết nên giao hàng theo thứ tự nào. Nếu chỉ dùng GA, hệ thống có thể tối ưu thứ tự nhanh nhưng cần backend tính lại path thực tế để hiển thị đúng trên mạng đường. Vì vậy, bản hiện tại không gộp thành một mode lai, mà trình bày A* và GA cạnh nhau để làm rõ vai trò từng thuật toán.
 
 #### Ưu điểm
 
 - Phân chia bài toán rõ ràng thành tìm đường và tối ưu thứ tự.
-- Kết hợp được ưu điểm của A* trong tìm đường ngắn nhất và GA trong tối ưu tổ hợp.
+- Dễ chứng minh ưu điểm của A* trong tìm đường ngắn nhất và GA trong tối ưu tổ hợp.
 - Dễ minh họa trên giao diện qua bản đồ, bảng kết quả và biểu đồ hội tụ.
 - Có khả năng mở rộng cho các bài toán giao hàng phức tạp hơn.
 
 #### Hạn chế
 
-- Thời gian tính toán tăng khi số điểm giao hàng lớn vì cần xây dựng ma trận khoảng cách và chạy GA nhiều thế hệ.
+- Thời gian tính toán tăng khi số điểm giao hàng lớn vì cần xây dựng dữ liệu path và chạy GA nhiều thế hệ.
 - Chất lượng nghiệm cuối phụ thuộc vào tham số GA.
 - GA là thuật toán gần đúng nên không đảm bảo tối ưu tuyệt đối trong mọi lần chạy.
 
@@ -234,11 +237,12 @@ Nếu chỉ dùng A*, hệ thống chỉ biết cách đi ngắn nhất từ m�
 
 ### 3.1. Các hướng xử lý được đánh giá
 
-Đề tài xét hai thuật toán chính và một mô hình kết hợp:
+Đề tài xét hai thuật toán chính và các tuyến đối chiếu trên giao diện:
 
 - **TT1 - A***: dùng để tìm đường đi ngắn nhất giữa hai điểm.
 - **TT2 - Genetic Algorithm**: dùng để tối ưu thứ tự giao hàng.
-- **TT3 - A* + GA**: mô hình kết hợp hai thuật toán để giải bài toán hoàn chỉnh.
+- **Tuyến tuần tự ban đầu**: mốc tham chiếu theo thứ tự điểm ban đầu.
+- **So sánh A* vs GA**: chế độ đánh giá trực quan giữa tuyến A* tuần tự và tuyến GA tối ưu.
 
 ### 3.2. Tiêu chí đánh giá
 
@@ -265,7 +269,7 @@ Trong đề tài, A* được chọn vì:
 - Dễ giải thích qua công thức `f(n) = g(n) + h(n)`.
 - Có thể hiển thị từng bước chạy trên giao diện.
 - Có thể mở rộng cho bản đồ có vật cản hoặc mạng đường thực tế.
-- Tạo được ma trận chi phí đáng tin cậy cho GA.
+- Tạo được đường đi và ma trận/path đáng tin cậy để hiển thị, đối chiếu và kiểm tra tính hợp lệ.
 
 #### Genetic Algorithm
 
@@ -279,29 +283,29 @@ GA được chọn vì:
 - Dễ biểu diễn nghiệm bằng chromosome.
 - Có thể hiển thị biểu đồ hội tụ để đánh giá quá trình tối ưu.
 
-#### Mô hình kết hợp A* + GA
+#### Quy trình phối hợp A* và GA
 
-Mô hình kết hợp A* + GA được chọn vì bài toán giao hàng không chỉ là bài toán tìm đường giữa hai điểm, cũng không chỉ là bài toán sắp xếp thứ tự. Nó gồm cả hai phần:
+Bản hiện tại tách riêng A* và GA vì bài toán giao hàng không chỉ là bài toán tìm đường giữa hai điểm, cũng không chỉ là bài toán sắp xếp thứ tự. Nó gồm cả hai phần:
 
 - Tìm chi phí di chuyển giữa các điểm.
 - Chọn thứ tự đi qua các điểm để giảm tổng chi phí.
 
-A* phù hợp với phần thứ nhất, GA phù hợp với phần thứ hai. Do đó, phương án kết hợp là lựa chọn hợp lý hơn so với việc chỉ dùng riêng một thuật toán.
+A* phù hợp với phần thứ nhất, GA phù hợp với phần thứ hai. Do đó, hệ thống vẫn dùng cả hai thuật toán, nhưng không gọi đó là một mode A* + GA riêng trên UI.
 
-Trong phần đánh giá kết quả, chương trình vẫn dùng **lộ trình tuần tự** làm tuyến đối chiếu. Tuyến tuần tự không được xem là thuật toán chính của đề tài, mà chỉ là mốc đối chiếu để đo mức cải thiện của mô hình A* + GA.
+Trong phần đánh giá kết quả, chương trình dùng **lộ trình tuần tự ban đầu** làm mốc tham chiếu và dùng **A* tuần tự** để đối chiếu với **GA tối ưu**. Tuyến tuần tự không được xem là thuật toán chính của đề tài, mà là mốc để người xem hiểu vì sao cần tối ưu.
 
-### 3.4. Lý do chọn mô hình kết hợp A* + GA
+### 3.4. Lý do dùng cả A* và GA
 
 Bài toán giao hàng có hai lớp quyết định:
 
 1. Đi từ điểm A đến điểm B như thế nào là ngắn nhất.
 2. Nên đi qua các điểm giao hàng theo thứ tự nào để tổng đường đi là nhỏ nhất.
 
-A* giải quyết lớp thứ nhất, còn GA giải quyết lớp thứ hai. Nếu chỉ dùng A*, chương trình chỉ biết đường đi ngắn nhất giữa hai điểm nhưng không biết thứ tự giao hàng tối ưu. Nếu chỉ dùng GA mà không có ma trận chi phí từ A*, việc đánh giá route sẽ thiếu nền tảng đường đi giữa các điểm. Vì vậy, kết hợp A* + GA là lựa chọn hợp lý:
+A* giải quyết lớp thứ nhất, còn GA giải quyết lớp thứ hai. Nếu chỉ dùng A*, chương trình chỉ biết đường đi ngắn nhất giữa hai điểm nhưng không biết thứ tự giao hàng tối ưu. Nếu chỉ dùng GA, chương trình có thể tìm thứ tự tốt nhưng vẫn cần backend dựng path thực tế để vẽ tuyến hợp lệ. Vì vậy, bản hiện tại tách hai thuật toán thành các mode rõ ràng:
 
-- A* tạo dữ liệu khoảng cách chính xác giữa từng cặp điểm.
-- GA dùng dữ liệu đó để tối ưu thứ tự giao hàng.
-- Lộ trình tuần tự làm mốc so sánh để đánh giá hiệu quả.
+- A* tạo tuyến tuần tự hợp lệ và minh họa tìm đường trên đồ thị.
+- GA tối ưu thứ tự giao hàng, chia tuyến nhiều xe và xử lý ràng buộc.
+- Chế độ so sánh A* vs GA giúp đánh giá hiệu quả mà không làm người xem nhầm đây là một thuật toán lai độc lập.
 
 ## 4. Xây dựng giải pháp bài toán và kết quả
 
@@ -313,11 +317,11 @@ Giải pháp được xây dựng theo luồng sau:
 2. Chương trình sinh danh sách điểm gồm kho hàng và các điểm giao.
 3. Chương trình xây dựng đồ thị từ danh sách điểm.
 4. Người dùng chọn heuristic cho A*.
-5. Chạy A* cho mọi cặp điểm để xây dựng ma trận khoảng cách.
-6. Người dùng chạy GA để tối ưu thứ tự giao hàng.
-7. GA trả về lộ trình tốt nhất, tổng quãng đường và lịch sử fitness.
-8. Giao diện hiển thị lộ trình dự đoán, thời gian ước tính và biểu đồ hội tụ.
-9. Hệ thống so sánh lộ trình A* + GA với lộ trình tuần tự.
+5. Chạy A* để xây dựng đường đi/ma trận phục vụ tuyến A* tuần tự và hiển thị path hợp lệ.
+6. Người dùng chạy GA để tối ưu thứ tự giao hàng và chia tuyến theo số xe.
+7. GA trả về lộ trình tốt nhất, tổng quãng đường, các tuyến xe và lịch sử fitness.
+8. Backend tính lại đường đi chi tiết để giao diện vẽ đúng tuyến trên bản đồ.
+9. Hệ thống so sánh A* tuần tự với GA; tuyến tuần tự ban đầu được dùng như mốc tham khảo riêng.
 
 ### 4.2. Dữ liệu đầu vào
 
@@ -333,12 +337,12 @@ Dữ liệu đầu vào từ giao diện gồm:
 Hệ thống hiển thị các kết quả:
 
 - Bản đồ các điểm giao hàng.
-- Lộ trình A* + GA sau khi tối ưu.
+- Lộ trình A* tuần tự và lộ trình GA sau khi tối ưu.
 - Tổng quãng đường của lộ trình tối ưu.
 - Tổng thời gian ước tính.
 - Số điểm giao đã hoàn thành.
 - Biểu đồ hội tụ GA.
-- Bảng so sánh tuyến tuần tự và tuyến A* + GA.
+- Bảng so sánh tuyến A* tuần tự và tuyến GA.
 - Danh sách lộ trình của từng phương pháp trong cửa sổ so sánh.
 
 ### 4.4. Hiển thị kết quả dự đoán
@@ -363,7 +367,7 @@ Kết quả dự đoán không chỉ gồm thứ tự điểm mà còn có:
 Phần so sánh được thực hiện giữa:
 
 - **Lộ trình tuần tự**: `0 -> 1 -> 2 -> ... -> n -> 0`.
-- **Lộ trình A* + GA**: thứ tự điểm do GA tối ưu dựa trên ma trận khoảng cách từ A*.
+- **Lộ trình GA**: thứ tự điểm do GA tối ưu; backend tính lại quãng đường/path thực tế để hiển thị trên bản đồ.
 
 Các chỉ số so sánh:
 
@@ -371,17 +375,17 @@ Các chỉ số so sánh:
 |---|---|
 | Tổng quãng đường | Tổng km xe cần đi |
 | Thời gian ước tính | Thời gian dự kiến dựa trên tốc độ xe |
-| Số km tiết kiệm | Chênh lệch giữa tuyến tuần tự và tuyến A* + GA |
-| Phần trăm cải thiện | Tỷ lệ giảm quãng đường so với tuyến tuần tự |
+| Số km tiết kiệm | Chênh lệch giữa tuyến A* tuần tự và tuyến GA |
+| Phần trăm cải thiện | Tỷ lệ giảm quãng đường so với tuyến A* tuần tự |
 | Lộ trình cụ thể | Danh sách điểm đi qua của từng phương pháp |
 
 Công thức phần trăm cải thiện:
 
 ```text
-improvement = ((distance_baseline - distance_ga) / distance_baseline) * 100
+improvement = ((distance_astar - distance_ga) / distance_astar) * 100
 ```
 
-Nếu `improvement` lớn hơn `0`, tuyến A* + GA tốt hơn tuyến tuần tự. Nếu bằng `0` hoặc nhỏ hơn, điều đó cho thấy tuyến tuần tự trong trường hợp đó đã tương đương hoặc tốt hơn, thường chỉ xảy ra ở một số cấu hình điểm đặc biệt hoặc do đặc tính ngẫu nhiên của GA.
+Nếu `improvement` lớn hơn `0`, tuyến GA tốt hơn tuyến A* tuần tự về tổng quãng đường. Nếu bằng `0` hoặc nhỏ hơn, điều đó cho thấy tuyến tuần tự trong trường hợp đó đã tương đương hoặc tốt hơn, thường chỉ xảy ra ở một số cấu hình điểm đặc biệt hoặc do đặc tính ngẫu nhiên của GA.
 
 ### 4.6. Kết quả đạt được
 
@@ -392,15 +396,15 @@ Sau khi xây dựng chương trình, hệ thống đạt được các kết qu�
 - Tối ưu được thứ tự giao hàng bằng Genetic Algorithm.
 - Hiển thị được lộ trình tối ưu trên bản đồ.
 - Hiển thị được quá trình hội tụ của GA.
-- So sánh được tuyến tuần tự và tuyến A* + GA.
+- So sánh được tuyến A* tuần tự và tuyến GA.
 - Chỉ rõ tuyến nào tối ưu hơn trong cửa sổ so sánh.
 - Người dùng có thể thay đổi số điểm, tốc độ và heuristic để quan sát kết quả khác nhau.
 
 ### 4.7. Nhận xét
 
-Việc kết hợp A* và GA là phù hợp với mục tiêu đề tài. A* đảm nhiệm phần tìm đường đi ngắn nhất giữa các điểm, còn GA đảm nhiệm phần tối ưu thứ tự giao hàng. Cách chia này làm cho bài toán rõ ràng, dễ giải thích và dễ mở rộng.
+Việc dùng cả A* và GA là phù hợp với mục tiêu đề tài. A* đảm nhiệm phần tìm đường đi ngắn nhất giữa các điểm, còn GA đảm nhiệm phần tối ưu thứ tự giao hàng. Cách tách mode hiện tại làm cho bài toán rõ ràng, dễ giải thích và dễ mở rộng.
 
-So với lộ trình tuần tự, lộ trình A* + GA thường có tổng quãng đường ngắn hơn do GA thử nhiều hoán vị khác nhau và giữ lại nghiệm tốt qua từng thế hệ. Tuy nhiên, vì GA là thuật toán gần đúng và có yếu tố ngẫu nhiên, kết quả có thể thay đổi giữa các lần chạy. Điều này phù hợp với đặc điểm của các thuật toán tối ưu tiến hóa.
+So với lộ trình A* tuần tự, lộ trình GA thường có tổng quãng đường ngắn hơn do GA thử nhiều hoán vị khác nhau và giữ lại nghiệm tốt qua từng thế hệ. Tuy nhiên, vì GA là thuật toán gần đúng và có yếu tố ngẫu nhiên, kết quả có thể thay đổi giữa các lần chạy. Điều này phù hợp với đặc điểm của các thuật toán tối ưu tiến hóa.
 
 ### 4.8. Hướng phát triển
 
@@ -416,6 +420,6 @@ Trong tương lai, đề tài có thể mở rộng theo các hướng:
 
 ## 5. Kết luận
 
-Đề tài đã xây dựng được một hệ thống mô phỏng tối ưu đường đi giao hàng bằng cách kết hợp thuật toán A* và Genetic Algorithm. A* được dùng để tính đường đi ngắn nhất giữa các điểm, còn GA được dùng để tìm thứ tự giao hàng tối ưu hơn. Lộ trình tuần tự được sử dụng làm phương án cơ sở để đánh giá mức cải thiện.
+Đề tài đã xây dựng được một hệ thống mô phỏng tối ưu đường đi giao hàng bằng thuật toán A* và Genetic Algorithm. A* được dùng để tính đường đi ngắn nhất giữa các điểm và minh họa tuyến tuần tự hợp lệ, còn GA được dùng để tìm thứ tự giao hàng tối ưu hơn và chia tuyến nhiều xe. Lộ trình tuần tự ban đầu được sử dụng làm phương án cơ sở để giải thích mức cải thiện.
 
-Kết quả cho thấy mô hình A* + GA phù hợp với bài toán tối ưu lộ trình giao hàng, có khả năng minh họa trực quan và đáp ứng yêu cầu của môn học Trí tuệ nhân tạo. Hệ thống không chỉ đưa ra kết quả dự đoán mà còn trình bày được quá trình tối ưu, giúp người xem hiểu rõ cách thuật toán hoạt động và lý do chọn thuật toán.
+Kết quả cho thấy việc phối hợp A* và GA theo các mode riêng phù hợp với bài toán tối ưu lộ trình giao hàng, có khả năng minh họa trực quan và đáp ứng yêu cầu của môn học Trí tuệ nhân tạo. Hệ thống không chỉ đưa ra kết quả dự đoán mà còn trình bày được quá trình tối ưu, giúp người xem hiểu rõ cách từng thuật toán hoạt động và lý do chọn thuật toán.

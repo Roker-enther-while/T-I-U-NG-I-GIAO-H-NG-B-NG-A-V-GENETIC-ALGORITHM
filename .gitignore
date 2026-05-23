@@ -17,4 +17,10 @@ outputs/debug/
 logs/algorithm_runs/*.jsonl
 logs/algorithm_runs/history/*.jsonl
 *.log
+*.zip
+outputs/figures/*.png
+outputs/figures/requested_figures_design_philosophy.md
+outputs/demo_terminal/
+notebooks/
+server_fixed.py
 .pytest_cache/
